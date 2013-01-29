@@ -40,6 +40,10 @@ quo_destruct(quo_t *q);
 int
 quo_finalize(void);
 
+int
+quo_nsockets(const quo_t *q,
+             int *out_nsockets);
+
 #ifdef __cplusplus
 }
 #endif

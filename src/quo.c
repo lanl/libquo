@@ -76,10 +76,6 @@ quo_construct(quo_t **q)
                 "quo_hwloc_construct");
         goto out;
     }
-    int tmp = -1;
-    quo_hwloc_sockets(newq->hwloc, &tmp);
-
-    printf ("#socks: %d\n", tmp);
 
 out:
     if (QUO_SUCCESS != qrc) {
@@ -100,6 +96,8 @@ quo_destruct(quo_t *q)
 
     if (NULL == q) return QUO_ERR_INVLD_ARG;
 
+    /* XXX TODO */
+
     return QUO_SUCCESS;
 }
 
@@ -107,5 +105,20 @@ quo_destruct(quo_t *q)
 int
 quo_finalize(void)
 {
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_nsockets(const quo_t *q,
+             int *out_nsockets)
+{
+    int rc = QUO_ERR;
+
+    if (NULL == q || NULL == out_nsockets) return QUO_ERR_INVLD_ARG;
+
+    if (QUO_SUCCESS != (rc = quo_hwloc_sockets(q->hwloc, out_nsockets))) {
+        return rc;
+    }
     return QUO_SUCCESS;
 }
