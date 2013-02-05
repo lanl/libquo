@@ -41,8 +41,16 @@ int
 quo_finalize(void);
 
 int
+quo_node_topo_dump(const quo_t *q);
+
+int
 quo_nsockets(const quo_t *q,
              int *out_nsockets);
+
+int
+quo_ncores(const quo_t *q,
+           int socket,
+           int *out_ncores);
 
 #ifdef __cplusplus
 }

@@ -34,7 +34,7 @@ LT_INIT
 # checks for header files.
 AC_CHECK_HEADERS([\
 inttypes.h limits.h stdint.h stdlib.h string.h unistd.h stdbool.h time.h \
-getopt.h ctype.h netdb.h sys/socket.h netinet/in.h arpa/inet.h
+getopt.h ctype.h netdb.h sys/socket.h netinet/in.h arpa/inet.h sys/types.h
 ])
 
 # checks for typedefs, structures, and compiler characteristics.

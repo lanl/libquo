@@ -24,8 +24,16 @@ int
 quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
 int
-quo_hwloc_sockets(quo_hwloc_t *hwloc,
+quo_hwloc_node_topo_dump(const quo_hwloc_t *hwloc);
+
+int
+quo_hwloc_sockets(const quo_hwloc_t *hwloc,
                   int *nsockets);
+
+int
+quo_hwloc_bound(const quo_hwloc_t *hwloc,
+                hwloc_pid_t pid,
+                bool *out_bound);
 
 
 #endif

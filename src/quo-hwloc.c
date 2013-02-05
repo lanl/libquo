@@ -70,7 +70,36 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_hwloc_sockets(quo_hwloc_t *hwloc,
+quo_hwloc_node_topo_dump(const quo_hwloc_t *hwloc)
+{
+    int topo_depth = 0;
+    int depth = 0;
+    int i = 0;
+    char sbuf[256];
+
+    if (NULL == hwloc) return QUO_ERR_INVLD_ARG;
+
+    (void)memset(sbuf, '\0', sizeof(sbuf));
+
+    topo_depth = hwloc_topology_get_depth(*(hwloc->topo));
+
+    for (depth = 0; depth < topo_depth; ++depth) {
+
+        fprintf(stdout, "Objects at level %d\n", depth);
+        for (i = 0; i < hwloc_get_nbobjs_by_depth(*(hwloc->topo), depth); ++i) {
+            hwloc_obj_snprintf(sbuf, sizeof(sbuf), *(hwloc->topo),
+                               hwloc_get_obj_by_depth(*(hwloc->topo), depth, i),
+                               "#", 0);
+            fprintf(stdout, "Index %u: %s\n", i, sbuf);
+
+        }
+    }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_sockets(const quo_hwloc_t *hwloc,
                   int *nsockets)
 {
     int depth = 0;
@@ -78,11 +107,29 @@ quo_hwloc_sockets(quo_hwloc_t *hwloc,
     if (NULL == hwloc || NULL == nsockets) return QUO_ERR_INVLD_ARG;
 
     depth = hwloc_get_type_depth(*(hwloc->topo), HWLOC_OBJ_SOCKET);
+
     if (HWLOC_TYPE_DEPTH_UNKNOWN == depth) {
         return QUO_ERR_TOPO;
     }
     else {
         *nsockets = hwloc_get_nbobjs_by_depth(*(hwloc->topo), depth);
     }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_bound(const quo_hwloc_t *hwloc,
+                hwloc_pid_t pid,
+                bool *out_bound)
+{
+#if 0
+    int rc = 0;
+    hwloc_cpuset_t set;
+
+    if (NULL == hwloc || NULL == out_bound) return QUO_ERR_INVLD_ARG;
+
+    hwloc_get_proc_cpubind(*(hwloc->topo), pid, set, HWLOC_CPUBIND_PROCESS);
+#endif
     return QUO_SUCCESS;
 }

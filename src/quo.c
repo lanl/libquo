@@ -16,6 +16,12 @@
 #ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
 #endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* global state                                                               */
@@ -25,12 +31,17 @@ static bool quo_initialized = 0;
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo_t type definition */
 typedef struct quo_t {
+    pid_t pid;
     quo_hwloc_t *hwloc;
     bool initialized;
     bool bound;
     int nsockets;
     int ncores;
 } quo_t;
+
+/* ////////////////////////////////////////////////////////////////////////// */
+/* public api */ 
+/* ////////////////////////////////////////////////////////////////////////// */
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
@@ -76,6 +87,7 @@ quo_construct(quo_t **q)
                 "quo_hwloc_construct");
         goto out;
     }
+    newq->pid = getpid();
 
 out:
     if (QUO_SUCCESS != qrc) {
@@ -110,6 +122,19 @@ quo_finalize(void)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+quo_node_topo_dump(const quo_t *q)
+{
+    return quo_hwloc_node_topo_dump(q->hwloc);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+#if 0 /* XXX */
+int
+quo_amount_sys_memory
+#endif
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 quo_nsockets(const quo_t *q,
              int *out_nsockets)
 {
@@ -120,5 +145,14 @@ quo_nsockets(const quo_t *q,
     if (QUO_SUCCESS != (rc = quo_hwloc_sockets(q->hwloc, out_nsockets))) {
         return rc;
     }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_ncores(const quo_t *q,
+           int socket,
+           int *out_ncores)
+{
     return QUO_SUCCESS;
 }
