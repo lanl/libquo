@@ -31,7 +31,7 @@ main(int argc, char **argv)
         bad_func = "quo_construct";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_node_topo_dump(quo))) {
+    if (QUO_SUCCESS != (qrc = quo_node_topo_echo(quo))) {
         bad_func = "quo_nsockets";
         goto out;
     }

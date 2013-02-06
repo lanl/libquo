@@ -24,7 +24,7 @@ int
 quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
 int
-quo_hwloc_node_topo_dump(const quo_hwloc_t *hwloc);
+quo_hwloc_node_topo_echo(const quo_hwloc_t *hwloc);
 
 int
 quo_hwloc_sockets(const quo_hwloc_t *hwloc,

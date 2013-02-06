@@ -70,7 +70,7 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_hwloc_node_topo_dump(const quo_hwloc_t *hwloc)
+quo_hwloc_node_topo_echo(const quo_hwloc_t *hwloc)
 {
     int topo_depth = 0;
     int depth = 0;
