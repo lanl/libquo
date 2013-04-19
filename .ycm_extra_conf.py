@@ -36,7 +36,7 @@ flags = [
 '-I',
 '.',
 '-I',
-'/usr/include',
+'./src',
 '-I',
 './ClangCompleter',
 '-isystem',
