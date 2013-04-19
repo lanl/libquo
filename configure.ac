@@ -13,18 +13,19 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([m4])
+AM_CONFIG_HEADER([config.h])
 
 # note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
-AM_CONFIG_HEADER([config.h])
-
 AC_USE_SYSTEM_EXTENSIONS
 
+CFLAGS_SAVE="$CFLAGS"
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CC_C99
 AC_GNU_SOURCE
+CFLAGS="$CFLAGS_SAVE"
 
 LT_INIT
 
@@ -44,6 +45,15 @@ AC_TYPE_SIZE_T
 # checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
+
+AX_PKG_HWLOC
+AS_IF([test "x$HAVE_PKG_HWLOC" != "x1"],dnl
+      [AC_MSG_ERROR([dnl
+*** hwloc package required but not found. please set CFLAGS and LDFLAGS flags.])
+      ]
+)
+
+
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

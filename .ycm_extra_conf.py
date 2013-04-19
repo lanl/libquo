@@ -36,6 +36,8 @@ flags = [
 '-I',
 '.',
 '-I',
+'/usr/include',
+'-I',
 './ClangCompleter',
 '-isystem',
 './tests/gmock/gtest',
