@@ -47,13 +47,8 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
 AX_PKG_HWLOC
-AS_IF([test "x$HAVE_PKG_HWLOC" != "x1"],dnl
-      [AC_MSG_ERROR([dnl
-*** hwloc package required but not found. please set CFLAGS and LDFLAGS flags.])
-      ]
-)
-
-
+AS_IF([test "x$AX_PKG_HWLOC_HAVE_HWLOC" != "x1"],dnl
+      [AC_MSG_ERROR([*** hwloc package required but not found ***])])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
