@@ -30,14 +30,14 @@ static bool quo_initialized = 0;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo_t type definition */
-typedef struct quo_t {
+struct quo_t {
     pid_t pid;
     quo_hwloc_t *hwloc;
     bool initialized;
     bool bound;
     int nsockets;
     int ncores;
-} quo_t;
+};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* public api */ 

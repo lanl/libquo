@@ -6,7 +6,7 @@
 # DESCRIPTION
 # checks for hwloc headers and library.
 #
-# LICENSE
+# COPYRIGHT
 # Copyright (c) 2013      Los Alamos National Security, LLC.
 #                         All rights reserved.
 #
