@@ -90,14 +90,12 @@ quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc)
     topo_depth = hwloc_topology_get_depth(*(hwloc->topo));
 
     for (depth = 0; depth < topo_depth; ++depth) {
-
-        fprintf(stdout, "Objects at level %d\n", depth);
+        fprintf(stdout, "objects at level %d\n", depth);
         for (i = 0; i < hwloc_get_nbobjs_by_depth(*(hwloc->topo), depth); ++i) {
             hwloc_obj_snprintf(sbuf, sizeof(sbuf), *(hwloc->topo),
                                hwloc_get_obj_by_depth(*(hwloc->topo), depth, i),
                                "#", 0);
-            fprintf(stdout, "Index %u: %s\n", i, sbuf);
-
+            fprintf(stdout, "index %u: %s\n", i, sbuf);
         }
     }
     return QUO_SUCCESS;
