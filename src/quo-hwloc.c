@@ -111,7 +111,8 @@ quo_hwloc_sockets(const quo_hwloc_t *hwloc,
     depth = hwloc_get_type_depth(*(hwloc->topo), HWLOC_OBJ_SOCKET);
 
     if (HWLOC_TYPE_DEPTH_UNKNOWN == depth) {
-        return QUO_ERR_TOPO;
+        /* hwloc can't determine the number of sockets, so just return 0 */
+        *nsockets = 0;
     }
     else {
         *nsockets = hwloc_get_nbobjs_by_depth(*(hwloc->topo), depth);
