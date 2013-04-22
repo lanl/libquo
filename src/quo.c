@@ -26,7 +26,14 @@
 /* ////////////////////////////////////////////////////////////////////////// */
 /* global state                                                               */
 /* ////////////////////////////////////////////////////////////////////////// */
-static bool quo_initialized = 0;
+typedef struct quo_global_state_t {
+    bool quo_initialized;
+} quo_global_state_t;
+
+
+static quo_global_state_t qgstate = {
+    .quo_initialized = false
+};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo_t type definition */
@@ -60,7 +67,7 @@ quo_version(int *version,
 int
 quo_init(void)
 {
-    quo_initialized = true;
+    qgstate.quo_initialized = true;
     return QUO_SUCCESS;
 }
 
@@ -74,7 +81,7 @@ quo_construct(quo_t **q)
     if (NULL == q) return QUO_ERR_INVLD_ARG;
 
     /* make sure we are initialized before we continue */
-    if (!quo_initialized) {
+    if (!qgstate.quo_initialized) {
         fprintf(stderr, QUO_ERR_PREFIX"%s called before %s. Cannot continue.\n",
                 __func__, "quo_init");
     }
@@ -91,9 +98,7 @@ quo_construct(quo_t **q)
 
 out:
     if (QUO_SUCCESS != qrc) {
-        if (NULL != newq) {
-            free(newq);
-        }
+        if (NULL != newq) free(newq);
         newq = NULL;
     }
     *q = newq;
