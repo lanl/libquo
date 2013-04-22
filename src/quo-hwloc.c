@@ -58,12 +58,8 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
 
 out:
     if (qrc != QUO_SUCCESS) {
-        if (NULL != topo) {
-            free(topo);
-        }
-        if (NULL != hwloc) {
-            free(hwloc);
-        }
+        if (NULL != topo) free(topo);
+        if (NULL != hwloc) free(hwloc);
         topo = NULL;
         hwloc = NULL;
     }
