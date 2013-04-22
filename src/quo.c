@@ -67,6 +67,7 @@ quo_version(int *version,
 int
 quo_init(void)
 {
+    /* nothing really to do here. placeholder */
     qgstate.quo_initialized = true;
     return QUO_SUCCESS;
 }
@@ -84,6 +85,7 @@ quo_construct(quo_t **q)
     if (!qgstate.quo_initialized) {
         fprintf(stderr, QUO_ERR_PREFIX"%s called before %s. Cannot continue.\n",
                 __func__, "quo_init");
+        return QUO_ERR;
     }
     if (NULL == (newq = calloc(1, sizeof(*newq)))) {
         QUO_OOR_COMPLAIN();
