@@ -6,7 +6,9 @@
 #ifndef QUO_H_INCLUDED
 #define QUO_H_INCLUDED
 
-/* other includes go here */
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,6 +53,10 @@ int
 quo_ncores(const quo_t *q,
            int socket,
            int *out_ncores);
+
+int
+quo_bound(const quo_t *q,
+          bool *bound);
 
 #ifdef __cplusplus
 }

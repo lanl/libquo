@@ -163,3 +163,11 @@ quo_ncores(const quo_t *q,
 {
     return QUO_SUCCESS;
 }
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_bound(const quo_t *q,
+          bool *bound)
+{
+    return quo_hwloc_bound(q->hwloc, q->pid, bound);
+}

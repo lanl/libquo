@@ -3,10 +3,23 @@
  *                         All rights reserved.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "quo.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 int
 main(int argc, char **argv)
@@ -18,6 +31,7 @@ main(int argc, char **argv)
     quo_t *quo = NULL;
     char *bad_func = NULL;
     int nsockets = 0;
+    bool bound = false;
 
     if (QUO_SUCCESS != (qrc = quo_version(&qv, &qsv))) {
         bad_func = "quo_version";
@@ -43,11 +57,17 @@ main(int argc, char **argv)
         bad_func = "quo_nsockets";
         goto out;
     }
-    printf("### nsockets: %d\n", nsockets);
+    if (QUO_SUCCESS != (qrc = quo_bound(quo, &bound))) {
+        bad_func = "quo_bound";
+        goto out;
+    }
     if (QUO_SUCCESS != (qrc = quo_destruct(quo))) {
         bad_func = "quo_destruct";
         goto out;
     }
+
+    printf("### nsockets: %d\n", nsockets);
+    printf("### process %d bound: %s\n", (int)getpid(), bound ? "true" : "false");
 
 out:
     if (NULL != bad_func) {

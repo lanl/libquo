@@ -14,6 +14,10 @@
 #ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
 #endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#include <errno.h>
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo_t type definition */
@@ -76,7 +80,7 @@ quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc)
 {
     int topo_depth = 0;
     int depth = 0;
-    int i = 0;
+    unsigned int i = 0;
     char sbuf[256];
 
     if (NULL == hwloc) return QUO_ERR_INVLD_ARG;
@@ -126,13 +130,32 @@ quo_hwloc_bound(const quo_hwloc_t *hwloc,
                 hwloc_pid_t pid,
                 bool *out_bound)
 {
-#if 0
     int rc = 0;
-    hwloc_cpuset_t set;
+    hwloc_cpuset_t set = NULL;
 
     if (NULL == hwloc || NULL == out_bound) return QUO_ERR_INVLD_ARG;
 
-    hwloc_get_proc_cpubind(*(hwloc->topo), pid, set, HWLOC_CPUBIND_PROCESS);
-#endif
-    return QUO_SUCCESS;
+    if (NULL == (set = hwloc_bitmap_alloc())) {
+        QUO_OOR_COMPLAIN();
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+    if (hwloc_get_proc_cpubind(*(hwloc->topo), pid, set, 0)) {
+        int err = errno;
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure in %s: %d (%s)\n",
+                "hwloc_get_proc_cpubind", __func__, err, strerror(err));
+        rc = QUO_ERR_TOPO;
+    }
+
+    char *s = NULL;
+    hwloc_bitmap_asprintf(&s, set);
+    printf("%s\n", s);
+    free(s);
+
+
+    *out_bound = false;
+
+out:
+    hwloc_bitmap_free(set);
+    return rc;
 }
