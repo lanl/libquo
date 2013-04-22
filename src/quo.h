@@ -41,7 +41,7 @@ int
 quo_finalize(void);
 
 int
-quo_node_topo_echo(const quo_t *q);
+quo_node_topo_emit(const quo_t *q);
 
 int
 quo_nsockets(const quo_t *q,

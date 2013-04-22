@@ -13,18 +13,16 @@
 #include "quo-private.h"
 #include "quo.h"
 
-/* XXX add configury for hwloc later */
 #include <hwloc.h>
 
-typedef struct quo_hwloc_t {
-    hwloc_topology_t *topo;
-} quo_hwloc_t;
+struct quo_hwloc_t;
+typedef struct quo_hwloc_t quo_hwloc_t;
 
 int
 quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
 int
-quo_hwloc_node_topo_echo(const quo_hwloc_t *hwloc);
+quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc);
 
 int
 quo_hwloc_sockets(const quo_hwloc_t *hwloc,

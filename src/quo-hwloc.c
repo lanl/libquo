@@ -7,13 +7,19 @@
 #include "config.h"
 #endif
 
+#include "quo-hwloc.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
 #endif
 
-#include "quo-hwloc.h"
+/* ////////////////////////////////////////////////////////////////////////// */
+/* quo_t type definition */
+struct quo_hwloc_t {
+    hwloc_topology_t *topo;
+};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
@@ -70,7 +76,7 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_hwloc_node_topo_echo(const quo_hwloc_t *hwloc)
+quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc)
 {
     int topo_depth = 0;
     int depth = 0;
