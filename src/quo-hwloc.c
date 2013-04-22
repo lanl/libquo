@@ -140,7 +140,7 @@ quo_hwloc_bound(const quo_hwloc_t *hwloc,
         rc = QUO_ERR_OOR;
         goto out;
     }
-    if (hwloc_get_proc_cpubind(*(hwloc->topo), pid, set, 0)) {
+    if (hwloc_get_proc_cpubind(*(hwloc->topo), pid, set, HWLOC_CPUBIND_PROCESS)) {
         int err = errno;
         fprintf(stderr, QUO_ERR_PREFIX"%s failure in %s: %d (%s)\n",
                 "hwloc_get_proc_cpubind", __func__, err, strerror(err));
@@ -151,7 +151,6 @@ quo_hwloc_bound(const quo_hwloc_t *hwloc,
     hwloc_bitmap_asprintf(&s, set);
     printf("%s\n", s);
     free(s);
-
 
     *out_bound = false;
 
