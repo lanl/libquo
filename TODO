@@ -1,2 +1,4 @@
 libquo TODO
 o Thread protection
+o See if we can change the affinity policy of a running executable and then
+  change it back to what it was before the modification.
