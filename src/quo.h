@@ -6,9 +6,7 @@
 #ifndef QUO_H_INCLUDED
 #define QUO_H_INCLUDED
 
-#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
