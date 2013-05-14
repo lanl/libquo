@@ -94,7 +94,7 @@ quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc)
         for (i = 0; i < hwloc_get_nbobjs_by_depth(*(hwloc->topo), depth); ++i) {
             hwloc_obj_snprintf(sbuf, sizeof(sbuf), *(hwloc->topo),
                                hwloc_get_obj_by_depth(*(hwloc->topo), depth, i),
-                               "#", 0);
+                               " #", 0);
             fprintf(stdout, "index %u: %s\n", i, sbuf);
         }
     }
