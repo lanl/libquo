@@ -25,20 +25,28 @@ int
 main(int argc, char **argv)
 {
     int erc = EXIT_SUCCESS;
-    hwloc_topology_t topology;
+    char *str = NULL;
     hwloc_cpuset_t cpu_set = hwloc_bitmap_alloc();
+    hwloc_topology_t topology;
 
     /* allocate and initialize topology object. */
     hwloc_topology_init(&topology);
+    /* build the topology */
+    hwloc_topology_load(topology);
 
-    hwloc_get_cpubind(topology, cpu_set, 0);
+    printf("starting reaffinitization test on pid %d\n", (int)getpid());
 
-    char *str = NULL;
+    hwloc_get_cpubind(topology, cpu_set, HWLOC_CPUBIND_PROCESS);
+
     hwloc_bitmap_asprintf(&str, cpu_set);
 
     printf("TEST: %s\n", str);
 
-    printf("starting reaffinitization test on pid %d\n", (int)getpid());
+    printf("done with reaffinitization test\n");
+
+
+    hwloc_bitmap_free(cpu_set);
+    free(str);
 
     return erc;
 }
