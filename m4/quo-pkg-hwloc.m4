@@ -30,9 +30,9 @@ AC_DEFUN([AX_PKG_HWLOC], [dnl
         if test "x$ax_pkg_hwloc_libs_happy" = "x1"; then
             AX_PKG_HWLOC_HAVE_HWLOC=1
         else
-            AC_MSG_WARN([could not find hwloc devel libs. please set CFLAGS.])
+            AC_MSG_WARN([could not find hwloc devel libs. please set LDFLAGS.])
         fi
     else
-        AC_MSG_WARN([could not find hwloc devel headers. please set LDFLAGS.])
+        AC_MSG_WARN([could not find hwloc devel headers. please set CPPFLAGS.])
     fi
 ])
