@@ -34,18 +34,23 @@ int
 quo_version(int *version,
             int *subversion);
 
+/* 1st call */
 int
 quo_init(void);
 
+/* 2nd call */
 int
 quo_construct(quo_t **q);
 
+/* 2nd-to-last call */
 int
 quo_destruct(quo_t *q);
 
+/* last call */
 int
 quo_finalize(void);
 
+/* FIXME: make this a stringify kinda thing. */
 int
 quo_node_topo_emit(const quo_t *q);
 
@@ -57,6 +62,11 @@ int
 quo_ncores(const quo_t *q,
            int socket,
            int *out_ncores);
+
+int
+quo_npus(const quo_t *q,
+         int socket,
+         int *out_npus);
 
 int
 quo_bound(const quo_t *q,

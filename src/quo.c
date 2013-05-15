@@ -124,6 +124,7 @@ quo_destruct(quo_t *q)
 int
 quo_finalize(void)
 {
+    qgstate.quo_initialized = false;
     return QUO_SUCCESS;
 }
 
@@ -162,6 +163,16 @@ quo_ncores(const quo_t *q,
            int *out_ncores)
 {
     return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_npus(const quo_t *q,
+         int socket,
+         int *out_npus)
+{
+    /* TODO */
+    return QUO_ERR_NOT_SUPPORTED;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
