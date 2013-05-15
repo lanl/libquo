@@ -112,10 +112,10 @@ out:
 int
 quo_destruct(quo_t *q)
 {
-
     if (NULL == q) return QUO_ERR_INVLD_ARG;
 
     /* XXX TODO */
+    if (q->hwloc) (void)quo_hwloc_destruct(q->hwloc);
 
     return QUO_SUCCESS;
 }

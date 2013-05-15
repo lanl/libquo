@@ -22,6 +22,9 @@ int
 quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
 int
+quo_hwloc_destruct(quo_hwloc_t *nhwloc);
+
+int
 quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc);
 
 int

@@ -76,6 +76,21 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+quo_hwloc_destruct(quo_hwloc_t *nhwloc)
+{
+    if (NULL == nhwloc) return QUO_ERR_INVLD_ARG;
+
+    if (nhwloc->topo) {
+        hwloc_topology_destroy(*(nhwloc->topo));
+        free(nhwloc->topo);
+        nhwloc->topo = NULL;
+    }
+    free(nhwloc);
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc)
 {
     int topo_depth = 0;
