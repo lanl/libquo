@@ -22,6 +22,7 @@
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo_t type definition */
 struct quo_hwloc_t {
+    /* the system's topology */
     hwloc_topology_t topo;
     /* the widest cpu set. primarily used for "is bound?" tests. */
     hwloc_cpuset_t widest_cpuset;
@@ -84,7 +85,9 @@ out:
         (void)quo_hwloc_destruct(hwloc);
         *nhwloc = NULL;
     }
-    *nhwloc = hwloc;
+    else {
+        *nhwloc = hwloc;
+    }
     return qrc;
 }
 
@@ -94,12 +97,8 @@ quo_hwloc_destruct(quo_hwloc_t *nhwloc)
 {
     if (NULL == nhwloc) return QUO_ERR_INVLD_ARG;
 
-    if (nhwloc->topo) {
-        hwloc_topology_destroy(nhwloc->topo);
-    }
-    if (nhwloc->widest_cpuset) {
-        hwloc_bitmap_free(nhwloc->widest_cpuset);
-    }
+    hwloc_topology_destroy(nhwloc->topo);
+    hwloc_bitmap_free(nhwloc->widest_cpuset);
     free(nhwloc);
     return QUO_SUCCESS;
 }
