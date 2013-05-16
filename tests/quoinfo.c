@@ -24,15 +24,13 @@
 int
 main(int argc, char **argv)
 {
-    int qrc = QUO_SUCCESS;
-    int erc = EXIT_SUCCESS;
-    int qv = 0;
-    int qsv = 0;
-    quo_t *quo = NULL;
-    char *bad_func = NULL;
+    int qrc = QUO_SUCCESS, erc = EXIT_SUCCESS;
+    int qv = 0, qsv = 0;
     int nsockets = 0, ncores = 0, npus = 0;
-    bool bound = false;
+    char *bad_func = NULL;
     char *topostr = NULL;
+    bool bound = false;
+    quo_t *quo = NULL;
 
     if (QUO_SUCCESS != (qrc = quo_version(&qv, &qsv))) {
         bad_func = "quo_version";
