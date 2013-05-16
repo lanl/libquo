@@ -62,8 +62,6 @@ int
 quo_nsockets(const quo_t *q,
              int *out_nsockets);
 
-/* XXX - maybe at some point have the capability to query #x on something else.
- * like n cores on a particular socket. Primarily for asymmetric topos. */
 int
 quo_ncores(const quo_t *q,
            int *out_ncores);

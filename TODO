@@ -1,4 +1,5 @@
 libquo TODO
 o Thread protection
-o See if we can change the affinity policy of a running executable and then
-  change it back to what it was before the modification.
+o Expose memory API.
+o Maybe at some point provide capability to query #x on some obj:
+  like x cores on a particular socket. Primarily for asymmetric topos.
