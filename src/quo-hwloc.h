@@ -25,7 +25,8 @@ int
 quo_hwloc_destruct(quo_hwloc_t *nhwloc);
 
 int
-quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc);
+quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
+                              char **out_str);
 
 int
 quo_hwloc_sockets(const quo_hwloc_t *hwloc,

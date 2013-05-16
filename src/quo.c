@@ -128,6 +128,7 @@ quo_destruct(quo_t *q)
     if (NULL == q) return QUO_ERR_INVLD_ARG;
     /* XXX TODO */
     if (q->hwloc) (void)quo_hwloc_destruct(q->hwloc);
+    free(q);
     return QUO_SUCCESS;
 }
 
@@ -143,11 +144,13 @@ quo_finalize(void)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_node_topo_emit(const quo_t *q)
+quo_node_topo_stringify(const quo_t *q,
+                        char **out_str)
 {
     /* make sure we are initialized before we continue */
     noinit_action;
-    return quo_hwloc_node_topo_emit(q->hwloc);
+    if (!q || !out_str) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_node_topo_stringify(q->hwloc, out_str);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

@@ -54,9 +54,9 @@ quo_destruct(quo_t *q);
 int
 quo_finalize(void);
 
-/* FIXME: make this a stringify kinda thing. */
 int
-quo_node_topo_emit(const quo_t *q);
+quo_node_topo_stringify(const quo_t *q,
+                        char **out_str);
 
 int
 quo_nsockets(const quo_t *q,

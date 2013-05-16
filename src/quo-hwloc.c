@@ -105,28 +105,43 @@ quo_hwloc_destruct(quo_hwloc_t *nhwloc)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc)
+quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
+                              char **out_str)
 {
     int topo_depth = 0;
     int depth = 0;
+    int cwritten = 0;
     unsigned int i = 0;
-    char sbuf[256];
+    char sbuf[1024];
+    char *retstr = NULL, *tmpstr = NULL, *tmpp = NULL;
 
-    if (NULL == hwloc) return QUO_ERR_INVLD_ARG;
+    if (!hwloc || !out_str) return QUO_ERR_INVLD_ARG;
 
     (void)memset(sbuf, '\0', sizeof(sbuf));
 
     topo_depth = hwloc_topology_get_depth(hwloc->topo);
 
     for (depth = 0; depth < topo_depth; ++depth) {
-        fprintf(stdout, "objects at level %d\n", depth);
+        cwritten = asprintf(&tmpstr, "objects at level %d\n", depth);
+        if (-1 == cwritten) return QUO_ERR_OOR;
+        tmpp = retstr;
+        /* just appending tmpstr to retstr */
+        cwritten = asprintf(&retstr, "%s%s", retstr ? retstr : "", tmpstr);
+        if (-1 == cwritten) return QUO_ERR_OOR;
+        free(tmpstr);
+        if (tmpp) free(tmpp);
         for (i = 0; i < hwloc_get_nbobjs_by_depth(hwloc->topo, depth); ++i) {
-            hwloc_obj_snprintf(sbuf, sizeof(sbuf), hwloc->topo,
+            hwloc_obj_snprintf(sbuf, sizeof(sbuf) - 1, hwloc->topo,
                                hwloc_get_obj_by_depth(hwloc->topo, depth, i),
                                " #", 0);
-            fprintf(stdout, "index %u: %s\n", i, sbuf);
+            tmpp = retstr;
+            cwritten = asprintf(&retstr, "%sindex %u: %s\n", retstr, i, sbuf);
+            if (-1 == cwritten) return QUO_ERR_OOR;
+            free(tmpp);
         }
     }
+    /* caller is responsible for freeing returned resources */
+    *out_str = retstr;
     return QUO_SUCCESS;
 }
 

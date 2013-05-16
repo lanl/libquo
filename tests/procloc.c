@@ -32,6 +32,7 @@ main(int argc, char **argv)
     char *bad_func = NULL;
     int nsockets = 0, ncores = 0, npus = 0;
     bool bound = false;
+    char *topostr = NULL;
 
     if (QUO_SUCCESS != (qrc = quo_version(&qv, &qsv))) {
         bad_func = "quo_version";
@@ -46,12 +47,10 @@ main(int argc, char **argv)
         bad_func = "quo_construct";
         goto out;
     }
-    printf("### begin system topo ***\n");
-    if (QUO_SUCCESS != (qrc = quo_node_topo_emit(quo))) {
+    if (QUO_SUCCESS != (qrc = quo_node_topo_stringify(quo, &topostr))) {
         bad_func = "quo_node_topo_emit";
         goto out;
     }
-    printf("### end system topo ***\n");
     if (QUO_SUCCESS != (qrc = quo_nsockets(quo, &nsockets))) {
         bad_func = "quo_nsockets";
         goto out;
@@ -72,11 +71,13 @@ main(int argc, char **argv)
         bad_func = "quo_destruct";
         goto out;
     }
+    free(topostr);
 
     printf("### nsockets: %d\n", nsockets);
     printf("### ncores: %d\n", ncores);
     printf("### npus: %d\n", npus);
     printf("### process %d bound: %s\n", (int)getpid(), bound ? "true" : "false");
+    printf("### begin system topology\n%s###end system topology\n", topostr);
 
 out:
     if (NULL != bad_func) {
