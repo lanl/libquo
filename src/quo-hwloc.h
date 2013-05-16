@@ -42,7 +42,6 @@ quo_hwloc_pus(const quo_hwloc_t *hwloc,
 
 int
 quo_hwloc_bound(const quo_hwloc_t *hwloc,
-                hwloc_pid_t pid,
                 bool *out_bound);
 
 #endif

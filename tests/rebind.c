@@ -38,7 +38,7 @@ emit_binding(const hwloc_topology_t *t)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
     int erc = EXIT_SUCCESS;
     unsigned ncores = 0;

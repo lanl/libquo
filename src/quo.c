@@ -193,5 +193,5 @@ quo_bound(const quo_t *q,
 {
     /* make sure we are initialized before we continue */
     noinit_action;
-    return quo_hwloc_bound(q->hwloc, q->pid, bound);
+    return quo_hwloc_bound(q->hwloc, bound);
 }
