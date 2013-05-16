@@ -4,13 +4,13 @@
 ################################################################################
 
 bin_PROGRAMS = \
-procloc \
+quoinfo \
 rebind
 
-procloc_SOURCES = procloc.c
-procloc_CFLAGS  = -I$(top_srcdir)/src
-procloc_LDFLAGS = -L$(top_srcdir)/src
-procloc_LDADD   = -lquo
+quoinfo_SOURCES = quoinfo.c
+quoinfo_CFLAGS  = -I$(top_srcdir)/src
+quoinfo_LDFLAGS = -L$(top_srcdir)/src
+quoinfo_LDADD   = -lquo
 
 rebind_SOURCES = rebind.c
 rebind_CFLAGS  = -I$(top_srcdir)/src
