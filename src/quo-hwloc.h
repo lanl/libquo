@@ -32,6 +32,10 @@ quo_hwloc_sockets(const quo_hwloc_t *hwloc,
                   int *nsockets);
 
 int
+quo_hwloc_cores(const quo_hwloc_t *hwloc,
+                int *ncores);
+
+int
 quo_hwloc_bound(const quo_hwloc_t *hwloc,
                 hwloc_pid_t pid,
                 bool *out_bound);

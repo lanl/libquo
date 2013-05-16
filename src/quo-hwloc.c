@@ -131,25 +131,48 @@ quo_hwloc_node_topo_emit(const quo_hwloc_t *hwloc)
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/**
+ * return the number of target_types.
+ */
+static int
+getnx(const quo_hwloc_t *hwloc,
+      hwloc_obj_type_t target_type,
+      int *nx)
+{
+    int depth = 0;
+
+    if (NULL == hwloc || NULL == nx) return QUO_ERR_INVLD_ARG;
+
+    depth = hwloc_get_type_depth(hwloc->topo, target_type);
+
+    if (HWLOC_TYPE_DEPTH_UNKNOWN == depth) {
+        /* hwloc can't determine the number of x, so just return 0 and not
+         * supported. */
+        *nx = 0;
+        return QUO_ERR_NOT_SUPPORTED;
+    }
+    else {
+        *nx = hwloc_get_nbobjs_by_depth(hwloc->topo, depth);
+    }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_sockets(const quo_hwloc_t *hwloc,
                   int *nsockets)
 {
-    int depth = 0;
-
     if (NULL == hwloc || NULL == nsockets) return QUO_ERR_INVLD_ARG;
+    return getnx(hwloc, HWLOC_OBJ_SOCKET, nsockets);
+}
 
-    depth = hwloc_get_type_depth(hwloc->topo, HWLOC_OBJ_SOCKET);
-
-    if (HWLOC_TYPE_DEPTH_UNKNOWN == depth) {
-        /* hwloc can't determine the number of sockets, so just return 0 */
-        *nsockets = 0;
-        return QUO_ERR_NOT_SUPPORTED;
-    }
-    else {
-        *nsockets = hwloc_get_nbobjs_by_depth(hwloc->topo, depth);
-    }
-    return QUO_SUCCESS;
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_cores(const quo_hwloc_t *hwloc,
+                int *ncores)
+{
+    if (NULL == hwloc || NULL == ncores) return QUO_ERR_INVLD_ARG;
+    return getnx(hwloc, HWLOC_OBJ_CORE, ncores);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

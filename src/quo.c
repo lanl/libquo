@@ -146,23 +146,17 @@ int
 quo_nsockets(const quo_t *q,
              int *out_nsockets)
 {
-    int rc = QUO_ERR;
-
     if (NULL == q || NULL == out_nsockets) return QUO_ERR_INVLD_ARG;
-
-    if (QUO_SUCCESS != (rc = quo_hwloc_sockets(q->hwloc, out_nsockets))) {
-        return rc;
-    }
-    return QUO_SUCCESS;
+    return quo_hwloc_sockets(q->hwloc, out_nsockets);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_ncores(const quo_t *q,
-           int socket,
            int *out_ncores)
 {
-    return QUO_SUCCESS;
+    if (NULL == q || NULL == out_ncores) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_cores(q->hwloc, out_ncores);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
