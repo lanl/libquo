@@ -40,10 +40,6 @@ static quo_global_state_t qgstate = {
 struct quo_t {
     pid_t pid;
     quo_hwloc_t *hwloc;
-    bool initialized;
-    bool bound;
-    int nsockets;
-    int ncores;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -80,10 +76,8 @@ quo_version(int *version,
             int *subversion)
 {
     if (NULL == version || NULL == subversion) return QUO_ERR_INVLD_ARG;
-
     *version = QUO_VER;
     *subversion = QUO_SUBVER;
-
     return QUO_SUCCESS;
 }
 
