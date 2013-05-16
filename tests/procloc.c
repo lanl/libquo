@@ -30,7 +30,7 @@ main(int argc, char **argv)
     int qsv = 0;
     quo_t *quo = NULL;
     char *bad_func = NULL;
-    int nsockets = 0, ncores = 0;
+    int nsockets = 0, ncores = 0, npus = 0;
     bool bound = false;
 
     if (QUO_SUCCESS != (qrc = quo_version(&qv, &qsv))) {
@@ -60,6 +60,10 @@ main(int argc, char **argv)
         bad_func = "quo_ncores";
         goto out;
     }
+    if (QUO_SUCCESS != (qrc = quo_npus(quo, &npus))) {
+        bad_func = "quo_npus";
+        goto out;
+    }
     if (QUO_SUCCESS != (qrc = quo_bound(quo, &bound))) {
         bad_func = "quo_bound";
         goto out;
@@ -71,6 +75,7 @@ main(int argc, char **argv)
 
     printf("### nsockets: %d\n", nsockets);
     printf("### ncores: %d\n", ncores);
+    printf("### npus: %d\n", npus);
     printf("### process %d bound: %s\n", (int)getpid(), bound ? "true" : "false");
 
 out:

@@ -66,7 +66,6 @@ quo_ncores(const quo_t *q,
 
 int
 quo_npus(const quo_t *q,
-         int socket,
          int *out_npus);
 
 int

@@ -162,11 +162,10 @@ quo_ncores(const quo_t *q,
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_npus(const quo_t *q,
-         int socket,
          int *out_npus)
 {
-    /* TODO */
-    return QUO_ERR_NOT_SUPPORTED;
+    if (NULL == q || NULL == out_npus) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_pus(q->hwloc, out_npus);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

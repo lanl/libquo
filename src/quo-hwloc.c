@@ -177,6 +177,15 @@ quo_hwloc_cores(const quo_hwloc_t *hwloc,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+quo_hwloc_pus(const quo_hwloc_t *hwloc,
+              int *npus)
+{
+    if (NULL == hwloc || NULL == npus) return QUO_ERR_INVLD_ARG;
+    return getnx(hwloc, HWLOC_OBJ_PU, npus);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 quo_hwloc_bound(const quo_hwloc_t *hwloc,
                 hwloc_pid_t pid,
                 bool *out_bound)
