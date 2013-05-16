@@ -22,7 +22,7 @@
 #endif
 
 int
-main(int argc, char **argv)
+main(void)
 {
     int qrc = QUO_SUCCESS, erc = EXIT_SUCCESS;
     int qv = 0, qsv = 0;
@@ -80,7 +80,7 @@ main(int argc, char **argv)
 
 out:
     if (NULL != bad_func) {
-        fprintf(stderr, "xxx %s failure in: %s\n", argv[0], bad_func);
+        fprintf(stderr, "xxx %s failure in: %s\n", __FILE__, bad_func);
         erc = EXIT_FAILURE;
     }
 
