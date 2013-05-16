@@ -38,7 +38,6 @@ main(int argc, char **argv)
         bad_func = "quo_version";
         goto out;
     }
-    printf("### quo version: %d.%d ###\n", qv, qsv);
     if (QUO_SUCCESS != (qrc = quo_init())) {
         bad_func = "quo_init";
         goto out;
@@ -71,8 +70,10 @@ main(int argc, char **argv)
         bad_func = "quo_destruct";
         goto out;
     }
+    /* the string returned by quo_node_topo_stringify MUST be free'd by us */
     free(topostr);
 
+    printf("### quo version: %d.%d ###\n", qv, qsv);
     printf("### nsockets: %d\n", nsockets);
     printf("### ncores: %d\n", ncores);
     printf("### npus: %d\n", npus);
