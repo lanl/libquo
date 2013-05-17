@@ -20,6 +20,9 @@ int
 quo_mpi_construct(quo_mpi_t **nmpi);
 
 int
+quo_mpi_init(quo_mpi_t *nmpi);
+
+int
 quo_mpi_destruct(quo_mpi_t *nmpi);
 
 #endif

@@ -24,8 +24,11 @@
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo_mpi_t type definition */
 struct quo_mpi_t {
+    /* my rank */
     int rank;
+    /* number of ranks in comm world */
     int nranks;
+    /* number of ranks that share a node with me (includes myself). */
     int nsmpranks;
 };
 
@@ -33,16 +36,32 @@ struct quo_mpi_t {
 int
 quo_mpi_construct(quo_mpi_t **nmpi)
 {
-    int initialized = 0;
+    quo_mpi_t *m = NULL;
 
     if (!nmpi) return QUO_ERR_INVLD_ARG;
 
-    if (MPI_SUCCESS != MPI_Initialized(&initialized)) return QUO_ERR_MPI;
+    if (NULL == (m = calloc(1, sizeof(*m)))) {
+        QUO_OOR_COMPLAIN();
+        return QUO_ERR_OOR;
+    }
+    return MPI_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_mpi_destruct(quo_mpi_t *nmpi)
+quo_mpi_init(quo_mpi_t *mpi)
 {
+    int initialized = 0;
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    if (MPI_SUCCESS != MPI_Initialized(&initialized)) return QUO_ERR_MPI;
+    return QUO_ERR_NOT_SUPPORTED;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_destruct(quo_mpi_t *mpi)
+{
+    if (!mpi) return QUO_ERR_INVLD_ARG;
     return QUO_ERR_NOT_SUPPORTED;
 }

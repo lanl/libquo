@@ -64,7 +64,7 @@ noinit_msg_emit(const char *func)
 do {                                                                           \
     if (!hadinit()) {                                                          \
         noinit_msg_emit(__func__);                                             \
-        return QUO_ERR;                                                        \
+        return QUO_ERR_CALL_BEFORE_INIT;                                       \
     }                                                                          \
 } while (0)
 
