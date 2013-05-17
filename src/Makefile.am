@@ -9,6 +9,7 @@ libquo.la
 libquo_la_SOURCES = \
 quo-private.h \
 quo-hwloc.h quo-hwloc.c \
+quo-mpi.h quo-mpi.c \
 quo.h quo.c
 
 libquo_la_CFLAGS =

@@ -3,3 +3,5 @@ o Thread protection
 o Expose memory API.
 o Maybe at some point provide capability to query #x on some obj:
   like x cores on a particular socket. Primarily for asymmetric topos.
+o Install libquo.h and create quo subdirectory with all the other includes (if
+  needed).

@@ -87,6 +87,5 @@ out:
         fprintf(stderr, "xxx %s failure in: %s\n", __FILE__, bad_func);
         erc = EXIT_FAILURE;
     }
-
     return erc;
 }

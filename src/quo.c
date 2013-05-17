@@ -10,6 +10,7 @@
 #include "quo.h"
 #include "quo-private.h"
 #include "quo-hwloc.h"
+#include "quo-mpi.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,6 +41,7 @@ static quo_global_state_t qgstate = {
 struct quo_t {
     pid_t pid;
     quo_hwloc_t *hwloc;
+    quo_mpi_t *mpi;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -107,6 +109,11 @@ quo_construct(quo_t **q)
     if (QUO_SUCCESS != (qrc = quo_hwloc_construct(&newq->hwloc))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
                 "quo_hwloc_construct");
+        goto out;
+    }
+    if (QUO_SUCCESS != (qrc = quo_mpi_construct(&newq->mpi))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
+                "quo_mpi_construct");
         goto out;
     }
     newq->pid = getpid();
@@ -205,4 +212,24 @@ quo_stringify_cbind(const quo_t *q,
     noinit_action;
     if (!q || !cbind_str) return QUO_ERR_INVLD_ARG;
     return quo_hwloc_stringify_cbind(q->hwloc, cbind_str);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_nnodes(const quo_t *q,
+           int *out_nodes)
+{
+    noinit_action;
+    if (!q || !out_nodes) return QUO_ERR_INVLD_ARG;
+    return QUO_ERR_NOT_SUPPORTED;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_nnodepeers(const quo_t *q,
+               int *out_nodepeers)
+{
+    noinit_action;
+    if (!q || !out_nodepeers) return QUO_ERR_INVLD_ARG;
+    return QUO_ERR_NOT_SUPPORTED;
 }

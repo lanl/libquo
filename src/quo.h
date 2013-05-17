@@ -22,6 +22,7 @@ enum {
     QUO_ERR_INVLD_ARG,
     QUO_ERR_CALL_BEFORE_INIT,
     QUO_ERR_TOPO,
+    QUO_ERR_MPI,
     QUO_ERR_NOT_SUPPORTED
 };
 
@@ -77,6 +78,14 @@ quo_bound(const quo_t *q,
 int
 quo_stringify_cbind(const quo_t *q,
                     char **cbind_str);
+
+int
+quo_nnodes(const quo_t *q,
+           int *out_nodes);
+
+int
+quo_nnodepeers(const quo_t *q,
+               int *out_nodepeers);
 
 #ifdef __cplusplus
 }

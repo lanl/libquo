@@ -20,7 +20,7 @@
 #include <errno.h>
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* quo_t type definition */
+/* quo_hwloc_t type definition */
 struct quo_hwloc_t {
     /* the system's topology */
     hwloc_topology_t topo;
