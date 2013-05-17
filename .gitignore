@@ -15,7 +15,6 @@ install-sh
 missing
 stamp-h1
 ylwrap
-m4
 libtool
 ltmain.sh
 .ycm_extra_conf.pyc
@@ -23,3 +22,8 @@ compile
 *.libs
 *.lo
 *.la
+m4/libtool.m4
+m4/ltoptions.m4
+m4/ltsugar.m4
+m4/ltversion.m4
+m4/lt~obsolete.m4

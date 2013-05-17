@@ -48,7 +48,12 @@ AC_CHECK_FUNCS([memset strerror strtoul])
 
 AX_PKG_HWLOC
 AS_IF([test "x$AX_PKG_HWLOC_HAVE_HWLOC" != "x1"],dnl
-      [AC_MSG_ERROR([*** hwloc package required but not found ***])])
+      [AC_MSG_ERROR([*** hwloc package required but not found. ***])])
+
+AX_PKG_MPI
+AS_IF([test "x$AX_PKG_MPI_HAVE_MPI" != "x1"],dnl
+      [AC_MSG_ERROR(
+       [*** CC cannot compile MPI apps. set CC to something that can. ***])])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
