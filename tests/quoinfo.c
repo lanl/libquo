@@ -68,16 +68,14 @@ main(void)
         bad_func = "quo_destruct";
         goto out;
     }
-    /* the string returned by quo_node_topo_stringify MUST be free'd by us */
-    free(topostr);
-
     printf("### quo version: %d.%d ###\n", qv, qsv);
     printf("### nsockets: %d\n", nsockets);
     printf("### ncores: %d\n", ncores);
     printf("### npus: %d\n", npus);
     printf("### process %d bound: %s\n", (int)getpid(), bound ? "true" : "false");
     printf("### begin system topology\n%s###end system topology\n", topostr);
-
+    /* the string returned by quo_node_topo_stringify MUST be free'd by us */
+    free(topostr);
 out:
     if (NULL != bad_func) {
         fprintf(stderr, "xxx %s failure in: %s\n", __FILE__, bad_func);

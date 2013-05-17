@@ -118,9 +118,7 @@ quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
     if (!hwloc || !out_str) return QUO_ERR_INVLD_ARG;
 
     (void)memset(sbuf, '\0', sizeof(sbuf));
-
     topo_depth = hwloc_topology_get_depth(hwloc->topo);
-
     for (depth = 0; depth < topo_depth; ++depth) {
         cwritten = asprintf(&tmpstr, "objects at level %d\n", depth);
         if (-1 == cwritten) return QUO_ERR_OOR;
