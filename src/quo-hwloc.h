@@ -44,4 +44,12 @@ int
 quo_hwloc_bound(const quo_hwloc_t *hwloc,
                 bool *out_bound);
 
+int
+quo_hwloc_sbitmask(const quo_hwloc_t *hwloc,
+                   char **out_str);
+
+int
+quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
+                          char **out_str);
+
 #endif

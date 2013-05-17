@@ -74,6 +74,10 @@ int
 quo_bound(const quo_t *q,
           bool *bound);
 
+int
+quo_stringify_cbind(const quo_t *q,
+                    char **cbind_str);
+
 #ifdef __cplusplus
 }
 #endif

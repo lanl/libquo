@@ -28,7 +28,7 @@ main(void)
     int qv = 0, qsv = 0;
     int nsockets = 0, ncores = 0, npus = 0;
     char *bad_func = NULL;
-    char *topostr = NULL;
+    char *topostr = NULL, *cbindstr = NULL;
     bool bound = false;
     quo_t *quo = NULL;
 
@@ -64,6 +64,10 @@ main(void)
         bad_func = "quo_bound";
         goto out;
     }
+    if (QUO_SUCCESS != (qrc = quo_stringify_cbind(quo, &cbindstr))) {
+        bad_func = "quo_stringify_cbind";
+        goto out;
+    }
     if (QUO_SUCCESS != (qrc = quo_destruct(quo))) {
         bad_func = "quo_destruct";
         goto out;
@@ -72,10 +76,12 @@ main(void)
     printf("### nsockets: %d\n", nsockets);
     printf("### ncores: %d\n", ncores);
     printf("### npus: %d\n", npus);
-    printf("### process %d bound: %s\n", (int)getpid(), bound ? "true" : "false");
+    printf("### process %d [%s] bound: %s\n",
+           (int)getpid(), cbindstr, bound ? "true" : "false");
     printf("### begin system topology\n%s###end system topology\n", topostr);
     /* the string returned by quo_node_topo_stringify MUST be free'd by us */
     free(topostr);
+    free(cbindstr);
 out:
     if (NULL != bad_func) {
         fprintf(stderr, "xxx %s failure in: %s\n", __FILE__, bad_func);

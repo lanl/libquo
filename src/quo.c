@@ -193,5 +193,16 @@ quo_bound(const quo_t *q,
 {
     /* make sure we are initialized before we continue */
     noinit_action;
+    if (!q || !bound) return QUO_ERR_INVLD_ARG;
     return quo_hwloc_bound(q->hwloc, bound);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_stringify_cbind(const quo_t *q,
+                    char **cbind_str)
+{
+    noinit_action;
+    if (!q || !cbind_str) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_stringify_cbind(q->hwloc, cbind_str);
 }

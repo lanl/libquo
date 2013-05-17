@@ -30,6 +30,39 @@ struct quo_hwloc_t {
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
+get_cur_bind(const quo_hwloc_t *hwloc,
+             hwloc_cpuset_t *out_cpuset)
+{
+    int rc = QUO_SUCCESS;
+    hwloc_cpuset_t cur_bind = NULL;
+
+    if (!hwloc || !out_cpuset) return QUO_ERR_INVLD_ARG;
+
+    if (NULL == (cur_bind = hwloc_bitmap_alloc())) {
+        QUO_OOR_COMPLAIN();
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+    if (hwloc_get_cpubind(hwloc->topo, cur_bind, HWLOC_CPUBIND_PROCESS)) {
+        int err = errno;
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure in %s: %d (%s)\n",
+                "hwloc_get_proc_cpubind", __func__, err, strerror(err));
+        rc = QUO_ERR_TOPO;
+        goto out;
+    }
+    /* caller is responsible for calling hwloc_bitmap_free */
+    *out_cpuset = cur_bind;
+out:
+    /* cleanup on failure */
+    if (QUO_SUCCESS != rc) {
+        if (cur_bind) hwloc_bitmap_free(cur_bind);
+        *out_cpuset = NULL;
+    }
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
 init_cached_attrs(quo_hwloc_t *qh)
 {
     if (NULL == qh) return QUO_ERR_INVLD_ARG;
@@ -157,7 +190,6 @@ getnx(const quo_hwloc_t *hwloc,
     if (NULL == hwloc || NULL == nx) return QUO_ERR_INVLD_ARG;
 
     depth = hwloc_get_type_depth(hwloc->topo, target_type);
-
     if (HWLOC_TYPE_DEPTH_UNKNOWN == depth) {
         /* hwloc can't determine the number of x, so just return 0 and not
          * supported. */
@@ -207,23 +239,38 @@ quo_hwloc_bound(const quo_hwloc_t *hwloc,
 
     if (NULL == hwloc || NULL == out_bound) return QUO_ERR_INVLD_ARG;
 
-    if (NULL == (cur_bind = hwloc_bitmap_alloc())) {
-        QUO_OOR_COMPLAIN();
-        rc = QUO_ERR_OOR;
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) {
         goto out;
-    }
-    if (hwloc_get_cpubind(hwloc->topo, cur_bind, HWLOC_CPUBIND_PROCESS)) {
-        int err = errno;
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure in %s: %d (%s)\n",
-                "hwloc_get_proc_cpubind", __func__, err, strerror(err));
-        rc = QUO_ERR_TOPO;
     }
     /* if our current binding isn't equal to the widest, then we are bound to
      * something smaller than the widest. so, at least as far as we are
      * concerned, the process is "bound." */
     *out_bound = !hwloc_bitmap_isequal(hwloc->widest_cpuset, cur_bind);
-
 out:
+    if (cur_bind) hwloc_bitmap_free(cur_bind);
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
+                          char **out_str)
+{
+    int rc = QUO_SUCCESS;
+    hwloc_cpuset_t cur_bind = NULL;
+
+    if (!hwloc || !out_str) return QUO_ERR_INVLD_ARG;
+
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) {
+        /* get_cur_bind cleans up after itself on failure */
+        return rc;
+    }
+    /* caller is responsible for freeing returned resources */
+    hwloc_bitmap_asprintf(out_str, cur_bind);
+    if (!out_str) {
+        QUO_OOR_COMPLAIN();
+        rc = QUO_ERR_OOR;
+    }
     if (cur_bind) hwloc_bitmap_free(cur_bind);
     return rc;
 }
