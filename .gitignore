@@ -3,7 +3,7 @@
 *.d
 cscope.out
 tags
-.deps
+*.deps
 Makefile
 Makefile.in
 aclocal.m4
@@ -20,3 +20,6 @@ libtool
 ltmain.sh
 .ycm_extra_conf.pyc
 compile
+*.libs
+*.lo
+*.la
