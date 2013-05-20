@@ -42,8 +42,10 @@ struct quo_mpi_t {
     bool inited_mpi;
     /* my host's name */
     char hostname[MPI_MAX_PROCESSOR_NAME];
-    /* communication channel for libquo mpi bits */
+    /* communication channel for libquo mpi bits - dup of MPI_COMM_WORLD */
     MPI_Comm commchan;
+    /* node communicator */
+    MPI_Comm smpcomm;
     /* my rank */
     int rank;
     /* number of ranks in comm world */
@@ -131,7 +133,7 @@ smprank_setup(quo_mpi_t *mpi)
     /* get everyone else's netnum */
     if (MPI_SUCCESS != (rc = MPI_Allgather(&my_netnum, 1, MPI_UNSIGNED_LONG,
                                            netnums, 1, MPI_UNSIGNED_LONG,
-                                           MPI_COMM_WORLD))) {
+                                           mpi->commchan))) {
         rc = QUO_ERR_MPI;
         goto out;
     }
@@ -140,7 +142,10 @@ smprank_setup(quo_mpi_t *mpi)
         goto out;
     }
     /* split into local node groups */
-    //mpi_ret_code = MPI_Comm_split(MPI_COMM_WORLD, my_color, my_rank, &local_comm);
+    if (MPI_SUCCESS != (rc = MPI_Comm_split(mpi->commchan, mycolor, mpi->rank,
+                                            &(mpi->smpcomm)))) {
+        goto out;
+    }
 out:
     if (netnums) free(netnums);
     return rc;
@@ -232,18 +237,16 @@ err:
 int
 quo_mpi_destruct(quo_mpi_t *mpi)
 {
-    int rc = QUO_SUCCESS;
+    int nerrs = 0;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
 
     if (mpi->mpi_inited) {
-        if (MPI_SUCCESS != MPI_Comm_free(&(mpi->commchan))) {
-            /* just note that an error occurred and continue with teardown */
-            rc = QUO_ERR_MPI;
-        }
+        if (MPI_SUCCESS != MPI_Comm_free(&(mpi->commchan))) nerrs++;
+        if (MPI_SUCCESS != MPI_Comm_free(&(mpi->smpcomm))) nerrs++;
         /* if mpi is initialized and we initialized it, then call finalize */
         if (mpi->inited_mpi) MPI_Finalize();
     }
     free(mpi); mpi = NULL;
-    return rc;
+    return nerrs == 0 ? QUO_SUCCESS : QUO_ERR_MPI;
 }
