@@ -18,6 +18,7 @@ typedef struct quo_t quo_t;
 enum {
     QUO_SUCCESS,
     QUO_ERR,
+    QUO_ERR_SYS,
     QUO_ERR_OOR,
     QUO_ERR_INVLD_ARG,
     QUO_ERR_CALL_BEFORE_INIT,

@@ -225,6 +225,7 @@ quo_nnodes(const quo_t *q,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/* XXX change this to include everyone */
 int
 quo_nnodepeers(const quo_t *q,
                int *out_nodepeers)
