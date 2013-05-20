@@ -42,6 +42,8 @@ struct quo_mpi_t {
     bool inited_mpi;
     /* my host's name */
     char hostname[MPI_MAX_PROCESSOR_NAME];
+    /* communication channel for libquo mpi bits */
+    MPI_Comm commchan;
     /* my rank */
     int rank;
     /* number of ranks in comm world */
@@ -145,6 +147,45 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static int
+commchan_setup(quo_mpi_t *mpi)
+{
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+
+    if (MPI_SUCCESS != MPI_Comm_dup(MPI_COMM_WORLD, &(mpi->commchan))) {
+        return QUO_ERR_MPI;
+    }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+init_setup(quo_mpi_t *mpi)
+{
+    int rc = QUO_ERR, hostname_len = 0;
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+
+    if (QUO_SUCCESS != (rc = commchan_setup(mpi))) goto out;
+    /* gather some basic info that we need */
+    if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(mpi->nranks))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(mpi->rank))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* get my host's name */
+    if (MPI_SUCCESS != MPI_Get_processor_name(mpi->hostname, &hostname_len)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+out:
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_mpi_construct(quo_mpi_t **nmpi)
 {
@@ -163,39 +204,21 @@ quo_mpi_construct(quo_mpi_t **nmpi)
 int
 quo_mpi_init(quo_mpi_t *mpi)
 {
-    int rc = QUO_ERR, hostname_len = 0;
+    int rc = QUO_ERR;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
 
     if (MPI_SUCCESS != MPI_Initialized(&(mpi->mpi_inited))) return QUO_ERR_MPI;
     /* if mpi isn't initialized, then init it */
     if (!mpi->mpi_inited) {
-        if (MPI_SUCCESS != MPI_Init(NULL, NULL)) {
-            /* just bail */
-            return QUO_ERR_MPI;
-        }
+        if (MPI_SUCCESS != MPI_Init(NULL, NULL)) return QUO_ERR_MPI;
         /* note that we initialized mpi so we can cleanup after ourselves. */
         mpi->inited_mpi = true;
     }
-    /* gather some basic info that we need */
-    if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(mpi->nranks))) {
-        rc = QUO_ERR_MPI;
-        goto err;
-    }
-    if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(mpi->rank))) {
-        rc = QUO_ERR_MPI;
-        goto err;
-    }
-    /* get my host's name */
-    if (MPI_SUCCESS != MPI_Get_processor_name(mpi->hostname, &hostname_len)) {
-        rc = QUO_ERR_MPI;
-        goto err;
-    }
+    /* first perform basic initialization */
+    if (QUO_SUCCESS != (rc = init_setup(mpi))) goto err;
     /* setup node rank info */
-    if (QUO_SUCCESS != (rc = smprank_setup(mpi))) {
-        /* rc already set */
-        goto err;
-    }
+    if (QUO_SUCCESS != (rc = smprank_setup(mpi))) goto err;
     return QUO_SUCCESS;
 err:
     quo_mpi_destruct(mpi);
@@ -206,9 +229,18 @@ err:
 int
 quo_mpi_destruct(quo_mpi_t *mpi)
 {
+    int rc = QUO_SUCCESS;
+
     if (!mpi) return QUO_ERR_INVLD_ARG;
-    /* if mpi is initialized and we initialized it, then call finalize */
-    if (mpi->mpi_inited && mpi->inited_mpi) MPI_Finalize();
-    free(mpi);
-    return QUO_ERR_NOT_SUPPORTED;
+
+    if (mpi->mpi_inited) {
+        if (MPI_SUCCESS != MPI_Comm_free(&(mpi->commchan))) {
+            /* just note that an error occurred and continue with teardown */
+            rc = QUO_ERR_MPI;
+        }
+        /* if mpi is initialized and we initialized it, then call finalize */
+        if (mpi->inited_mpi) MPI_Finalize();
+    }
+    free(mpi); mpi = NULL;
+    return rc;
 }
