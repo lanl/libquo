@@ -197,6 +197,7 @@ quo_mpi_construct(quo_mpi_t **nmpi)
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
+    *nmpi = m;
     return MPI_SUCCESS;
 }
 
@@ -214,6 +215,8 @@ quo_mpi_init(quo_mpi_t *mpi)
         if (MPI_SUCCESS != MPI_Init(NULL, NULL)) return QUO_ERR_MPI;
         /* note that we initialized mpi so we can cleanup after ourselves. */
         mpi->inited_mpi = true;
+        /* if we are here, then mpi is initialized */
+        mpi->mpi_inited = 1;
     }
     /* first perform basic initialization */
     if (QUO_SUCCESS != (rc = init_setup(mpi))) goto err;

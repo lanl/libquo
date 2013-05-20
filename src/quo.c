@@ -116,11 +116,16 @@ quo_construct(quo_t **q)
                 "quo_mpi_construct");
         goto out;
     }
+    if (QUO_SUCCESS != (qrc = quo_mpi_init(newq->mpi))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
+                "quo_mpi_init");
+        goto out;
+    }
     newq->pid = getpid();
 out:
     if (QUO_SUCCESS != qrc) {
-        if (NULL != newq) free(newq);
-        newq = NULL;
+        quo_destruct(newq);
+        *q = NULL;
     }
     *q = newq;
     return qrc;
@@ -135,6 +140,7 @@ quo_destruct(quo_t *q)
     if (NULL == q) return QUO_ERR_INVLD_ARG;
     /* XXX TODO */
     if (q->hwloc) (void)quo_hwloc_destruct(q->hwloc);
+    if (q->mpi) (void)quo_mpi_destruct(q->mpi);
     free(q);
     return QUO_SUCCESS;
 }
