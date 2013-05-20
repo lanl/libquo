@@ -85,9 +85,15 @@ quo_version(int *version,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_init(void)
+quo_init(quo_t *q)
 {
-    /* nothing really to do here. placeholder */
+    int rc = QUO_ERR;
+
+    if (QUO_SUCCESS != (rc = quo_mpi_init(q->mpi))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
+                "quo_mpi_init");
+        return rc;
+    }
     qgstate.quo_initialized = true;
     return QUO_SUCCESS;
 }
@@ -99,8 +105,6 @@ quo_construct(quo_t **q)
     int qrc = QUO_SUCCESS;
     quo_t *newq = NULL;
 
-    /* make sure we are initialized before we continue */
-    noinit_action;
     if (NULL == q) return QUO_ERR_INVLD_ARG;
     if (NULL == (newq = calloc(1, sizeof(*newq)))) {
         QUO_OOR_COMPLAIN();
@@ -114,11 +118,6 @@ quo_construct(quo_t **q)
     if (QUO_SUCCESS != (qrc = quo_mpi_construct(&newq->mpi))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
                 "quo_mpi_construct");
-        goto out;
-    }
-    if (QUO_SUCCESS != (qrc = quo_mpi_init(newq->mpi))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
-                "quo_mpi_init");
         goto out;
     }
     newq->pid = getpid();
@@ -231,16 +230,15 @@ quo_nnodes(const quo_t *q,
 {
     noinit_action;
     if (!q || !out_nodes) return QUO_ERR_INVLD_ARG;
-    return QUO_ERR_NOT_SUPPORTED;
+    return quo_mpi_nnodes(q->mpi, out_nodes);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* XXX change this to include everyone */
 int
-quo_nnodepeers(const quo_t *q,
-               int *out_nodepeers)
+quo_nnoderanks(const quo_t *q,
+               int *out_nnoderanks)
 {
     noinit_action;
-    if (!q || !out_nodepeers) return QUO_ERR_INVLD_ARG;
-    return QUO_ERR_NOT_SUPPORTED;
+    if (!q || !out_nnoderanks) return QUO_ERR_INVLD_ARG;
+    return quo_mpi_nnoderanks(q->mpi, out_nnoderanks);
 }

@@ -25,4 +25,12 @@ quo_mpi_init(quo_mpi_t *nmpi);
 int
 quo_mpi_destruct(quo_mpi_t *nmpi);
 
+int
+quo_mpi_nnodes(const quo_mpi_t *mpi,
+               int *nnodes);
+
+int
+quo_mpi_nnoderanks(const quo_mpi_t *mpi,
+                   int *nnoderanks);
+
 #endif

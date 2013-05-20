@@ -42,11 +42,11 @@ quo_version(int *version,
 
 /* 1st call */
 int
-quo_init(void);
+quo_construct(quo_t **q);
 
 /* 2nd call */
 int
-quo_construct(quo_t **q);
+quo_init(quo_t *q);
 
 /* 2nd-to-last call */
 int

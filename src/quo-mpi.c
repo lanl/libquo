@@ -33,6 +33,11 @@
 
 #include "mpi.h"
 
+/* don't forget that the upper layer will make sure that all the right stuff
+ * will be called in the right order, so we don't have to be so careful
+ * about checking if everything has been setup before continuing with the
+ * operation. */
+
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo_mpi_t type definition */
 struct quo_mpi_t {
@@ -54,6 +59,8 @@ struct quo_mpi_t {
     int smprank;
     /* number of ranks that share a node with me (includes myself) */
     int nsmpranks;
+    /* number of nodes in the current job */
+    int nnodes;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -78,7 +85,6 @@ get_netnum(const char *hstn,
     struct hostent *host = NULL;
 
     if (!hstn || !net_num) return QUO_ERR_INVLD_ARG;
-
     if (NULL == (host = gethostbyname(hstn))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
                 "gethostbyname");
@@ -100,7 +106,6 @@ get_my_color(unsigned long int *net_nums,
     unsigned long int prev_num;
 
     if (!net_nums || !my_color) return QUO_ERR_INVLD_ARG;
- 
     qsort(net_nums, (size_t)net_num_len, sizeof(unsigned long int), cmp_uli);
     prev_num = net_nums[0];
     while (i < net_num_len && prev_num != my_net_num) {
@@ -122,7 +127,6 @@ smprank_setup(quo_mpi_t *mpi)
     unsigned long int my_netnum = 0, *netnums = NULL;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
-
     if (NULL == (netnums = calloc(mpi->nranks, sizeof(*netnums)))) {
         return QUO_ERR_OOR;
     }
@@ -146,6 +150,7 @@ smprank_setup(quo_mpi_t *mpi)
                                             &(mpi->smpcomm)))) {
         goto out;
     }
+    /* get basic smpcomm info */
     if (MPI_SUCCESS != MPI_Comm_size(mpi->smpcomm, &(mpi->nsmpranks))) {
         rc = QUO_ERR_MPI;
         goto out;
@@ -164,7 +169,6 @@ static int
 commchan_setup(quo_mpi_t *mpi)
 {
     if (!mpi) return QUO_ERR_INVLD_ARG;
-
     if (MPI_SUCCESS != MPI_Comm_dup(MPI_COMM_WORLD, &(mpi->commchan))) {
         return QUO_ERR_MPI;
     }
@@ -178,7 +182,6 @@ init_setup(quo_mpi_t *mpi)
     int rc = QUO_ERR, hostname_len = 0;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
-
     if (QUO_SUCCESS != (rc = commchan_setup(mpi))) goto out;
     /* gather some basic info that we need */
     if (MPI_SUCCESS != MPI_Comm_size(mpi->commchan, &(mpi->nranks))) {
@@ -205,7 +208,6 @@ quo_mpi_construct(quo_mpi_t **nmpi)
     quo_mpi_t *m = NULL;
 
     if (!nmpi) return QUO_ERR_INVLD_ARG;
-
     if (NULL == (m = calloc(1, sizeof(*m)))) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
@@ -221,7 +223,6 @@ quo_mpi_init(quo_mpi_t *mpi)
     int rc = QUO_ERR;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
-
     if (MPI_SUCCESS != MPI_Initialized(&(mpi->mpi_inited))) return QUO_ERR_MPI;
     /* if mpi isn't initialized, then init it */
     if (!mpi->mpi_inited) {
@@ -248,7 +249,6 @@ quo_mpi_destruct(quo_mpi_t *mpi)
     int nerrs = 0;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
-
     if (mpi->mpi_inited) {
         if (MPI_SUCCESS != MPI_Comm_free(&(mpi->commchan))) nerrs++;
         if (MPI_SUCCESS != MPI_Comm_free(&(mpi->smpcomm))) nerrs++;
@@ -257,4 +257,24 @@ quo_mpi_destruct(quo_mpi_t *mpi)
     }
     free(mpi); mpi = NULL;
     return nerrs == 0 ? QUO_SUCCESS : QUO_ERR_MPI;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_nnodes(const quo_mpi_t *mpi,
+               int *nnodes)
+{
+    if (!mpi || !nnodes) return QUO_ERR_INVLD_ARG;
+    *nnodes = mpi->nnodes;
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_nnoderanks(const quo_mpi_t *mpi,
+                   int *nnoderanks)
+{
+    if (!mpi || !nnoderanks) return QUO_ERR_INVLD_ARG;
+    *nnoderanks = mpi->nsmpranks;
+    return QUO_SUCCESS;
 }

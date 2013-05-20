@@ -36,12 +36,12 @@ main(void)
         bad_func = "quo_version";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_init())) {
-        bad_func = "quo_init";
-        goto out;
-    }
     if (QUO_SUCCESS != (qrc = quo_construct(&quo))) {
         bad_func = "quo_construct";
+        goto out;
+    }
+    if (QUO_SUCCESS != (qrc = quo_init(quo))) {
+        bad_func = "quo_init";
         goto out;
     }
     if (QUO_SUCCESS != (qrc = quo_node_topo_stringify(quo, &topostr))) {
