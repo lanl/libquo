@@ -146,6 +146,14 @@ smprank_setup(quo_mpi_t *mpi)
                                             &(mpi->smpcomm)))) {
         goto out;
     }
+    if (MPI_SUCCESS != MPI_Comm_size(mpi->smpcomm, &(mpi->nsmpranks))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Comm_rank(mpi->smpcomm, &(mpi->smprank))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
 out:
     if (netnums) free(netnums);
     return rc;
@@ -173,11 +181,11 @@ init_setup(quo_mpi_t *mpi)
 
     if (QUO_SUCCESS != (rc = commchan_setup(mpi))) goto out;
     /* gather some basic info that we need */
-    if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(mpi->nranks))) {
+    if (MPI_SUCCESS != MPI_Comm_size(mpi->commchan, &(mpi->nranks))) {
         rc = QUO_ERR_MPI;
         goto out;
     }
-    if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(mpi->rank))) {
+    if (MPI_SUCCESS != MPI_Comm_rank(mpi->commchan, &(mpi->rank))) {
         rc = QUO_ERR_MPI;
         goto out;
     }
