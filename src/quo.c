@@ -135,14 +135,18 @@ out:
 int
 quo_destruct(quo_t *q)
 {
+    int nerrs = 0;
     /* make sure we are initialized before we continue */
     noinit_action;
     if (NULL == q) return QUO_ERR_INVLD_ARG;
-    /* XXX TODO */
-    if (q->hwloc) (void)quo_hwloc_destruct(q->hwloc);
-    if (q->mpi) (void)quo_mpi_destruct(q->mpi);
+    if (q->hwloc) {
+        if (QUO_SUCCESS != quo_hwloc_destruct(q->hwloc)) nerrs++;
+    }
+    if (q->mpi) {
+        if (QUO_SUCCESS != quo_mpi_destruct(q->mpi)) nerrs++;
+    }
     free(q);
-    return QUO_SUCCESS;
+    return nerrs == 0 ? QUO_SUCCESS : QUO_ERR;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
