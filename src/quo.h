@@ -85,8 +85,8 @@ quo_nnodes(const quo_t *q,
            int *out_nodes);
 
 int
-quo_nnodepeers(const quo_t *q,
-               int *out_nodepeers);
+quo_nnoderanks(const quo_t *q,
+               int *out_nnoderanks);
 
 #ifdef __cplusplus
 }
