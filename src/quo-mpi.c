@@ -121,7 +121,7 @@ get_my_color(unsigned long int *net_nums,
 static int
 smprank_setup(quo_mpi_t *mpi)
 {
-    int rc = QUO_ERR, mycolor = 0;
+    int rc = QUO_ERR, mycolor = 0, nnode_contrib = 0;
     unsigned long int my_netnum = 0, *netnums = NULL;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
@@ -154,6 +154,13 @@ smprank_setup(quo_mpi_t *mpi)
         goto out;
     }
     if (MPI_SUCCESS != MPI_Comm_rank(mpi->smpcomm, &(mpi->smprank))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* calculate how many nodes are in our allocation */
+    nnode_contrib = (0 == mpi->smprank) ? 1 : 0;
+    if (MPI_SUCCESS != MPI_Allreduce(&nnode_contrib, &mpi->nnodes, 1, MPI_INT,
+                                     MPI_SUM, MPI_COMM_WORLD)) {
         rc = QUO_ERR_MPI;
         goto out;
     }
@@ -204,7 +211,6 @@ int
 quo_mpi_construct(quo_mpi_t **nmpi)
 {
     quo_mpi_t *m = NULL;
-
     if (!nmpi) return QUO_ERR_INVLD_ARG;
     if (NULL == (m = calloc(1, sizeof(*m)))) {
         QUO_OOR_COMPLAIN();

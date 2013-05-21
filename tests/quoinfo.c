@@ -56,7 +56,7 @@ int
 main(void)
 {
     int qrc = QUO_SUCCESS, erc = EXIT_SUCCESS;
-    int qv = 0, qsv = 0;
+    int qv = 0, qsv = 0, nnodes = 0;
     int nsockets = 0, ncores = 0, npus = 0;
     char *bad_func = NULL;
     char *topostr = NULL, *cbindstr = NULL;
@@ -72,10 +72,12 @@ main(void)
         bad_func = "quo_version";
         goto out;
     }
+    /* cheap call */
     if (QUO_SUCCESS != (qrc = quo_construct(&quo))) {
         bad_func = "quo_construct";
         goto out;
     }
+    /* relatively expensive call */
     if (QUO_SUCCESS != (qrc = quo_init(quo))) {
         bad_func = "quo_init";
         goto out;
@@ -104,11 +106,16 @@ main(void)
         bad_func = "quo_stringify_cbind";
         goto out;
     }
+    if (QUO_SUCCESS != (qrc = quo_nnodes(quo, &nnodes))) {
+        bad_func = "quo_nnodes";
+        goto out;
+    }
     if (QUO_SUCCESS != (qrc = quo_destruct(quo))) {
         bad_func = "quo_destruct";
         goto out;
     }
     printf("### quo version: %d.%d ###\n", qv, qsv);
+    printf("### nnodes: %d\n", nnodes);
     printf("### nsockets: %d\n", nsockets);
     printf("### ncores: %d\n", ncores);
     printf("### npus: %d\n", npus);
