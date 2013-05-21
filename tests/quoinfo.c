@@ -21,6 +21,37 @@
 #include <unistd.h>
 #endif
 
+#include "mpi.h"
+
+typedef struct inf_t {
+    int rank;
+    int nranks;
+    bool mpi_inited;
+} inf_t;
+
+int
+init(inf_t *inf)
+{
+    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) {
+        return 1;
+    }
+    if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(inf->nranks))) {
+        return 1;
+    }
+    if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(inf->rank))) {
+        return 1;
+    }
+    inf->mpi_inited = true;
+    return 0;
+}
+
+int
+fini(inf_t *inf)
+{
+    if (inf->mpi_inited) MPI_Finalize();
+    return 0;
+}
+
 int
 main(void)
 {
@@ -31,7 +62,12 @@ main(void)
     char *topostr = NULL, *cbindstr = NULL;
     bool bound = false;
     quo_t *quo = NULL;
+    inf_t info;
 
+    if (init(&info)) {
+        bad_func = "info";
+        goto out;
+    }
     if (QUO_SUCCESS != (qrc = quo_version(&qv, &qsv))) {
         bad_func = "quo_version";
         goto out;
@@ -87,5 +123,6 @@ out:
         fprintf(stderr, "xxx %s failure in: %s\n", __FILE__, bad_func);
         erc = EXIT_FAILURE;
     }
+    (void)fini(&info);
     return erc;
 }

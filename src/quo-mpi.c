@@ -43,8 +43,6 @@
 struct quo_mpi_t {
     /* whether or not mpi is initialized */
     int mpi_inited;
-    /* whether or not we initialized mpi */
-    bool inited_mpi;
     /* my host's name */
     char hostname[MPI_MAX_PROCESSOR_NAME];
     /* communication channel for libquo mpi bits - dup of MPI_COMM_WORLD */
@@ -224,14 +222,15 @@ quo_mpi_init(quo_mpi_t *mpi)
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
     if (MPI_SUCCESS != MPI_Initialized(&(mpi->mpi_inited))) return QUO_ERR_MPI;
-    /* if mpi isn't initialized, then init it */
+    /* if mpi isn't initialized, then we can't continue */
     if (!mpi->mpi_inited) {
-        if (MPI_SUCCESS != MPI_Init(NULL, NULL)) return QUO_ERR_MPI;
-        /* note that we initialized mpi so we can cleanup after ourselves. */
-        mpi->inited_mpi = true;
-        /* if we are here, then mpi is initialized */
-        mpi->mpi_inited = 1;
+        fprintf(stderr, QUO_ERR_PREFIX"MPI has not been initialized and %s "
+                "uses MPI. Cannot continue.\n", PACKAGE);
+        rc = QUO_ERR_MPI;
+        goto err;
     }
+    /* if we are here, then mpi is initialized */
+    mpi->mpi_inited = 1;
     /* first perform basic initialization */
     if (QUO_SUCCESS != (rc = init_setup(mpi))) goto err;
     /* setup node rank info */
@@ -252,8 +251,6 @@ quo_mpi_destruct(quo_mpi_t *mpi)
     if (mpi->mpi_inited) {
         if (MPI_SUCCESS != MPI_Comm_free(&(mpi->commchan))) nerrs++;
         if (MPI_SUCCESS != MPI_Comm_free(&(mpi->smpcomm))) nerrs++;
-        /* if mpi is initialized and we initialized it, then call finalize */
-        if (mpi->inited_mpi) MPI_Finalize();
     }
     free(mpi); mpi = NULL;
     return nerrs == 0 ? QUO_SUCCESS : QUO_ERR_MPI;
