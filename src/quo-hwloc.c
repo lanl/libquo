@@ -274,3 +274,57 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
     if (cur_bind) hwloc_bitmap_free(cur_bind);
     return rc;
 }
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_rebind(const quo_hwloc_t *hwloc,
+                 quo_obj_type_t type,
+                 unsigned obj_index)
+{
+    int rc = QUO_SUCCESS;
+    hwloc_obj_t target_obj =  NULL;
+    hwloc_cpuset_t cpu_set = NULL;
+    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+
+    switch (type) {
+        case QUO_MACHINE:
+            real_type = HWLOC_OBJ_MACHINE;
+            break;
+        case QUO_NODE:
+            real_type = HWLOC_OBJ_NODE;
+            break;
+        case QUO_SOCKET:
+            real_type = HWLOC_OBJ_SOCKET;
+            break;
+        case QUO_CORE:
+            real_type = HWLOC_OBJ_CORE;
+            break;
+        case QUO_PU:
+            real_type = HWLOC_OBJ_PU;
+            break;
+        default:
+            return QUO_ERR_INVLD_ARG;
+    }
+    printf("OBJ: %d\n", obj_index);
+    if (NULL == (target_obj = hwloc_get_obj_by_type(hwloc->topo,
+                                                    real_type,
+                                                    obj_index))) {
+        /* there are a couple of reasons why target_obj may be NULL. if this
+         * ever happens and the specified type and obj index should be valid,
+         * then read the hwloc documentation and make this code mo betta. */
+        return QUO_ERR_INVLD_ARG;
+    }
+    if (NULL == (cpu_set = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
+    hwloc_bitmap_copy(cpu_set, target_obj->cpuset);
+    hwloc_bitmap_singlify(cpu_set);
+    if (-1 == hwloc_set_cpubind(hwloc->topo, cpu_set,
+                                HWLOC_CPUBIND_PROCESS)) {
+        rc = QUO_ERR_NOT_SUPPORTED;
+        goto out;
+    }
+out:
+    if (cpu_set) hwloc_bitmap_free(cpu_set);
+    return rc;
+}

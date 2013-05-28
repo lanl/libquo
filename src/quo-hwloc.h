@@ -18,6 +18,8 @@
 struct quo_hwloc_t;
 typedef struct quo_hwloc_t quo_hwloc_t;
 
+typedef hwloc_const_cpuset_t quo_const_nodeset_t;
+
 int
 quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
@@ -51,5 +53,10 @@ quo_hwloc_sbitmask(const quo_hwloc_t *hwloc,
 int
 quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
                           char **out_str);
+
+int
+quo_hwloc_rebind(const quo_hwloc_t *hwloc,
+                 quo_obj_type_t type,
+                 unsigned obj_index);
 
 #endif

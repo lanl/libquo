@@ -242,3 +242,13 @@ quo_nnoderanks(const quo_t *q,
     if (!q || !out_nnoderanks) return QUO_ERR_INVLD_ARG;
     return quo_mpi_nnoderanks(q->mpi, out_nnoderanks);
 }
+
+int
+quo_rebind(const quo_t *q,
+           quo_obj_type_t type,
+           unsigned obj_index)
+{
+    noinit_action;
+    if (!q) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_rebind(q->hwloc, type, obj_index);
+}

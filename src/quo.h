@@ -27,6 +27,14 @@ enum {
     QUO_ERR_NOT_SUPPORTED
 };
 
+typedef enum {
+    QUO_MACHINE,
+    QUO_NODE,
+    QUO_SOCKET,
+    QUO_CORE,
+    QUO_PU
+} quo_obj_type_t;
+
 /* ////////////////////////////////////////////////////////////////////////// */
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo api */
@@ -87,6 +95,11 @@ quo_nnodes(const quo_t *q,
 int
 quo_nnoderanks(const quo_t *q,
                int *out_nnoderanks);
+
+int
+quo_rebind(const quo_t *q,
+           quo_obj_type_t type,
+           unsigned obj_index);
 
 #ifdef __cplusplus
 }
