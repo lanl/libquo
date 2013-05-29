@@ -136,17 +136,26 @@ bind_stack_push(quo_hwloc_t *hwloc,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-bind_stack_pop(quo_hwloc_t *hwloc)
+bind_stack_pop(quo_hwloc_t *hwloc,
+               hwloc_cpuset_t *popped)
 {
-    if (!hwloc) return QUO_ERR_INVLD_ARG;
+    if (!hwloc || !popped) return QUO_ERR_INVLD_ARG;
     /* stack is empty -- nothing to do */
     if (hwloc->bstack.top < 0) return QUO_ERR_POP;
-    /* free the top */
+    if (NULL == (*popped = hwloc_bitmap_alloc())) {
+        QUO_OOR_COMPLAIN();
+        return QUO_ERR_OOR;
+    }
+    hwloc_bitmap_copy(*popped, hwloc->bstack.bind_stack[hwloc->bstack.top - 1]);
+    /* free the top and adjust the top of the stack */
     hwloc_bitmap_free(hwloc->bstack.bind_stack[hwloc->bstack.top--]);
     return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/**
+ * pushed current binding.
+ */
 static int
 push_cur_bind(quo_hwloc_t *hwloc)
 {
@@ -412,7 +421,6 @@ out:
     return rc;
 }
 
-#if 0
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_bind_push(quo_hwloc_t *hwloc,
@@ -420,15 +428,34 @@ quo_hwloc_bind_push(quo_hwloc_t *hwloc,
                     unsigned obj_index)
 {
     int rc = QUO_SUCCESS;
-    hwloc_cpuset_t cur_bind = NULL;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+    /* change binding */
+    if (QUO_SUCCESS != (rc = quo_hwloc_rebind(hwloc, type, obj_index))) {
+        return rc;
+    }
+    /* stash our shiny new binding */
+    return push_cur_bind(hwloc);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+/* XXX return popped val? */
+int
+quo_hwloc_bind_pop(quo_hwloc_t *hwloc)
+{
+    int rc = QUO_SUCCESS;
+    hwloc_cpuset_t topbind = NULL;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
 
-    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) return rc;
-    if (QUO_SUCCESS != (rc = bind_stack_push(hwloc, cur_bind))) {
+    if (QUO_SUCCESS != (rc = bind_stack_pop(hwloc, &topbind))) return rc;
+    /* revert to the top binding */
+    if (-1 == hwloc_set_cpubind(hwloc->topo, topbind,
+                                HWLOC_CPUBIND_PROCESS)) {
+        rc = QUO_ERR_NOT_SUPPORTED;
         goto out;
     }
 out:
-    if (cur_bind) free(cur_bind);
+    if (topbind) hwloc_bitmap_free(topbind);
+    return rc;
 }
-#endif

@@ -59,4 +59,12 @@ quo_hwloc_rebind(const quo_hwloc_t *hwloc,
                  quo_obj_type_t type,
                  unsigned obj_index);
 
+int
+quo_hwloc_bind_push(quo_hwloc_t *hwloc,
+                    quo_obj_type_t type,
+                    unsigned obj_index);
+
+int
+quo_hwloc_bind_pop(quo_hwloc_t *hwloc);
+
 #endif

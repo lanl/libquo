@@ -98,9 +98,16 @@ quo_nnoderanks(const quo_t *q,
                int *out_nnoderanks);
 
 int
-quo_rebind(const quo_t *q,
+quo_rebind(quo_t *q,
            quo_obj_type_t type,
            unsigned obj_index);
+
+int
+quo_bind_push(quo_t *q,
+              quo_obj_type_t type,
+              unsigned obj_index);
+int
+quo_bind_pop(quo_t *q);
 
 #ifdef __cplusplus
 }
