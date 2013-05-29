@@ -307,7 +307,6 @@ quo_hwloc_rebind(const quo_hwloc_t *hwloc,
         default:
             return QUO_ERR_INVLD_ARG;
     }
-    printf("OBJ: %d\n", obj_index);
     if (NULL == (target_obj = hwloc_get_obj_by_type(hwloc->topo,
                                                     real_type,
                                                     obj_index))) {
@@ -318,7 +317,6 @@ quo_hwloc_rebind(const quo_hwloc_t *hwloc,
     }
     if (NULL == (cpu_set = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
     hwloc_bitmap_copy(cpu_set, target_obj->cpuset);
-    hwloc_bitmap_singlify(cpu_set);
     if (-1 == hwloc_set_cpubind(hwloc->topo, cpu_set,
                                 HWLOC_CPUBIND_PROCESS)) {
         rc = QUO_ERR_NOT_SUPPORTED;

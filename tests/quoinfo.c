@@ -114,7 +114,7 @@ main(void)
         bad_func = "quo_nnodes";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_rebind(quo, QUO_SOCKET, 1))) {
+    if (QUO_SUCCESS != (qrc = quo_rebind(quo, QUO_SOCKET, 0))) {
         bad_func = "quo_rebind";
         goto out;
     }
