@@ -19,7 +19,8 @@
 #endif
 #include <errno.h>
 
-#define BIND_STACK_SIZE 64
+/* should be plenty */
+#define BIND_STACK_SIZE 128
 
 /* the almighty bind stack */
 typedef struct bind_stack_t {
@@ -38,6 +39,38 @@ struct quo_hwloc_t {
     /* the bind stack */
     bind_stack_t bstack;
 };
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+ext2intobj(quo_obj_type_t external,
+           hwloc_obj_type_t *internal)
+{
+    if (!internal) return QUO_ERR_INVLD_ARG;
+    /* convert from ours to hwloc's */
+    switch (external) {
+        case QUO_MACHINE:
+            *internal = HWLOC_OBJ_MACHINE;
+            break;
+        case QUO_NODE:
+            *internal = HWLOC_OBJ_NODE;
+            break;
+        case QUO_SOCKET:
+            *internal = HWLOC_OBJ_SOCKET;
+            break;
+        case QUO_CORE:
+            *internal = HWLOC_OBJ_CORE;
+            break;
+        case QUO_PU:
+            *internal = HWLOC_OBJ_PU;
+            break;
+        default:
+            /* well, we'll just return the machine if something weird was passed
+             * to us. check your return codes, folks! */
+            *internal = HWLOC_OBJ_MACHINE;
+            return QUO_ERR_INVLD_ARG;
+    }
+    return QUO_SUCCESS;
+}
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
@@ -73,6 +106,64 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static bool
+bind_stack_full(const quo_hwloc_t *hwloc)
+{
+    return hwloc->bstack.top >= BIND_STACK_SIZE;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+bind_stack_push(quo_hwloc_t *hwloc,
+                hwloc_cpuset_t cpuset)
+{
+    unsigned top = hwloc->bstack.top;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+    /* stack is full - we are out of resources */
+    if (bind_stack_full(hwloc)) return QUO_ERR_OOR;
+    /* pop will cleanup after this call */
+    if (NULL == (hwloc->bstack.bind_stack[top] = hwloc_bitmap_alloc())) {
+        QUO_OOR_COMPLAIN();
+        return QUO_ERR_OOR;
+    }
+    /* copy the thing */
+    hwloc_bitmap_copy(hwloc->bstack.bind_stack[top], cpuset);
+    /* update top */
+    hwloc->bstack.top++;
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+bind_stack_pop(quo_hwloc_t *hwloc)
+{
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+    /* stack is empty -- nothing to do */
+    if (hwloc->bstack.top < 0) return QUO_ERR_POP;
+    /* free the top */
+    hwloc_bitmap_free(hwloc->bstack.bind_stack[hwloc->bstack.top--]);
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+push_cur_bind(quo_hwloc_t *hwloc)
+{
+    int rc = QUO_SUCCESS;
+    hwloc_cpuset_t cur_bind = NULL;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) return rc;
+    if (QUO_SUCCESS != (rc = bind_stack_push(hwloc, cur_bind))) goto out;
+out:
+    /* push copies, so free the one we created */
+    if (cur_bind) free(cur_bind);
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 static int
 init_cached_attrs(quo_hwloc_t *qh)
 {
@@ -86,7 +177,8 @@ init_cached_attrs(quo_hwloc_t *qh)
     hwloc_obj_t sysobj = hwloc_get_root_obj(qh->topo);
     /* stash the system's cpuset */
     hwloc_bitmap_copy(qh->widest_cpuset, sysobj->cpuset);
-    return QUO_SUCCESS;
+    /* push our current binding */
+    return push_cur_bind(qh);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -287,38 +379,6 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-static int
-ext2intobj(quo_obj_type_t external,
-           hwloc_obj_type_t *internal)
-{
-    if (!internal) return QUO_ERR_INVLD_ARG;
-    /* convert from ours to hwloc's */
-    switch (external) {
-        case QUO_MACHINE:
-            *internal = HWLOC_OBJ_MACHINE;
-            break;
-        case QUO_NODE:
-            *internal = HWLOC_OBJ_NODE;
-            break;
-        case QUO_SOCKET:
-            *internal = HWLOC_OBJ_SOCKET;
-            break;
-        case QUO_CORE:
-            *internal = HWLOC_OBJ_CORE;
-            break;
-        case QUO_PU:
-            *internal = HWLOC_OBJ_PU;
-            break;
-        default:
-            /* well, we'll just return the machine if something weird was passed
-             * to us. check your return codes, folks! */
-            *internal = HWLOC_OBJ_MACHINE;
-            return QUO_ERR_INVLD_ARG;
-    }
-    return QUO_SUCCESS;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_rebind(const quo_hwloc_t *hwloc,
                  quo_obj_type_t type,
@@ -340,6 +400,7 @@ quo_hwloc_rebind(const quo_hwloc_t *hwloc,
         return QUO_ERR_INVLD_ARG;
     }
     if (NULL == (cpu_set = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
+    /* void func */
     hwloc_bitmap_copy(cpu_set, target_obj->cpuset);
     if (-1 == hwloc_set_cpubind(hwloc->topo, cpu_set,
                                 HWLOC_CPUBIND_PROCESS)) {
@@ -358,5 +419,16 @@ quo_hwloc_bind_push(quo_hwloc_t *hwloc,
                     quo_obj_type_t type,
                     unsigned obj_index)
 {
+    int rc = QUO_SUCCESS;
+    hwloc_cpuset_t cur_bind = NULL;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) return rc;
+    if (QUO_SUCCESS != (rc = bind_stack_push(hwloc, cur_bind))) {
+        goto out;
+    }
+out:
+    if (cur_bind) free(cur_bind);
 }
 #endif

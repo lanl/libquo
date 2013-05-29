@@ -24,7 +24,8 @@ enum {
     QUO_ERR_CALL_BEFORE_INIT,
     QUO_ERR_TOPO,
     QUO_ERR_MPI,
-    QUO_ERR_NOT_SUPPORTED
+    QUO_ERR_NOT_SUPPORTED,
+    QUO_ERR_POP
 };
 
 typedef enum {
