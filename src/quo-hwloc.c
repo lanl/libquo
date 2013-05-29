@@ -19,13 +19,24 @@
 #endif
 #include <errno.h>
 
-/* ////////////////////////////////////////////////////////////////////////// */
+#define BIND_STACK_SIZE 64
+
+/* the almighty bind stack */
+typedef struct bind_stack_t {
+    /* top of the stack */
+    int top;
+    /* bind stack */
+    hwloc_cpuset_t bind_stack[BIND_STACK_SIZE];
+} bind_stack_t;
+
 /* quo_hwloc_t type definition */
 struct quo_hwloc_t {
     /* the system's topology */
     hwloc_topology_t topo;
     /* the widest cpu set. primarily used for "is bound?" tests. */
     hwloc_cpuset_t widest_cpuset;
+    /* the bind stack */
+    bind_stack_t bstack;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -276,37 +287,50 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static int
+ext2intobj(quo_obj_type_t external,
+           hwloc_obj_type_t *internal)
+{
+    if (!internal) return QUO_ERR_INVLD_ARG;
+    /* convert from ours to hwloc's */
+    switch (external) {
+        case QUO_MACHINE:
+            *internal = HWLOC_OBJ_MACHINE;
+            break;
+        case QUO_NODE:
+            *internal = HWLOC_OBJ_NODE;
+            break;
+        case QUO_SOCKET:
+            *internal = HWLOC_OBJ_SOCKET;
+            break;
+        case QUO_CORE:
+            *internal = HWLOC_OBJ_CORE;
+            break;
+        case QUO_PU:
+            *internal = HWLOC_OBJ_PU;
+            break;
+        default:
+            /* well, we'll just return the machine if something weird was passed
+             * to us. check your return codes, folks! */
+            *internal = HWLOC_OBJ_MACHINE;
+            return QUO_ERR_INVLD_ARG;
+    }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_rebind(const quo_hwloc_t *hwloc,
                  quo_obj_type_t type,
                  unsigned obj_index)
 {
     int rc = QUO_SUCCESS;
-    hwloc_obj_t target_obj =  NULL;
+    hwloc_obj_t target_obj = NULL;
     hwloc_cpuset_t cpu_set = NULL;
     hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
-
-    switch (type) {
-        case QUO_MACHINE:
-            real_type = HWLOC_OBJ_MACHINE;
-            break;
-        case QUO_NODE:
-            real_type = HWLOC_OBJ_NODE;
-            break;
-        case QUO_SOCKET:
-            real_type = HWLOC_OBJ_SOCKET;
-            break;
-        case QUO_CORE:
-            real_type = HWLOC_OBJ_CORE;
-            break;
-        case QUO_PU:
-            real_type = HWLOC_OBJ_PU;
-            break;
-        default:
-            return QUO_ERR_INVLD_ARG;
-    }
+    if (QUO_SUCCESS != (rc = ext2intobj(type, &real_type))) return rc;
     if (NULL == (target_obj = hwloc_get_obj_by_type(hwloc->topo,
                                                     real_type,
                                                     obj_index))) {
@@ -326,3 +350,13 @@ out:
     if (cpu_set) hwloc_bitmap_free(cpu_set);
     return rc;
 }
+
+#if 0
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_bind_push(quo_hwloc_t *hwloc,
+                    quo_obj_type_t type,
+                    unsigned obj_index)
+{
+}
+#endif
