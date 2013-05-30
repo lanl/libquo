@@ -478,7 +478,7 @@ quo_hwloc_bind_pop(quo_hwloc_t *hwloc)
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
     if (QUO_SUCCESS != (rc = bind_stack_pop(hwloc, NULL))) return rc;
-    /* revert to the top binding after pop ((the previous binding) */
+    /* revert to the top binding after pop (the previous binding) */
     if (QUO_SUCCESS != (rc = bind_stack_top(hwloc, &topbind))) goto out;
     if (-1 == hwloc_set_cpubind(hwloc->topo, topbind,
                                 HWLOC_CPUBIND_PROCESS)) {
