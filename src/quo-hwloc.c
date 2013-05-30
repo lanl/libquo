@@ -196,7 +196,7 @@ push_cur_bind(quo_hwloc_t *hwloc)
     if (QUO_SUCCESS != (rc = bind_stack_push(hwloc, cur_bind))) goto out;
 out:
     /* push copies, so free the one we created */
-    if (cur_bind) free(cur_bind);
+    if (cur_bind) hwloc_bitmap_free(cur_bind);
     return rc;
 }
 
@@ -266,13 +266,15 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_hwloc_destruct(quo_hwloc_t *nhwloc)
+quo_hwloc_destruct(quo_hwloc_t *hwloc)
 {
-    if (NULL == nhwloc) return QUO_ERR_INVLD_ARG;
+    if (NULL == hwloc) return QUO_ERR_INVLD_ARG;
 
-    hwloc_topology_destroy(nhwloc->topo);
-    hwloc_bitmap_free(nhwloc->widest_cpuset);
-    free(nhwloc);
+    hwloc_topology_destroy(hwloc->topo);
+    hwloc_bitmap_free(hwloc->widest_cpuset);
+    /* pop initial binding to free up resources */
+    bind_stack_pop(hwloc, NULL);
+    free(hwloc);
     return QUO_SUCCESS;
 }
 
