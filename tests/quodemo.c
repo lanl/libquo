@@ -191,8 +191,6 @@ out:
 static int
 emit_node_basics(const context_t *c)
 {
-    /* for nice output --- not really needed */
-    MPI_Barrier(MPI_COMM_WORLD);
     /* one proc per node will emit this info */
     if (0 == c->noderank) {
         printf("### quo version: %d.%d ###\n", c->qv, c->qsv);
@@ -214,6 +212,7 @@ emit_node_basics(const context_t *c)
 static int
 bindup_sockets(const context_t *c)
 {
+    /* if you are going to change bindings often, then cache this */
     if (c->noderank + 1 <= c->nsockets) {
         unsigned socknum = (unsigned)c->noderank;
         if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_SOCKET, socknum)) {
