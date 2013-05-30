@@ -141,7 +141,7 @@ bind_stack_pop(quo_hwloc_t *hwloc,
 {
     if (!hwloc) return QUO_ERR_INVLD_ARG;
     /* stack is empty -- nothing to do */
-    if (hwloc->bstack.top < 0) return QUO_ERR_POP;
+    if (hwloc->bstack.top <= 0) return QUO_ERR_POP;
     /* remember top is the next empty slot, so decrement first */
     hwloc->bstack.top--;
     /* if the caller wants a copy, give it to them */
@@ -166,7 +166,7 @@ bind_stack_top(quo_hwloc_t *hwloc,
 {
     if (!hwloc || !top_copy) return QUO_ERR_INVLD_ARG;
     /* stack is empty -- nothing to do */
-    if (hwloc->bstack.top < 0) return QUO_ERR_POP;
+    if (hwloc->bstack.top <= 0) return QUO_ERR_POP;
     if (NULL == (*top_copy = hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
