@@ -245,6 +245,16 @@ quo_nnoderanks(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+quo_noderank(const quo_t *q,
+             int *out_noderank)
+{
+    noinit_action;
+    if (!q || !out_noderank) return QUO_ERR_INVLD_ARG;
+    return quo_mpi_noderank(q->mpi, out_noderank);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 quo_rebind(quo_t *q,
            quo_obj_type_t type,
            unsigned obj_index)

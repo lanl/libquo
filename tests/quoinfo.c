@@ -29,7 +29,7 @@ typedef struct inf_t {
     bool mpi_inited;
 } inf_t;
 
-int
+static int
 init(inf_t *inf)
 {
     if (MPI_SUCCESS != MPI_Init(NULL, NULL)) {
@@ -45,7 +45,7 @@ init(inf_t *inf)
     return 0;
 }
 
-int
+static int
 fini(inf_t *inf)
 {
     if (inf->mpi_inited) MPI_Finalize();

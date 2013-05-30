@@ -33,4 +33,8 @@ int
 quo_mpi_nnoderanks(const quo_mpi_t *mpi,
                    int *nnoderanks);
 
+int
+quo_mpi_noderank(const quo_mpi_t *mpi,
+                 int *noderank);
+
 #endif

@@ -281,3 +281,13 @@ quo_mpi_nnoderanks(const quo_mpi_t *mpi,
     *nnoderanks = mpi->nsmpranks;
     return QUO_SUCCESS;
 }
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_noderank(const quo_mpi_t *mpi,
+                 int *noderank)
+{
+    if (!mpi || !noderank) return QUO_ERR_INVLD_ARG;
+    *noderank = mpi->smprank;
+    return QUO_SUCCESS;
+}
