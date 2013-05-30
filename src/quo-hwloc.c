@@ -139,16 +139,44 @@ static int
 bind_stack_pop(quo_hwloc_t *hwloc,
                hwloc_cpuset_t *popped)
 {
-    if (!hwloc || !popped) return QUO_ERR_INVLD_ARG;
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
     /* stack is empty -- nothing to do */
     if (hwloc->bstack.top < 0) return QUO_ERR_POP;
-    if (NULL == (*popped = hwloc_bitmap_alloc())) {
+    /* remember top is the next empty slot, so decrement first */
+    hwloc->bstack.top--;
+    /* if the caller wants a copy, give it to them */
+    if (popped) {
+        if (NULL == (*popped = hwloc_bitmap_alloc())) {
+            QUO_OOR_COMPLAIN();
+            /* restore top's val in error path */
+            hwloc->bstack.top++;
+            return QUO_ERR_OOR;
+        }
+        hwloc_bitmap_copy(*popped, hwloc->bstack.bind_stack[hwloc->bstack.top]);
+    }
+    /* free the top */
+    hwloc_bitmap_free(hwloc->bstack.bind_stack[hwloc->bstack.top]);
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+bind_stack_top(quo_hwloc_t *hwloc,
+               hwloc_cpuset_t *top_copy)
+{
+    if (!hwloc || !top_copy) return QUO_ERR_INVLD_ARG;
+    /* stack is empty -- nothing to do */
+    if (hwloc->bstack.top < 0) return QUO_ERR_POP;
+    if (NULL == (*top_copy = hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
-    hwloc_bitmap_copy(*popped, hwloc->bstack.bind_stack[hwloc->bstack.top - 1]);
-    /* free the top and adjust the top of the stack */
-    hwloc_bitmap_free(hwloc->bstack.bind_stack[hwloc->bstack.top--]);
+    /* remember top is the next empty slot, so decrement first */
+    hwloc->bstack.top--;
+    /* copy */
+    hwloc_bitmap_copy(*top_copy, hwloc->bstack.bind_stack[hwloc->bstack.top]);
+    /* restore top */
+    hwloc->bstack.top++;
     return QUO_SUCCESS;
 }
 
@@ -439,7 +467,7 @@ quo_hwloc_bind_push(quo_hwloc_t *hwloc,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* XXX return popped val? */
+/* TODO return popped val? */
 int
 quo_hwloc_bind_pop(quo_hwloc_t *hwloc)
 {
@@ -447,9 +475,9 @@ quo_hwloc_bind_pop(quo_hwloc_t *hwloc)
     hwloc_cpuset_t topbind = NULL;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
-
-    if (QUO_SUCCESS != (rc = bind_stack_pop(hwloc, &topbind))) return rc;
-    /* revert to the top binding */
+    if (QUO_SUCCESS != (rc = bind_stack_pop(hwloc, NULL))) return rc;
+    /* revert to the top binding after pop */
+    if (QUO_SUCCESS != (rc = bind_stack_top(hwloc, &topbind))) goto out;
     if (-1 == hwloc_set_cpubind(hwloc->topo, topbind,
                                 HWLOC_CPUBIND_PROCESS)) {
         rc = QUO_ERR_NOT_SUPPORTED;
