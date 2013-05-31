@@ -67,6 +67,7 @@ static int
 fini(context_t *c)
 {
     if (!c) return 1;
+    if (QUO_SUCCESS != quo_finalize(c->quo)) return 1;
     if (QUO_SUCCESS != quo_destruct(c->quo)) return 1;
     /* finalize mpi AFTER quo_destruct - we may mpi in our destruct */
     if (c->mpi_inited) MPI_Finalize();

@@ -138,6 +138,10 @@ main(void)
         bad_func = "quo_bound";
         goto out;
     }
+    if (QUO_SUCCESS != (qrc = quo_finalize(quo))) {
+        bad_func = "quo_finalize";
+        goto out;
+    }
     if (QUO_SUCCESS != (qrc = quo_destruct(quo))) {
         bad_func = "quo_destruct";
         goto out;
