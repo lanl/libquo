@@ -100,6 +100,16 @@ quo_init(quo_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+quo_initialized(const quo_t *q,
+                int *out_initialized)
+{
+    if (!q || !out_initialized) return QUO_ERR_INVLD_ARG;
+    *out_initialized = (int)qgstate.quo_initialized;
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 quo_construct(quo_t **q)
 {
     int qrc = QUO_SUCCESS;

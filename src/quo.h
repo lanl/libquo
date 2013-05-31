@@ -61,9 +61,15 @@ quo_init(quo_t *q);
 int
 quo_destruct(quo_t *q);
 
-/* last call */
+/* last call - call before MPI_Finalize */
 int
 quo_finalize(void);
+
+/**
+ */
+int
+quo_initialized(const quo_t *q,
+                int *out_initialized);
 
 int
 quo_node_topo_stringify(const quo_t *q,
