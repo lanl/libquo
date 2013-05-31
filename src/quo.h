@@ -59,11 +59,11 @@ quo_init(quo_t *q);
 
 /* 2nd-to-last call */
 int
-quo_destruct(quo_t *q);
+quo_finalize(quo_t *q);
 
 /* last call - call before MPI_Finalize */
 int
-quo_finalize(void);
+quo_destruct(quo_t *q);
 
 /**
  */
