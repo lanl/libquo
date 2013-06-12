@@ -129,8 +129,8 @@ sys_grok(context_t *c)
     /* this interface is more powerful, but the other n* calls can be more
      * convenient. at any rate, this is an example of the
      * quo_get_nobjs_in_type_by_type interface to get the number of sockets on
-     * the machine. note: you can also use the quo_nsockets to get the same
-     * info. */
+     * the machine. note: you can also use the quo_nsockets or
+     * quo_get_nobjs_by_type to get the same info. */
     if (QUO_SUCCESS != quo_get_nobjs_in_type_by_type(c->quo,
                                                      QUO_MACHINE,
                                                      0,
@@ -231,8 +231,7 @@ bindup_sockets(const context_t *c)
 {
     /* if you are going to change bindings often, then cache this */
     if (c->noderank + 1 <= c->nsockets) {
-        unsigned socknum = (unsigned)c->noderank;
-        if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_SOCKET, socknum)) {
+        if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_SOCKET, c->noderank)) {
             return 1;
         }
     }

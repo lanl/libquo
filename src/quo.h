@@ -122,14 +122,9 @@ quo_noderank(const quo_t *q,
              int *out_noderank);
 
 int
-quo_rebind(quo_t *q,
-           quo_obj_type_t type,
-           unsigned obj_index);
-
-int
 quo_bind_push(quo_t *q,
               quo_obj_type_t type,
-              unsigned obj_index);
+              int obj_index);
 int
 quo_bind_pop(quo_t *q);
 

@@ -281,24 +281,13 @@ quo_noderank(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_rebind(quo_t *q,
-           quo_obj_type_t type,
-           unsigned obj_index)
-{
-    noinit_action(q);
-    if (!q) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_rebind(q->hwloc, type, obj_index);
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
 quo_bind_push(quo_t *q,
               quo_obj_type_t type,
-              unsigned obj_index)
+              int obj_index)
 {
     noinit_action(q);
     if (!q) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_bind_push(q->hwloc, type, obj_index);
+    return quo_hwloc_bind_push(q->hwloc, type, (unsigned)obj_index);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
