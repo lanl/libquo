@@ -60,7 +60,7 @@ int
 quo_version(int *version,
             int *subversion)
 {
-    if (NULL == version || NULL == subversion) return QUO_ERR_INVLD_ARG;
+    if (!version || !subversion) return QUO_ERR_INVLD_ARG;
     *version = QUO_VER;
     *subversion = QUO_SUBVER;
     return QUO_SUCCESS;
@@ -71,6 +71,10 @@ int
 quo_init(quo_t *q)
 {
     int rc = QUO_ERR;
+    if (!q) return QUO_ERR_INVLD_ARG;
+    /* if this context is already initialized, then just return success */
+    if (q->initialized) return QUO_SUCCESS_ALREADY_DONE;
+    /* else init the context */
     if (QUO_SUCCESS != (rc = quo_mpi_init(q->mpi))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
                 "quo_mpi_init");
@@ -97,7 +101,7 @@ quo_construct(quo_t **q)
     int qrc = QUO_SUCCESS;
     quo_t *newq = NULL;
 
-    if (NULL == q) return QUO_ERR_INVLD_ARG;
+    if (!q) return QUO_ERR_INVLD_ARG;
     if (NULL == (newq = calloc(1, sizeof(*newq)))) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
