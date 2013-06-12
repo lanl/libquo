@@ -46,7 +46,8 @@ ext2intobj(quo_obj_type_t external,
            hwloc_obj_type_t *internal)
 {
     if (!internal) return QUO_ERR_INVLD_ARG;
-    /* convert from ours to hwloc's */
+    /* convert from ours to hwloc's. if you ever need more types, add them here
+     * and in quo.h. */
     switch (external) {
         case QUO_MACHINE:
             *internal = HWLOC_OBJ_MACHINE;
@@ -182,7 +183,7 @@ bind_stack_top(quo_hwloc_t *hwloc,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /**
- * pushed current binding.
+ * push current binding.
  */
 static int
 push_cur_bind(quo_hwloc_t *hwloc)
@@ -319,27 +320,78 @@ quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/**
- * return the number of target_types.
- */
-static int
-getnx(const quo_hwloc_t *hwloc,
-      hwloc_obj_type_t target_type,
-      int *nx)
+int
+quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
+                                    quo_obj_type_t in_type,
+                                    int in_type_index,
+                                    quo_obj_type_t type,
+                                    int *out_result)
 {
-    int depth = 0;
+    int rc = QUO_ERR;
+    hwloc_obj_t obj = NULL;
+    hwloc_cpuset_t cpu_set = NULL;
+    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+    unsigned in_type_index_u = (unsigned)in_type_index;
+    int nobjs = 0;
 
-    if (NULL == hwloc || NULL == nx) return QUO_ERR_INVLD_ARG;
+    if (!hwloc || !out_result) return QUO_ERR_INVLD_ARG;
+    if (QUO_SUCCESS != (rc = ext2intobj(in_type, &real_type))) return rc;
+    /* now get the "in" object. like: what's the number of PUs *in* the 0th
+     * socket. target_obj in this case corresponds to the 0th socket. */
+    if (NULL == (obj = hwloc_get_obj_by_type(hwloc->topo,
+                                             real_type,
+                                             in_type_index_u))) {
+        /* there are a couple of reasons why target_obj may be NULL. if this
+         * ever happens and the specified type and obj index should be valid,
+         * then read the hwloc documentation and make this code mo betta. */
+        return QUO_ERR_INVLD_ARG;
+    }
+    if (NULL == (cpu_set = hwloc_bitmap_alloc())) {
+        QUO_OOR_COMPLAIN();
+        return QUO_ERR_OOR;
+    }
+    /* copy the cpuset of the in target -- do we need this? */
+    hwloc_bitmap_copy(cpu_set, obj->cpuset);
+    if (QUO_SUCCESS != (rc = ext2intobj(type, &real_type))) goto out;
+    /* set to NULL so the next call works properly */
+    obj = NULL;
+    /* now count */
+    while ((obj = hwloc_get_next_obj_inside_cpuset_by_type(hwloc->topo,
+                                                           cpu_set,
+                                                           real_type,
+                                                           obj))) {
+        ++nobjs;
+    }
+    *out_result = nobjs;
+out:
+    if (cpu_set) hwloc_bitmap_free(cpu_set);
+    if (QUO_SUCCESS != rc) *out_result = 0;
+    return rc;
+}
 
-    depth = hwloc_get_type_depth(hwloc->topo, target_type);
+/* ////////////////////////////////////////////////////////////////////////// */
+/**
+ * returns the total amount of objects on the system.
+ */
+int
+quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
+                            quo_obj_type_t target_type,
+                            int *out_nobjs)
+{
+    int depth = 0, rc = QUO_ERR;
+    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+
+    if (!hwloc || !out_nobjs) return QUO_ERR_INVLD_ARG;
+    if (QUO_SUCCESS != (rc = ext2intobj(target_type, &real_type))) return rc;
+    depth = hwloc_get_type_depth(hwloc->topo, real_type);
     if (HWLOC_TYPE_DEPTH_UNKNOWN == depth) {
         /* hwloc can't determine the number of x, so just return 0 and not
          * supported. */
-        *nx = 0;
+        *out_nobjs = 0;
         return QUO_ERR_NOT_SUPPORTED;
     }
     else {
-        *nx = hwloc_get_nbobjs_by_depth(hwloc->topo, depth);
+        *out_nobjs = hwloc_get_nbobjs_by_depth(hwloc->topo, depth);
     }
     return QUO_SUCCESS;
 }
@@ -350,7 +402,7 @@ quo_hwloc_sockets(const quo_hwloc_t *hwloc,
                   int *nsockets)
 {
     if (NULL == hwloc || NULL == nsockets) return QUO_ERR_INVLD_ARG;
-    return getnx(hwloc, HWLOC_OBJ_SOCKET, nsockets);
+    return quo_hwloc_get_nobjs_by_type(hwloc, QUO_SOCKET, nsockets);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -359,7 +411,7 @@ quo_hwloc_cores(const quo_hwloc_t *hwloc,
                 int *ncores)
 {
     if (NULL == hwloc || NULL == ncores) return QUO_ERR_INVLD_ARG;
-    return getnx(hwloc, HWLOC_OBJ_CORE, ncores);
+    return quo_hwloc_get_nobjs_by_type(hwloc, QUO_CORE, ncores);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -368,7 +420,7 @@ quo_hwloc_pus(const quo_hwloc_t *hwloc,
               int *npus)
 {
     if (NULL == hwloc || NULL == npus) return QUO_ERR_INVLD_ARG;
-    return getnx(hwloc, HWLOC_OBJ_PU, npus);
+    return quo_hwloc_get_nobjs_by_type(hwloc, QUO_PU, npus);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -441,6 +493,7 @@ quo_hwloc_rebind(const quo_hwloc_t *hwloc,
     if (NULL == (cpu_set = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
     /* void func */
     hwloc_bitmap_copy(cpu_set, target_obj->cpuset);
+    /* set the policy */
     if (-1 == hwloc_set_cpubind(hwloc->topo, cpu_set,
                                 HWLOC_CPUBIND_PROCESS)) {
         rc = QUO_ERR_NOT_SUPPORTED;

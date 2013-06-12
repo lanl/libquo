@@ -111,6 +111,13 @@ err:
     return 1;
 }
 
+int
+quo_get_nobjs_in_type_by_type(const quo_t *q,
+                              quo_obj_type_t in_type,
+                              int in_type_index,
+                              quo_obj_type_t type,
+                              int *out_result);
+
 /**
  * gather system and job info from libquo.
  */
@@ -119,8 +126,17 @@ sys_grok(context_t *c)
 {
     char *bad_func = NULL;
 
-    if (QUO_SUCCESS != quo_nsockets(c->quo, &c->nsockets)) {
-        bad_func = "quo_nsockets";
+    /* this interface is more powerful, but the other n* calls can be more
+     * convenient. at any rate, this is an example of the
+     * quo_get_nobjs_in_type_by_type interface to get the number of sockets on
+     * the machine. note: you can also use the quo_nsockets to get the same
+     * info. */
+    if (QUO_SUCCESS != quo_get_nobjs_in_type_by_type(c->quo,
+                                                     QUO_MACHINE,
+                                                     0,
+                                                     QUO_SOCKET,
+                                                     &c->nsockets)) {
+        bad_func = "quo_get_nobjs_in_type_by_type";
         goto out;
     }
     if (QUO_SUCCESS != quo_ncores(c->quo, &c->ncores)) {

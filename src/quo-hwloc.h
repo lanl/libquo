@@ -31,6 +31,18 @@ quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
                               char **out_str);
 
 int
+quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
+                            quo_obj_type_t target_type,
+                            int *out_nobjs);
+
+int
+quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
+                                    quo_obj_type_t in_type,
+                                    int in_type_index,
+                                    quo_obj_type_t type,
+                                    int *out_result);
+
+int
 quo_hwloc_sockets(const quo_hwloc_t *hwloc,
                   int *nsockets);
 

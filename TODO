@@ -10,3 +10,7 @@ o Add library versioning.
 o NUMA nodes.
 o Fortran 90 demo.
 o core, numa node, etc. ranks.
+o Use hwloc_get_proc_membind_nodeset for mem stuff?
+o hwloc_cpuset_to_nodeset may be useful.
+o maybe use hwloc_distribute to distribute processes over the machine.
+o auto magic.

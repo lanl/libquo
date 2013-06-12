@@ -167,6 +167,36 @@ quo_node_topo_stringify(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+quo_get_nobjs_in_type_by_type(const quo_t *q,
+                              quo_obj_type_t in_type,
+                              int in_type_index,
+                              quo_obj_type_t type,
+                              int *out_result)
+{
+    /* make sure we are initialized before we continue */
+    noinit_action(q);
+    if (!q || !out_result) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_get_nobjs_in_type_by_type(q->hwloc,
+                                               in_type,
+                                               in_type_index,
+                                               type,
+                                               out_result);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_get_nobjs_by_type(const quo_t *q,
+                      quo_obj_type_t target_type,
+                      int *out_nobjs)
+{
+    /* make sure we are initialized before we continue */
+    noinit_action(q);
+    if (!q || !out_nobjs) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_get_nobjs_by_type(q->hwloc, target_type, out_nobjs);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 quo_nsockets(const quo_t *q,
              int *out_nsockets)
 {

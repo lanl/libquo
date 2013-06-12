@@ -77,6 +77,19 @@ quo_node_topo_stringify(const quo_t *q,
                         char **out_str);
 
 int
+quo_get_nobjs_by_type(const quo_t *q,
+                      quo_obj_type_t target_type,
+                      int *out_nobjs);
+
+int
+quo_get_nobjs_in_type_by_type(const quo_t *q,
+                              quo_obj_type_t in_type,
+                              int in_type_index,
+                              quo_obj_type_t type,
+                              int *out_result);
+/* XXX TODO add note about how quo_get_nobjs_by_type and the following are
+ * equiv. */
+int
 quo_nsockets(const quo_t *q,
              int *out_nsockets);
 
