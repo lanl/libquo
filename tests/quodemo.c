@@ -111,13 +111,6 @@ err:
     return 1;
 }
 
-int
-quo_get_nobjs_in_type_by_type(const quo_t *q,
-                              quo_obj_type_t in_type,
-                              int in_type_index,
-                              quo_obj_type_t type,
-                              int *out_result);
-
 /**
  * gather system and job info from libquo.
  */
