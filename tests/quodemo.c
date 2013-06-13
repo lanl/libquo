@@ -246,6 +246,35 @@ binddown_sockets(const context_t *c)
     return 0;
 }
 
+static int
+type_in_cur_bind(const context_t *c,
+                 quo_obj_type_t type,
+                 int type_id,
+                 int *in_cur_bind)
+{
+    if (QUO_SUCCESS != quo_is_in_cpuset_by_type_id(c->quo,
+                                                   type,
+                                                   type_id,
+                                                   in_cur_bind)) {
+        return 1;
+    }
+    return 0;
+}
+
+static int
+cores_in_cur_bind_test(context_t *c)
+{
+    int b0 = -1, blast = -1;
+    if (type_in_cur_bind(c, QUO_CORE, 0, &b0)) return 1;
+    if (type_in_cur_bind(c, QUO_CORE, c->ncores - 1, &blast)) return 1;
+
+    printf("### [rank %d] core %d in current bind policy: %s\n",
+           c->rank, 0, b0 ? "true" : "false");
+    printf("### [rank %d] core %d in current bind policy: %s\n",
+           c->rank, c->ncores - 1, blast ? "true" : "false");
+    return 0;
+}
+
 int
 main(void)
 {
@@ -254,14 +283,14 @@ main(void)
     context_t *context = NULL;
 
     /* ////////////////////////////////////////////////////////////////////// */
-    /* init code */ 
+    /* init code */
     /* ////////////////////////////////////////////////////////////////////// */
     if (init(&context)) {
         bad_func = "init";
         goto out;
     }
     /* ////////////////////////////////////////////////////////////////////// */
-    /* libquo is now ready for service */ 
+    /* libquo is now ready for service */
     /* ////////////////////////////////////////////////////////////////////// */
 
     /* first gather some info so we can base our decisions on our current
@@ -290,6 +319,13 @@ main(void)
         bad_func = "emit_bind_state";
         goto out;
     }
+    /* now test to see if core 0 and the last core are in the socket that we are
+     * currently bound. */
+    if (cores_in_cur_bind_test(context)) {
+        bad_func = "cores_in_cur_bind_test";
+        goto out;
+    }
+    /* now revert the previous policy */
     if (binddown_sockets(context)) {
         bad_func = "bindup_sockets";
         goto out;
