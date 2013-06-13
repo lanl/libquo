@@ -38,9 +38,15 @@ quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
 int
 quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
                                     quo_obj_type_t in_type,
-                                    int in_type_index,
+                                    unsigned in_type_index,
                                     quo_obj_type_t type,
                                     int *out_result);
+
+int
+quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
+                                  quo_obj_type_t type,
+                                  unsigned type_index,
+                                  int *out_result);
 
 int
 quo_hwloc_sockets(const quo_hwloc_t *hwloc,

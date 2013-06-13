@@ -283,6 +283,9 @@ quo_mpi_nnoderanks(const quo_mpi_t *mpi,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/* SKG - i think we can get this info from MPI-3. so in the MPI-3 case, just use
+ * the mpi interface to get this info -- should be much faster and more
+ * scalable. */
 int
 quo_mpi_noderank(const quo_mpi_t *mpi,
                  int *noderank)

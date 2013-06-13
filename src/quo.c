@@ -178,9 +178,25 @@ quo_get_nobjs_in_type_by_type(const quo_t *q,
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
     return quo_hwloc_get_nobjs_in_type_by_type(q->hwloc,
                                                in_type,
-                                               in_type_index,
+                                               (unsigned)in_type_index,
                                                type,
                                                out_result);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_is_in_cpuset_by_type_id(const quo_t *q,
+                            quo_obj_type_t type,
+                            int in_type_index,
+                            int *out_result)
+{
+    /* make sure we are initialized before we continue */
+    noinit_action(q);
+    if (!q || !out_result) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_is_in_cpuset_by_type_id(q->hwloc,
+                                             type,
+                                             (unsigned)in_type_index,
+                                             out_result);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

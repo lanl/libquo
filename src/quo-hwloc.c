@@ -107,6 +107,32 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static int
+get_obj_by_type(const quo_hwloc_t *hwloc,
+                quo_obj_type_t type,
+                unsigned type_index,
+                hwloc_obj_t *out_obj)
+{
+    int rc = QUO_ERR;
+    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+
+    if (!hwloc || !out_obj) return QUO_ERR_INVLD_ARG;
+    *out_obj = NULL;
+    if (QUO_SUCCESS != (rc = ext2intobj(type, &real_type))) return rc;
+    if (NULL == (*out_obj = hwloc_get_obj_by_type(hwloc->topo,
+                                                  real_type,
+                                                  type_index))) {
+        /* there are a couple of reasons why target_obj may be NULL. if this
+         * ever happens and the specified type and obj index should be valid,
+         * then read the hwloc documentation and make this code mo betta. */
+        return QUO_ERR_INVLD_ARG;
+    }
+    return QUO_SUCCESS;
+}
+
+
+
+/* ////////////////////////////////////////////////////////////////////////// */
 static bool
 bind_stack_full(const quo_hwloc_t *hwloc)
 {
@@ -323,7 +349,7 @@ quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
 int
 quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
                                     quo_obj_type_t in_type,
-                                    int in_type_index,
+                                    unsigned in_type_index,
                                     quo_obj_type_t type,
                                     int *out_result)
 {
@@ -331,20 +357,18 @@ quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
     hwloc_obj_t obj = NULL;
     hwloc_cpuset_t cpu_set = NULL;
     hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
-    unsigned in_type_index_u = (unsigned)in_type_index;
     int nobjs = 0;
 
     if (!hwloc || !out_result) return QUO_ERR_INVLD_ARG;
-    if (QUO_SUCCESS != (rc = ext2intobj(in_type, &real_type))) return rc;
+    /* set this to something nice just in case an error occurs */
+    *out_result = 0;
     /* now get the "in" object. like: what's the number of PUs *in* the 0th
      * socket. target_obj in this case corresponds to the 0th socket. */
-    if (NULL == (obj = hwloc_get_obj_by_type(hwloc->topo,
-                                             real_type,
-                                             in_type_index_u))) {
-        /* there are a couple of reasons why target_obj may be NULL. if this
-         * ever happens and the specified type and obj index should be valid,
-         * then read the hwloc documentation and make this code mo betta. */
-        return QUO_ERR_INVLD_ARG;
+    if (QUO_SUCCESS != (rc = get_obj_by_type(hwloc,
+                                             in_type,
+                                             in_type_index,
+                                             &obj))) {
+        return rc;
     }
     if (NULL == (cpu_set = hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
@@ -393,6 +417,26 @@ quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
     else {
         *out_nobjs = hwloc_get_nbobjs_by_depth(hwloc->topo, depth);
     }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
+                                  quo_obj_type_t type,
+                                  unsigned type_index,
+                                  int *out_result)
+{
+    int rc = QUO_ERR;
+    hwloc_obj_t obj = NULL;
+    hwloc_cpuset_t cur_bind = NULL;
+
+    if (!hwloc || !out_result) return QUO_ERR_INVLD_ARG;
+    if (QUO_SUCCESS != (rc = get_obj_by_type(hwloc, type, type_index, &obj))) {
+        return rc;
+    }
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) return rc;
+    *out_result = hwloc_bitmap_intersects(cur_bind, obj->cpuset);
     return QUO_SUCCESS;
 }
 
@@ -470,26 +514,20 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-int
-quo_hwloc_rebind(const quo_hwloc_t *hwloc,
-                 quo_obj_type_t type,
-                 unsigned obj_index)
+static int
+rebind(const quo_hwloc_t *hwloc,
+       quo_obj_type_t type,
+       unsigned obj_index)
 {
     int rc = QUO_SUCCESS;
     hwloc_obj_t target_obj = NULL;
     hwloc_cpuset_t cpu_set = NULL;
-    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
-    if (QUO_SUCCESS != (rc = ext2intobj(type, &real_type))) return rc;
-    if (NULL == (target_obj = hwloc_get_obj_by_type(hwloc->topo,
-                                                    real_type,
-                                                    obj_index))) {
-        /* there are a couple of reasons why target_obj may be NULL. if this
-         * ever happens and the specified type and obj index should be valid,
-         * then read the hwloc documentation and make this code mo betta. */
-        return QUO_ERR_INVLD_ARG;
-    }
+    if (QUO_SUCCESS != (rc = get_obj_by_type(hwloc,
+                                             type,
+                                             obj_index,
+                                             &target_obj))) return rc;
     if (NULL == (cpu_set = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
     /* void func */
     hwloc_bitmap_copy(cpu_set, target_obj->cpuset);
@@ -514,7 +552,7 @@ quo_hwloc_bind_push(quo_hwloc_t *hwloc,
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
     /* change binding */
-    if (QUO_SUCCESS != (rc = quo_hwloc_rebind(hwloc, type, obj_index))) {
+    if (QUO_SUCCESS != (rc = rebind(hwloc, type, obj_index))) {
         return rc;
     }
     /* stash our shiny new binding */
