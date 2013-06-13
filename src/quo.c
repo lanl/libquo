@@ -185,10 +185,10 @@ quo_get_nobjs_in_type_by_type(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_is_in_cpuset_by_type_id(const quo_t *q,
-                            quo_obj_type_t type,
-                            int in_type_index,
-                            int *out_result)
+quo_cur_cpuset_in_type(const quo_t *q,
+                       quo_obj_type_t type,
+                       int in_type_index,
+                       int *out_result)
 {
     /* make sure we are initialized before we continue */
     noinit_action(q);

@@ -249,6 +249,10 @@ binddown_sockets(const context_t *c)
 /**
  * returns whether or not our current cpuset (binding) falls within a particular
  * type and index. like: am i bound within socket 1? kinda thing.
+ *
+ * for example: if you are current bound to a core within socket 1, then this
+ * routine will return 1. if you are not bound at all, this routine will also
+ * return 1.
  */
 static int
 type_in_cur_bind(const context_t *c,
@@ -256,10 +260,10 @@ type_in_cur_bind(const context_t *c,
                  int type_id,
                  int *in_cur_bind)
 {
-    if (QUO_SUCCESS != quo_is_in_cpuset_by_type_id(c->quo,
-                                                   type,
-                                                   type_id,
-                                                   in_cur_bind)) {
+    if (QUO_SUCCESS != quo_cur_cpuset_in_type(c->quo,
+                                              type,
+                                              type_id,
+                                              in_cur_bind)) {
         return 1;
     }
     return 0;
