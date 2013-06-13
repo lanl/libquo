@@ -6,7 +6,6 @@ o Maybe at some point provide capability to query #x on some obj:
 o Install libquo.h and create quo subdirectory with all the other includes (if
   needed).
 o Return popped CPU set to caller (API).
-o Add library versioning.
 o NUMA nodes.
 o Fortran 90 demo.
 o core, numa node, etc. ranks.
