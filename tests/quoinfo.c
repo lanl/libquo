@@ -60,7 +60,7 @@ main(void)
     int nsockets = 0, ncores = 0, npus = 0;
     char *bad_func = NULL;
     char *topostr = NULL, *cbindstr = NULL, *cbindstr2 = NULL, *cbindstr3 = NULL;
-    bool bound = false, bound2 = false, bound3 = false;
+    int bound = 0, bound2 = 0, bound3 = 0;
     quo_t *quo = NULL;
     inf_t info;
 

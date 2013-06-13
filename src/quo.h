@@ -103,7 +103,7 @@ quo_npus(const quo_t *q,
 
 int
 quo_bound(const quo_t *q,
-          bool *bound);
+          int *bound);
 
 int
 quo_stringify_cbind(const quo_t *q,

@@ -202,7 +202,7 @@ quo_nsockets(const quo_t *q,
 {
     /* make sure we are initialized before we continue */
     noinit_action(q);
-    if (NULL == q || NULL == out_nsockets) return QUO_ERR_INVLD_ARG;
+    if (!q || !out_nsockets) return QUO_ERR_INVLD_ARG;
     return quo_hwloc_sockets(q->hwloc, out_nsockets);
 }
 
@@ -213,7 +213,7 @@ quo_ncores(const quo_t *q,
 {
     /* make sure we are initialized before we continue */
     noinit_action(q);
-    if (NULL == q || NULL == out_ncores) return QUO_ERR_INVLD_ARG;
+    if (!q || !out_ncores) return QUO_ERR_INVLD_ARG;
     return quo_hwloc_cores(q->hwloc, out_ncores);
 }
 
@@ -224,19 +224,23 @@ quo_npus(const quo_t *q,
 {
     /* make sure we are initialized before we continue */
     noinit_action(q);
-    if (NULL == q || NULL == out_npus) return QUO_ERR_INVLD_ARG;
+    if (!q || !out_npus) return QUO_ERR_INVLD_ARG;
     return quo_hwloc_pus(q->hwloc, out_npus);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_bound(const quo_t *q,
-          bool *bound)
+          int *bound)
 {
+    int rc = QUO_ERR;
+    bool bound_b = false;
     /* make sure we are initialized before we continue */
     noinit_action(q);
     if (!q || !bound) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_bound(q->hwloc, bound);
+    if (QUO_SUCCESS != (rc = quo_hwloc_bound(q->hwloc, &bound_b))) return rc;
+    *bound = (int)bound_b;
+    return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

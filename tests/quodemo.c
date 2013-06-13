@@ -57,7 +57,7 @@ typedef struct context_t {
     /* pointer to initial stringification of our cpuset */
     char *cbindstr;
     /* flag indicating whether or not we are initially bound */
-    bool bound;
+    int bound;
     /* a pointer to our quo context (the thing that gets passed around all over
      * the place). filler words that make this comment line look mo better... */
     quo_t *quo;
@@ -172,7 +172,7 @@ static int
 emit_bind_state(const context_t *c)
 {
     char *cbindstr = NULL, *bad_func = NULL;
-    bool bound = false;
+    int bound = 0;
 
     /* for nice output --- not really needed */
     MPI_Barrier(MPI_COMM_WORLD);
