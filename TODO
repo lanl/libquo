@@ -1,4 +1,5 @@
 libquo TODO
+o auto set library version (api call and so)
 o Thread protection - Should we do this?
 o Expose memory API.
 o Return popped CPU set to caller (API).

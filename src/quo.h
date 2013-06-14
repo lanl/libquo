@@ -66,8 +66,6 @@ quo_finalize(quo_t *q);
 int
 quo_destruct(quo_t *q);
 
-/**
- */
 int
 quo_initialized(const quo_t *q,
                 int *out_initialized);
@@ -92,8 +90,7 @@ quo_cur_cpuset_in_type(const quo_t *q,
                        quo_obj_type_t type,
                        int in_type_index,
                        int *out_result);
-/* XXX TODO add note about how quo_get_nobjs_by_type and the following are
- * equiv. */
+
 int
 quo_nsockets(const quo_t *q,
              int *out_nsockets);
