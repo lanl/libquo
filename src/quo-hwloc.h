@@ -13,6 +13,10 @@
 #include "quo-private.h"
 #include "quo.h"
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
 #include <hwloc.h>
 
 struct quo_hwloc_t;
@@ -45,6 +49,7 @@ quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
 int
 quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
                                   quo_obj_type_t type,
+                                  pid_t pid,
                                   unsigned type_index,
                                   int *out_result);
 
@@ -62,6 +67,7 @@ quo_hwloc_pus(const quo_hwloc_t *hwloc,
 
 int
 quo_hwloc_bound(const quo_hwloc_t *hwloc,
+                pid_t pid,
                 bool *out_bound);
 
 int
@@ -70,6 +76,7 @@ quo_hwloc_sbitmask(const quo_hwloc_t *hwloc,
 
 int
 quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
+                          pid_t pid,
                           char **out_str);
 
 int

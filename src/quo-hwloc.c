@@ -38,6 +38,8 @@ struct quo_hwloc_t {
     hwloc_cpuset_t widest_cpuset;
     /* the bind stack */
     bind_stack_t bstack;
+    /* my pid */
+    pid_t mypid;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -79,6 +81,7 @@ ext2intobj(quo_obj_type_t external,
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 get_cur_bind(const quo_hwloc_t *hwloc,
+             pid_t who_pid,
              hwloc_cpuset_t *out_cpuset)
 {
     int rc = QUO_SUCCESS;
@@ -91,10 +94,13 @@ get_cur_bind(const quo_hwloc_t *hwloc,
         rc = QUO_ERR_OOR;
         goto out;
     }
-    if (hwloc_get_cpubind(hwloc->topo, cur_bind, HWLOC_CPUBIND_PROCESS)) {
+    if (hwloc_get_proc_cpubind(hwloc->topo,
+                               who_pid,
+                               cur_bind,
+                               HWLOC_CPUBIND_PROCESS)) {
         int err = errno;
         fprintf(stderr, QUO_ERR_PREFIX"%s failure in %s: %d (%s)\n",
-                "hwloc_get_cpubind", __func__, err, strerror(err));
+                "hwloc_get_proc_cpubind", __func__, err, strerror(err));
         rc = QUO_ERR_TOPO;
         goto out;
     }
@@ -220,7 +226,9 @@ push_cur_bind(quo_hwloc_t *hwloc)
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
 
-    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) return rc;
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, hwloc->mypid, &cur_bind))) {
+        return rc;
+    }
     if (QUO_SUCCESS != (rc = bind_stack_push(hwloc, cur_bind))) goto out;
 out:
     /* push copies, so free the one we created */
@@ -234,6 +242,8 @@ init_cached_attrs(quo_hwloc_t *qh)
 {
     if (NULL == qh) return QUO_ERR_INVLD_ARG;
 
+    /* stash our pid */
+    qh->mypid = getpid();
     if (NULL == (qh->widest_cpuset = hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
@@ -425,6 +435,7 @@ quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
 int
 quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
                                   quo_obj_type_t type,
+                                  pid_t pid,
                                   unsigned type_index,
                                   int *out_result)
 {
@@ -436,7 +447,7 @@ quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
     if (QUO_SUCCESS != (rc = get_obj_by_type(hwloc, type, type_index, &obj))) {
         return rc;
     }
-    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) return rc;
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, pid, &cur_bind))) return rc;
     *out_result = hwloc_bitmap_intersects(cur_bind, obj->cpuset);
     return QUO_SUCCESS;
 }
@@ -471,6 +482,7 @@ quo_hwloc_pus(const quo_hwloc_t *hwloc,
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_bound(const quo_hwloc_t *hwloc,
+                pid_t pid,
                 bool *out_bound)
 {
     int rc = 0;
@@ -478,7 +490,7 @@ quo_hwloc_bound(const quo_hwloc_t *hwloc,
 
     if (NULL == hwloc || NULL == out_bound) return QUO_ERR_INVLD_ARG;
 
-    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) {
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, pid, &cur_bind))) {
         goto out;
     }
     /* if our current binding isn't equal to the widest, then we are bound to
@@ -493,6 +505,7 @@ out:
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
+                          pid_t pid,
                           char **out_str)
 {
     int rc = QUO_SUCCESS;
@@ -500,7 +513,7 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
 
     if (!hwloc || !out_str) return QUO_ERR_INVLD_ARG;
 
-    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, &cur_bind))) {
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, pid, &cur_bind))) {
         /* get_cur_bind cleans up after itself on failure */
         return rc;
     }

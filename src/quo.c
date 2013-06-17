@@ -195,8 +195,21 @@ quo_cur_cpuset_in_type(const quo_t *q,
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
     return quo_hwloc_is_in_cpuset_by_type_id(q->hwloc,
                                              type,
+                                             q->pid,
                                              (unsigned)in_type_index,
                                              out_result);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_smpranks_in_type(const quo_t *q,
+                     quo_obj_type_t type,
+                     int in_type_index,
+                     int *n_out_smpranks,
+                     int **out_smpranks)
+{
+    if (!q || !n_out_smpranks || !out_smpranks) return QUO_ERR_INVLD_ARG;
+    return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -254,7 +267,9 @@ quo_bound(const quo_t *q,
     /* make sure we are initialized before we continue */
     noinit_action(q);
     if (!q || !bound) return QUO_ERR_INVLD_ARG;
-    if (QUO_SUCCESS != (rc = quo_hwloc_bound(q->hwloc, &bound_b))) return rc;
+    if (QUO_SUCCESS != (rc = quo_hwloc_bound(q->hwloc, q->pid, &bound_b))) {
+        return rc;
+    }
     *bound = (int)bound_b;
     return QUO_SUCCESS;
 }
@@ -266,7 +281,7 @@ quo_stringify_cbind(const quo_t *q,
 {
     noinit_action(q);
     if (!q || !cbind_str) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_stringify_cbind(q->hwloc, cbind_str);
+    return quo_hwloc_stringify_cbind(q->hwloc, q->pid, cbind_str);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

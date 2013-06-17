@@ -240,6 +240,7 @@ int
 quo_mpi_construct(quo_mpi_t **nmpi)
 {
     quo_mpi_t *m = NULL;
+
     if (!nmpi) return QUO_ERR_INVLD_ARG;
     if (NULL == (m = calloc(1, sizeof(*m)))) {
         QUO_OOR_COMPLAIN();
