@@ -29,6 +29,12 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <errno.h>
 
 #include "mpi.h"
@@ -49,16 +55,18 @@ struct quo_mpi_t {
     MPI_Comm commchan;
     /* node communicator */
     MPI_Comm smpcomm;
+    /* number of nodes in the current job */
+    int nnodes;
     /* my rank */
     int rank;
     /* number of ranks in comm world */
     int nranks;
     /* my smp (node) rank */
     int smprank;
-    /* number of ranks that share a node with me (includes myself) */
+    /* number of ranks that share a node with me - size of node_pids array */
     int nsmpranks;
-    /* number of nodes in the current job */
-    int nnodes;
+    /* node PIDs -- points to PIDs of all the MPI processes on the node */
+    long *node_pids;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -170,6 +178,7 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/** communication channel setup used for quo communication. */
 static int
 commchan_setup(quo_mpi_t *mpi)
 {
@@ -207,6 +216,26 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static int
+pid_xchange(quo_mpi_t *mpi)
+{
+    long my_pidnum = (long)getpid();
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    /* alloc pid array */
+    if (NULL == (mpi->node_pids = calloc(mpi->nsmpranks, sizeof(long)))) {
+        return QUO_ERR_OOR;
+    }
+    /* now exchange node pids */
+    if (MPI_SUCCESS != MPI_Allgather(&my_pidnum, 1, MPI_LONG,
+                                     mpi->node_pids, 1, MPI_LONG,
+                                     mpi->commchan)) {
+        return QUO_ERR_MPI;
+    }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_mpi_construct(quo_mpi_t **nmpi)
 {
@@ -241,6 +270,9 @@ quo_mpi_init(quo_mpi_t *mpi)
     if (QUO_SUCCESS != (rc = init_setup(mpi))) goto err;
     /* setup node rank info */
     if (QUO_SUCCESS != (rc = smprank_setup(mpi))) goto err;
+    /* mpi is setup and we know about our node neighbors and all the jive, so
+     * setup and exchange node pids. */
+    if (QUO_SUCCESS != (rc = pid_xchange(mpi))) goto err;
     return QUO_SUCCESS;
 err:
     quo_mpi_destruct(mpi);
@@ -257,6 +289,10 @@ quo_mpi_destruct(quo_mpi_t *mpi)
     if (mpi->mpi_inited) {
         if (MPI_SUCCESS != MPI_Comm_free(&(mpi->commchan))) nerrs++;
         if (MPI_SUCCESS != MPI_Comm_free(&(mpi->smpcomm))) nerrs++;
+    }
+    if (mpi->node_pids) {
+        free(mpi->node_pids);
+        mpi->node_pids = NULL;
     }
     free(mpi); mpi = NULL;
     return nerrs == 0 ? QUO_SUCCESS : QUO_ERR_MPI;

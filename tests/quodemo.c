@@ -63,6 +63,16 @@ typedef struct context_t {
     quo_t *quo;
 } context_t;
 
+/**
+ * rudimentary "pretty print" routine. not needed in real life...
+ */
+static inline void
+demo_emit_sync(const context_t *c)
+{
+    MPI_Barrier(MPI_COMM_WORLD);
+    usleep((c->rank) * 1000);
+}
+
 static int
 fini(context_t *c)
 {
@@ -174,8 +184,7 @@ emit_bind_state(const context_t *c)
     char *cbindstr = NULL, *bad_func = NULL;
     int bound = 0;
 
-    /* for nice output --- not really needed */
-    MPI_Barrier(MPI_COMM_WORLD);
+    demo_emit_sync(c);
     if (QUO_SUCCESS != quo_stringify_cbind(c->quo, &cbindstr)) {
         bad_func = "quo_stringify_cbind";
         goto out;
@@ -188,8 +197,7 @@ emit_bind_state(const context_t *c)
            (int)getpid(), c->rank, cbindstr, bound ? "true" : "false");
     fflush(stdout);
 out:
-    /* for nice output --- not really needed */
-    MPI_Barrier(MPI_COMM_WORLD);
+    demo_emit_sync(c);
     if (cbindstr) free(cbindstr);
     if (bad_func) {
         fprintf(stderr, "%s: %s failure :-(\n", __func__, bad_func);
@@ -211,8 +219,7 @@ emit_node_basics(const context_t *c)
         printf("### npus: %d\n", c->npus);
         fflush(stdout);
     }
-    /* for nice output --- not really needed */
-    MPI_Barrier(MPI_COMM_WORLD);
+    demo_emit_sync(c);
     return 0;
 }
 
@@ -280,6 +287,7 @@ cores_in_cur_bind_test(const context_t *c)
            c->rank, 0, b0 ? "true" : "false");
     printf("### [rank %d] core %d in current bind policy: %s\n",
            c->rank, c->ncores - 1, blast ? "true" : "false");
+    demo_emit_sync(c);
     return 0;
 }
 

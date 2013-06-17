@@ -38,8 +38,6 @@ struct quo_hwloc_t {
     hwloc_cpuset_t widest_cpuset;
     /* the bind stack */
     bind_stack_t bstack;
-    /* node PIDs -- points to PIDs of all the MPI processes on the node */
-    pid_t *node_pids;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
