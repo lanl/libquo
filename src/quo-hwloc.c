@@ -38,9 +38,14 @@ struct quo_hwloc_t {
     hwloc_cpuset_t widest_cpuset;
     /* the bind stack */
     bind_stack_t bstack;
+    /* node PIDs -- points to PIDs of all the MPI processes on the node */
+    pid_t *node_pids;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/**
+ * takes a quo obj type and converts it to hwloc's equivalent.
+ */
 static int
 ext2intobj(quo_obj_type_t external,
            hwloc_obj_type_t *internal)
@@ -91,7 +96,7 @@ get_cur_bind(const quo_hwloc_t *hwloc,
     if (hwloc_get_cpubind(hwloc->topo, cur_bind, HWLOC_CPUBIND_PROCESS)) {
         int err = errno;
         fprintf(stderr, QUO_ERR_PREFIX"%s failure in %s: %d (%s)\n",
-                "hwloc_get_proc_cpubind", __func__, err, strerror(err));
+                "hwloc_get_cpubind", __func__, err, strerror(err));
         rc = QUO_ERR_TOPO;
         goto out;
     }
@@ -129,8 +134,6 @@ get_obj_by_type(const quo_hwloc_t *hwloc,
     }
     return QUO_SUCCESS;
 }
-
-
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static bool
