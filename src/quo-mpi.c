@@ -44,6 +44,14 @@
  * about checking if everything has been setup before continuing with the
  * operation. */
 
+/**
+ * maintains pid to smprank mapping.
+ */
+typedef struct pid_smprank_map_t {
+    long pid;
+    int smprank;
+} pid_smprank_map_t;
+
 /* ////////////////////////////////////////////////////////////////////////// */
 /* quo_mpi_t type definition */
 struct quo_mpi_t {
@@ -63,10 +71,10 @@ struct quo_mpi_t {
     int nranks;
     /* my smp (node) rank */
     int smprank;
-    /* number of ranks that share a node with me - size of node_pids array */
+    /* number of ranks that share a node with me - |pid_smprank_map| */
     int nsmpranks;
-    /* node PIDs -- points to PIDs of all the MPI processes on the node */
-    long *node_pids;
+    /* pid to smprank map for all ranks that share a node with me */
+    pid_smprank_map_t *pid_smprank_map;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -216,23 +224,65 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/**
+ * pid_smprank_map allocation, setup, and exchange.
+ */
 static int
 pid_xchange(quo_mpi_t *mpi)
 {
-    long my_pidnum = (long)getpid();
+    int rc = QUO_SUCCESS;
+    pid_smprank_map_t my_info;
+    my_info.pid = (long)getpid();
+    my_info.smprank = mpi->smprank;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
-    /* alloc pid array */
-    if (NULL == (mpi->node_pids = calloc(mpi->nsmpranks, sizeof(long)))) {
+    if (NULL == (mpi->pid_smprank_map = calloc(mpi->nsmpranks,
+                                               sizeof(pid_smprank_map_t)))) {
         return QUO_ERR_OOR;
     }
-    /* now exchange node pids */
-    if (MPI_SUCCESS != MPI_Allgather(&my_pidnum, 1, MPI_LONG,
-                                     mpi->node_pids, 1, MPI_LONG,
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* if you update pid_smprank_map, then update this code                   */
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* number of items in the struct */
+    int nitems = 2;
+    int block_lens[2] = {1, 1};
+    /* array of base mpi types that the struct is made up of */
+    MPI_Datatype types[2] = {MPI_LONG, MPI_INT};
+    /* the mpi datatype that we are creating */
+    MPI_Datatype pid_smprank_type;
+    /* type offsets */
+    MPI_Aint offsets[2];
+    offsets[0] = offsetof(pid_smprank_map_t, pid);
+    offsets[1] = offsetof(pid_smprank_map_t, smprank);
+    /* create the thing */
+    if (MPI_SUCCESS != MPI_Type_create_struct(nitems,
+                                              block_lens,
+                                              offsets,
+                                              types,
+                                              &pid_smprank_type)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Type_commit(&pid_smprank_type)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* now exchange the data */
+    if (MPI_SUCCESS != MPI_Allgather(&my_info, 1, pid_smprank_type,
+                                     mpi->pid_smprank_map, 1, pid_smprank_type,
                                      mpi->commchan)) {
         return QUO_ERR_MPI;
     }
-    return QUO_SUCCESS;
+out:
+    /* error path */
+    if (QUO_SUCCESS != rc) {
+        if (mpi->pid_smprank_map) {
+            free(mpi->pid_smprank_map);
+            mpi->pid_smprank_map = NULL;
+        }
+    }
+    if (MPI_SUCCESS != MPI_Type_free(&pid_smprank_type)) rc = QUO_ERR_MPI;
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -291,9 +341,9 @@ quo_mpi_destruct(quo_mpi_t *mpi)
         if (MPI_SUCCESS != MPI_Comm_free(&(mpi->commchan))) nerrs++;
         if (MPI_SUCCESS != MPI_Comm_free(&(mpi->smpcomm))) nerrs++;
     }
-    if (mpi->node_pids) {
-        free(mpi->node_pids);
-        mpi->node_pids = NULL;
+    if (mpi->pid_smprank_map) {
+        free(mpi->pid_smprank_map);
+        mpi->pid_smprank_map = NULL;
     }
     free(mpi); mpi = NULL;
     return nerrs == 0 ? QUO_SUCCESS : QUO_ERR_MPI;
