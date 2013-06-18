@@ -454,33 +454,6 @@ quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_hwloc_sockets(const quo_hwloc_t *hwloc,
-                  int *nsockets)
-{
-    if (NULL == hwloc || NULL == nsockets) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_get_nobjs_by_type(hwloc, QUO_SOCKET, nsockets);
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-quo_hwloc_cores(const quo_hwloc_t *hwloc,
-                int *ncores)
-{
-    if (NULL == hwloc || NULL == ncores) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_get_nobjs_by_type(hwloc, QUO_CORE, ncores);
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-quo_hwloc_pus(const quo_hwloc_t *hwloc,
-              int *npus)
-{
-    if (NULL == hwloc || NULL == npus) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_get_nobjs_by_type(hwloc, QUO_PU, npus);
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
 quo_hwloc_bound(const quo_hwloc_t *hwloc,
                 pid_t pid,
                 bool *out_bound)

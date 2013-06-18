@@ -54,25 +54,9 @@ quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
                                   int *out_result);
 
 int
-quo_hwloc_sockets(const quo_hwloc_t *hwloc,
-                  int *nsockets);
-
-int
-quo_hwloc_cores(const quo_hwloc_t *hwloc,
-                int *ncores);
-
-int
-quo_hwloc_pus(const quo_hwloc_t *hwloc,
-              int *npus);
-
-int
 quo_hwloc_bound(const quo_hwloc_t *hwloc,
                 pid_t pid,
                 bool *out_bound);
-
-int
-quo_hwloc_sbitmask(const quo_hwloc_t *hwloc,
-                   char **out_str);
 
 int
 quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
