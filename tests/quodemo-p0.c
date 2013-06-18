@@ -189,11 +189,13 @@ elect_workers(context_t *c)
         return 1;
     }
 
-    demo_emit_sync(c);
 
     for (int i = 0; i < nranks_bound_to_socket; ++i) {
-        printf("%d rank %d in socket 0\n", c->rank, rank_ids_bound_to_socket[i]);
+        printf("### [rank %d] rank %d in socket 0\n", c->rank,
+               rank_ids_bound_to_socket[i]);
     }
+
+    demo_emit_sync(c);
 
 #if 0
     /* indicates whether or not my current binding falls within a particular

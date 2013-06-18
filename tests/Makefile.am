@@ -6,7 +6,7 @@
 bin_PROGRAMS = \
 quoinfo \
 quodemo \
-quodemo_multilib \
+quodemo-multilib \
 rebind
 
 lib_LTLIBRARIES = \
