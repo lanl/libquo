@@ -228,7 +228,7 @@ out:
  * pid_smprank_map allocation, setup, and exchange.
  */
 static int
-pid_xchange(quo_mpi_t *mpi)
+pid_smprank_xchange(quo_mpi_t *mpi)
 {
     int rc = QUO_SUCCESS;
     pid_smprank_map_t my_info;
@@ -281,6 +281,7 @@ out:
             mpi->pid_smprank_map = NULL;
         }
     }
+    /* no longer needed */
     if (MPI_SUCCESS != MPI_Type_free(&pid_smprank_type)) rc = QUO_ERR_MPI;
     return rc;
 }
@@ -322,8 +323,8 @@ quo_mpi_init(quo_mpi_t *mpi)
     /* setup node rank info */
     if (QUO_SUCCESS != (rc = smprank_setup(mpi))) goto err;
     /* mpi is setup and we know about our node neighbors and all the jive, so
-     * setup and exchange node pids. */
-    if (QUO_SUCCESS != (rc = pid_xchange(mpi))) goto err;
+     * setup and exchange node pids and node ranks. */
+    if (QUO_SUCCESS != (rc = pid_smprank_xchange(mpi))) goto err;
     return QUO_SUCCESS;
 err:
     quo_mpi_destruct(mpi);
