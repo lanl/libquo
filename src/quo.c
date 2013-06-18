@@ -201,6 +201,9 @@ quo_cur_cpuset_in_type(const quo_t *q,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/**
+ * caller is responsible for freeing *out_smpranks.
+ */
 int
 quo_smpranks_in_type(const quo_t *q,
                      quo_obj_type_t type,
@@ -208,8 +211,51 @@ quo_smpranks_in_type(const quo_t *q,
                      int *n_out_smpranks,
                      int **out_smpranks)
 {
+    int rc = QUO_ERR;
+    int tot_smpranks = 0;
+    int nsmpranks = 0;
+    int *smpranks = NULL;
+
     if (!q || !n_out_smpranks || !out_smpranks) return QUO_ERR_INVLD_ARG;
-    return QUO_SUCCESS;
+    *n_out_smpranks = 0; *out_smpranks = NULL;
+    /* figure out how many node ranks on the node */
+    if (QUO_SUCCESS != (rc = quo_nnoderanks(q, &tot_smpranks))) return rc;
+    /* smp ranks are always monotonically increasing starting at 0 */
+    for (int rank = 0; rank < tot_smpranks; ++rank) {
+        /* whether or not the particular pid is in the given obj type */
+        int in_cpuset = 0;
+        /* the smp rank's pid */
+        pid_t rpid = 0;
+        if (QUO_SUCCESS != (rc = quo_mpi_smprank2pid(q->mpi, rank, &rpid))) {
+            /* rc set in failure path */
+            goto out;
+        }
+        rc = quo_hwloc_is_in_cpuset_by_type_id(q->hwloc,
+                                               type,
+                                               rpid,
+                                               in_type_index,
+                                               &in_cpuset);
+        if (QUO_SUCCESS != rc) goto out;
+        /* if the rank's cpuset falls within the given obj, then add it */
+        if (in_cpuset) {
+            int *newsmpranks = NULL;
+            newsmpranks = realloc(smpranks, (nsmpranks + 1) * sizeof(int));
+            if (!newsmpranks) {
+                rc = QUO_ERR_OOR;
+                goto out;
+            }
+            smpranks = newsmpranks;
+            /* add the newly found rank to the list and increment num found */
+            smpranks[nsmpranks++] = rank;
+        }
+    }
+    *n_out_smpranks = nsmpranks;
+    *out_smpranks = smpranks;
+out:
+    if (QUO_SUCCESS != rc) {
+        if (smpranks) free(smpranks);
+    }
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

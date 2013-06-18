@@ -38,8 +38,8 @@ quo_mpi_noderank(const quo_mpi_t *mpi,
                  int *noderank);
 
 int
-quo_mpi_pid2smprank(quo_mpi_t *mpi,
-                    pid_t pid,
-                    int *out_smprank);
+quo_mpi_smprank2pid(quo_mpi_t *mpi,
+                    int smprank,
+                    pid_t *out_pid);
 
 #endif

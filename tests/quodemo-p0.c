@@ -176,6 +176,25 @@ emit_node_basics(const context_t *c)
 static int
 elect_workers(context_t *c)
 {
+    /* number of elements in the rank_ids_bound_to_socket array */
+    int nranks_bound_to_socket = 0;
+    /* NOTE: we must free this at some point */
+    int *rank_ids_bound_to_socket = NULL;
+
+    if (QUO_SUCCESS != quo_smpranks_in_type(c->quo,
+                                            QUO_CORE,
+                                            0,
+                                            &nranks_bound_to_socket,
+                                            &rank_ids_bound_to_socket)) {
+        return 1;
+    }
+
+    demo_emit_sync(c);
+
+    for (int i = 0; i < nranks_bound_to_socket; ++i) {
+        printf("%d rank %d in socket 0\n", c->rank, rank_ids_bound_to_socket[i]);
+    }
+
 #if 0
     /* indicates whether or not my current binding falls within a particular
      * socket's cpuset.

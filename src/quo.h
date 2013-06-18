@@ -93,6 +93,13 @@ quo_cur_cpuset_in_type(const quo_t *q,
                        int *out_result);
 
 int
+quo_smpranks_in_type(const quo_t *q,
+                     quo_obj_type_t type,
+                     int in_type_index,
+                     int *n_out_smpranks,
+                     int **out_smpranks);
+
+int
 quo_nsockets(const quo_t *q,
              int *out_nsockets);
 

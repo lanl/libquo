@@ -288,16 +288,16 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_mpi_pid2smprank(quo_mpi_t *mpi,
-                    pid_t pid,
-                    int *out_smprank)
+quo_mpi_smprank2pid(quo_mpi_t *mpi,
+                    int smprank,
+                    pid_t *out_pid)
 {
-    if (!mpi || !out_smprank) return QUO_ERR_INVLD_ARG;
-    *out_smprank = 0;
+    if (!mpi || !out_pid) return QUO_ERR_INVLD_ARG;
+    *out_pid = 0;
     /* slow. update if too slow... */
     for (int i = 0; i < mpi->nsmpranks; ++i) {
-        if (mpi->pid_smprank_map[i].pid == (long)pid) {
-            *out_smprank = mpi->pid_smprank_map[i].smprank;
+        if (mpi->pid_smprank_map[i].smprank == smprank) {
+            *out_pid = (pid_t)mpi->pid_smprank_map[i].pid;
             return QUO_SUCCESS;
         }
     }
