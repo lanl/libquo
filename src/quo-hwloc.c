@@ -449,6 +449,7 @@ quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
     }
     if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, pid, &cur_bind))) return rc;
     *out_result = hwloc_bitmap_intersects(cur_bind, obj->cpuset);
+    hwloc_bitmap_free(cur_bind);
     return QUO_SUCCESS;
 }
 

@@ -177,44 +177,40 @@ static int
 elect_workers(context_t *c)
 {
     /* number of elements in the rank_ids_bound_to_socket array */
-    int nranks_bound_to_socket = 0;
+    int *nranks_bound_to_socket = NULL;
     /* NOTE: we must free this at some point */
-    int *rank_ids_bound_to_socket = NULL;
-
-    if (QUO_SUCCESS != quo_smpranks_in_type(c->quo,
-                                            QUO_CORE,
-                                            0,
-                                            &nranks_bound_to_socket,
-                                            &rank_ids_bound_to_socket)) {
+    int **rank_ids_bound_to_socket = NULL;
+    int rc = QUO_ERR;
+    /* allocate some memory for our arrays */
+    nranks_bound_to_socket = calloc(c->nsockets, sizeof(*nranks_bound_to_socket));
+    if (!nranks_bound_to_socket) return 1;
+    rank_ids_bound_to_socket = calloc(c->nsockets,
+                                      sizeof(*rank_ids_bound_to_socket));
+    if (!rank_ids_bound_to_socket) {
+        free(nranks_bound_to_socket); nranks_bound_to_socket = NULL;
         return 1;
     }
-
-
-    for (int i = 0; i < nranks_bound_to_socket; ++i) {
-        printf("### [rank %d] rank %d in socket 0\n", c->rank,
-               rank_ids_bound_to_socket[i]);
+    for (int socket = 0; socket < c->nsockets; ++socket) {
+        rc = quo_smpranks_in_type(c->quo,
+                                  QUO_SOCKET,
+                                  socket,
+                                  &(nranks_bound_to_socket[socket]),
+                                  &(rank_ids_bound_to_socket[socket]));
+        if (QUO_SUCCESS != rc) goto out;
     }
-
+    for (int i = 0; i < c->nsockets; ++i) {
+        for (int j = 0; j < nranks_bound_to_socket[i]; ++j) {
+            printf("### [rank %d] rank %d covers socket %d\n", c->rank,
+                   rank_ids_bound_to_socket[i][j], i);
+        }
+    }
     demo_emit_sync(c);
-
-#if 0
-    /* indicates whether or not my current binding falls within a particular
-     * socket's cpuset.
-     */
-    int in_cbind = 0;
-    /* max number of workers per socket */
-    int max_wokers_per_socket = 3;
-    /* we have a static number of workers here, but you could imagine setting an
-     * environment variable or sending this data around so everyone agrees on
-     * this number. this number dictates the max number of processes within each
-     * socket will actually do work (i.e call into p1). */
-    int max_workers = max_wokers_per_socket * c->nsockets;
-
-    if (QUO_SUCCESS !=
-        quo_cur_cpuset_in_type(c->quo, QUO_SOCKET, type_id, in_cbind)) {
-        return 1;
+out:
+    for (int i = 0; i < c->nsockets; ++i) {
+        if (rank_ids_bound_to_socket[i]) free(rank_ids_bound_to_socket[i]);
     }
-#endif
+    free(rank_ids_bound_to_socket);
+    free(nranks_bound_to_socket);
     return 0;
 }
 
