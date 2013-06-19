@@ -88,6 +88,8 @@ p1_init(context_t *c,
             goto out;
         }
     }
+    /* for pretty print */
+    usleep((c->rank) * 1000);
 out:
     if (MPI_SUCCESS != MPI_Group_free(&world_group)) return 1;
     return (QUO_SUCCESS == rc) ? 0 : 1;
@@ -107,7 +109,6 @@ p1_entry_point(context_t *c)
 {
     fprintf(stdout, "ooo [rank %d] in %s\n", c->rank, __func__);
     fflush(stdout);
-    /* for pretty print */
-    usleep((c->rank) * 1000);
+    p1_emit_sync(&p1);
     return 0;
 }

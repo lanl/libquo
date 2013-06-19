@@ -225,6 +225,7 @@ emit_node_basics(const context_t *c)
  */
 static int
 get_worker_ranks(context_t *c,
+                 bool *working,
                  int *nworkers,
                  int **workers)
 {
@@ -237,7 +238,7 @@ get_worker_ranks(context_t *c,
     int **rank_ids_bound_to_socket = NULL;
     int rc = QUO_ERR;
 
-    *nworkers = 0; *workers = NULL;
+    *nworkers = 0; *workers = NULL; *working = false;
     /* allocate some memory for our arrays */
     nranks_bound_to_socket = calloc(c->nsockets, sizeof(*nranks_bound_to_socket));
     if (!nranks_bound_to_socket) return 1;
@@ -326,6 +327,7 @@ get_worker_ranks(context_t *c,
             worker_ranks[j++] = i;
         }
     }
+    *working = (bool)work_contrib;
     *nworkers = tot_workers;
     *workers = worker_ranks;
     demo_emit_sync(c);
@@ -388,9 +390,10 @@ main(void)
     /* ////////////////////////////////////////////////////////////////////// */
     /* setup needed before we can init p1 */
     /* ////////////////////////////////////////////////////////////////////// */
+    bool p1pe = false;
     int tot_workers = 0;
     int *worker_ranks = NULL;
-    if (get_worker_ranks(context, &tot_workers, &worker_ranks)) {
+    if (get_worker_ranks(context, &p1pe, &tot_workers, &worker_ranks)) {
         bad_func = "get_worker_ranks";
         goto out;
     }
@@ -404,6 +407,13 @@ main(void)
     }
     if (0 == context->noderank) {
         printf("### [rank %d] doing science!\n", context->rank);
+    }
+    /* time for p1 to do some work with some of the ranks */
+    if (p1pe) {
+        if (p1_entry_point(context)) {
+            bad_func = "p1_entry_point";
+            goto out;
+        }
     }
     if (p1_fini()) {
         bad_func = "p1_fini";
