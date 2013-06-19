@@ -26,6 +26,10 @@
 #include "mpi.h"
 
 /**
+ * TODO change flag things into MPI_BYTE instead of INT
+ */
+
+/**
  * libquo demo code that illustrates how two libraries interact.
  */
 
@@ -214,7 +218,9 @@ emit_node_basics(const context_t *c)
  * system, but you can imagine doing the same for NUMA nodes, for example.
  */
 static int
-init_wcomm(context_t *c)
+get_worker_ranks(context_t *c,
+                 int *nworkers,
+                 int **workers)
 {
     /* points to an array that stores the number of elements in the
      * rank_ids_bound_to_socket array at a particular socket index */
@@ -224,6 +230,8 @@ init_wcomm(context_t *c)
      * matrix where [i][j] is the ith socket that smp rank j covers. */
     int **rank_ids_bound_to_socket = NULL;
     int rc = QUO_ERR;
+
+    *nworkers = 0; *workers = NULL;
     /* allocate some memory for our arrays */
     nranks_bound_to_socket = calloc(c->nsockets, sizeof(*nranks_bound_to_socket));
     if (!nranks_bound_to_socket) return 1;
@@ -265,6 +273,7 @@ init_wcomm(context_t *c)
     /* maximum number of workers for a given resource (socket in this case). we
      * are statically setting this number, but one could imagine this number
      * being exchanged at the beginning of time in a real application. */
+    int tot_workers = 0;
     int max_workers_per_res = 2;
     /* whether or not we are already assigned to a particular resource */
     bool res_assigned = false;
@@ -283,17 +292,49 @@ init_wcomm(context_t *c)
             }
         }
     }
+    int work_contrib = res_assigned ? 1 : 0;
+    /* array that hold whether or not a particular rank is going to do work */
+    int *work_contribs = calloc(c->nranks, sizeof(*work_contribs));
+    if (!work_contribs) {
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+    if (MPI_SUCCESS != (rc = MPI_Allgather(&work_contrib, 1, MPI_INT,
+                                           work_contribs, 1, MPI_INT,
+                                           MPI_COMM_WORLD))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* now iterate over the array and count the total number of workers */
+    for (int i = 0; i < c->nranks; ++i) {
+        if (1 == work_contribs[i]) ++tot_workers;
+    }
+    int *worker_ranks = calloc(tot_workers, sizeof(*worker_ranks));
+    if (!worker_ranks) {
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+    /* populate the array with the worker comm world ranks */
+    for (int i = 0, j = 0; i < c->nranks; ++i) {
+        if (1 == work_contribs[i]) {
+            worker_ranks[j++] = i;
+        }
+    }
+    *nworkers = tot_workers;
+    *workers = worker_ranks;
     demo_emit_sync(c);
-    /* now that every one knows whether or not they are donig work, exchange
-     * that info so we can identify who is doing work on the node. */
 out:
     /* the resources returned by quo_smpranks_in_type must be freed by us */
     for (int i = 0; i < c->nsockets; ++i) {
         quo_free(rank_ids_bound_to_socket[i]);
     }
-    free(rank_ids_bound_to_socket);
-    free(nranks_bound_to_socket);
-    return 0;
+    if (rank_ids_bound_to_socket) free(rank_ids_bound_to_socket);
+    if (nranks_bound_to_socket) free(nranks_bound_to_socket);
+    if (work_contribs) free(work_contribs);
+    if (QUO_SUCCESS != rc) {
+        if (worker_ranks) free(worker_ranks);
+    }
+    return (QUO_SUCCESS == rc) ? 0 : 1;
 }
 
 int
@@ -322,7 +363,8 @@ main(void)
         goto out;
     }
     /* "dup" the smp (node) communicator so we can use that as a node
-     * communicator for messages that don't need to leave the node. */
+     * communicator for messages that don't need to leave the node. not really
+     * used in this example code, but is here as an example. */
     if (smpcomm_dup(context)) {
         bad_func = "smpcomm_dup";
         goto out;
@@ -338,10 +380,20 @@ main(void)
         goto out;
     }
     /* ////////////////////////////////////////////////////////////////////// */
-    /* setup worker communicator so we can properly init p1 */
+    /* setup needed before we can init p1 */
     /* ////////////////////////////////////////////////////////////////////// */
-    if (init_wcomm(context)) {
-        bad_func = "p1_entry_point";
+    int tot_workers = 0;
+    int *worker_ranks = NULL;
+    if (get_worker_ranks(context, &tot_workers, &worker_ranks)) {
+        bad_func = "get_worker_ranks";
+        goto out;
+    }
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* init p1 by letting it know the ranks that are going to do work.
+     * EVERY ONE IN MPI_COMM_WORLD CALLS THIS (sorry about the yelling) */
+    /* ////////////////////////////////////////////////////////////////////// */
+    if (p1_init(context, tot_workers, worker_ranks)) {
+        bad_func = "p1_init";
         goto out;
     }
 out:
@@ -349,6 +401,7 @@ out:
         fprintf(stderr, "XXX %s failure in: %s\n", __FILE__, bad_func);
         erc = EXIT_FAILURE;
     }
+    if (worker_ranks) free(worker_ranks);
     (void)fini(context);
     return erc;
 }

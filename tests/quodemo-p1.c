@@ -45,7 +45,19 @@ p1_init(context_t *c,
         int np1s /* number of participants |p1who| */,
         int *p1who /* the participating ranks (MPI_COMM_WORLD) */)
 {
-
+    if (0 == c->noderank) {
+        printf("ooo [rank %d] %d ranks doing work...\n", c->rank, np1s);
+        printf("ooo [rank %d] and they are: ", c->rank);
+        fflush(stdout);
+        for (int i = 0; i < np1s; ++i) {
+            printf("%d ", p1who[i]); fflush(stdout);
+            if (i + 1 == np1s) printf("\n"); fflush(stdout);
+        }
+    }
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* now create our own communicator based on the rank ids passed here */
+    /* ////////////////////////////////////////////////////////////////////// */
+    return 0;
 }
 
 int
