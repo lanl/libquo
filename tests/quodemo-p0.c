@@ -65,7 +65,7 @@ init(context_t **c)
     if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(newc->nranks))) goto err;
     /* ...and more */
     if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(newc->rank))) goto err;
-    
+
     /* ////////////////////////////////////////////////////////////////////// */
     /* now libquo can be initialized. libquo uses mpi, so that needs to be
      * initialized first. */
@@ -176,20 +176,25 @@ emit_node_basics(const context_t *c)
 static int
 elect_workers(context_t *c)
 {
-    /* number of elements in the rank_ids_bound_to_socket array */
+    /* points to an array that stores the number of elements in the
+     * rank_ids_bound_to_socket array at a particular socket index */
     int *nranks_bound_to_socket = NULL;
-    /* NOTE: we must free this at some point */
+    /* array of pointers that point to the smp ranks that cover a particular
+     * socket at a particular socket index. you can think of this as a 2D
+     * matrix where [i][j] is the ith socket that smp rank j covers. */
     int **rank_ids_bound_to_socket = NULL;
     int rc = QUO_ERR;
     /* allocate some memory for our arrays */
     nranks_bound_to_socket = calloc(c->nsockets, sizeof(*nranks_bound_to_socket));
     if (!nranks_bound_to_socket) return 1;
+    /* allocate pointer array */
     rank_ids_bound_to_socket = calloc(c->nsockets,
                                       sizeof(*rank_ids_bound_to_socket));
     if (!rank_ids_bound_to_socket) {
         free(nranks_bound_to_socket); nranks_bound_to_socket = NULL;
         return 1;
     }
+    /* grab the smp ranks (node ranks) that are in each socket */
     for (int socket = 0; socket < c->nsockets; ++socket) {
         rc = quo_smpranks_in_type(c->quo,
                                   QUO_SOCKET,
@@ -198,14 +203,17 @@ elect_workers(context_t *c)
                                   &(rank_ids_bound_to_socket[socket]));
         if (QUO_SUCCESS != rc) goto out;
     }
-    for (int i = 0; i < c->nsockets; ++i) {
-        for (int j = 0; j < nranks_bound_to_socket[i]; ++j) {
+    /* everyone display the list of smp ranks that cover each socket on the
+     * system. */
+    for (int socket = 0; socket < c->nsockets; ++socket) {
+        for (int rank = 0; rank < nranks_bound_to_socket[socket]; ++rank) {
             printf("### [rank %d] rank %d covers socket %d\n", c->rank,
-                   rank_ids_bound_to_socket[i][j], i);
+                   rank_ids_bound_to_socket[socket][rank], socket);
         }
     }
     demo_emit_sync(c);
 out:
+    /* the resources returned by quo_smpranks_in_type must be freed by us */
     for (int i = 0; i < c->nsockets; ++i) {
         if (rank_ids_bound_to_socket[i]) free(rank_ids_bound_to_socket[i]);
     }

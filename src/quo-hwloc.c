@@ -79,6 +79,9 @@ ext2intobj(quo_obj_type_t external,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/**
+ * caller is responsible for freeing returned resources.
+ */
 static int
 get_cur_bind(const quo_hwloc_t *hwloc,
              pid_t who_pid,
