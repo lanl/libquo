@@ -23,6 +23,31 @@
 
 #include "quodemo-p1.h"
 
+typedef struct p1context_t {
+    /* communicator used by p1 */
+    MPI_Comm comm;
+    /* size of p1_comm */
+    int comm_size;
+    /* my rank in p1_comm */
+    int rank;
+} p1context_t;
+
+static inline void
+p1_emit_sync(const context_t *c,
+             const p1context_t *p1c)
+{
+    MPI_Barrier(p1c->comm);
+    usleep((p1c->rank) * 1000);
+}
+
+int
+p1_init(context_t *c,
+        int np1s /* number of participants |p1who| */,
+        int *p1who /* the participating ranks (MPI_COMM_WORLD) */)
+{
+
+}
+
 int
 p1_entry_point(context_t *c)
 {

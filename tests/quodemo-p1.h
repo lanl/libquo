@@ -14,6 +14,11 @@
 #include "quo.h"
 
 int
+p1_init(context_t *c,
+        int np1s,
+        int *p1who);
+
+int
 p1_entry_point(context_t *c);
 
 #endif

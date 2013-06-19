@@ -75,6 +75,8 @@ struct quo_mpi_t {
     int nsmpranks;
     /* pid to smprank map for all ranks that share a node with me */
     pid_smprank_map_t *pid_smprank_map;
+    /* array of comm world ranks that share a node with me (includes me) */
+    int *node_ranks;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -287,6 +289,31 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static int
+node_rank_xchange(quo_mpi_t *mpi)
+{
+    int rc = QUO_SUCCESS;
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    mpi->node_ranks = calloc(mpi->nsmpranks, sizeof(int));
+    if (!mpi->node_ranks) return QUO_ERR_OOR;
+    if (MPI_SUCCESS != MPI_Allgather(&(mpi->rank), 1, MPI_INT,
+                                     mpi->node_ranks, 1, MPI_INT,
+                                     mpi->smpcomm)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+out:
+    if (QUO_SUCCESS != rc) {
+        if (mpi->node_ranks) {
+            free(mpi->node_ranks);
+            mpi->node_ranks = NULL;
+        }
+    }
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_mpi_smprank2pid(quo_mpi_t *mpi,
                     int smprank,
@@ -343,6 +370,8 @@ quo_mpi_init(quo_mpi_t *mpi)
     /* mpi is setup and we know about our node neighbors and all the jive, so
      * setup and exchange node pids and node ranks. */
     if (QUO_SUCCESS != (rc = pid_smprank_xchange(mpi))) goto err;
+    /* now cache the MPI_COMM_WORLD ranks that are the node with me */
+    if (QUO_SUCCESS != (rc = node_rank_xchange(mpi))) goto err;
     return QUO_SUCCESS;
 err:
     quo_mpi_destruct(mpi);
@@ -363,6 +392,10 @@ quo_mpi_destruct(quo_mpi_t *mpi)
     if (mpi->pid_smprank_map) {
         free(mpi->pid_smprank_map);
         mpi->pid_smprank_map = NULL;
+    }
+    if (mpi->node_ranks) {
+        free(mpi->node_ranks);
+        mpi->node_ranks = NULL;
     }
     free(mpi); mpi = NULL;
     return nerrs == 0 ? QUO_SUCCESS : QUO_ERR_MPI;
@@ -398,5 +431,21 @@ quo_mpi_noderank(const quo_mpi_t *mpi,
 {
     if (!mpi || !noderank) return QUO_ERR_INVLD_ARG;
     *noderank = mpi->smprank;
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_ranks_on_node(const quo_mpi_t *mpi,
+                      int *out_nranks,
+                      int **out_ranks)
+{
+    int *ta = NULL;
+    if (!mpi || !out_nranks || !out_ranks) return QUO_ERR_INVLD_ARG;
+    *out_nranks = mpi->nsmpranks; *out_ranks = NULL;
+    if (NULL == (ta = calloc(mpi->nsmpranks, sizeof(int)))) return QUO_ERR_OOR;
+    (void)memmove(ta, mpi->node_ranks, mpi->nsmpranks * sizeof(int));
+    *out_nranks = mpi->nsmpranks;
+    *out_ranks = ta;
     return QUO_SUCCESS;
 }

@@ -39,7 +39,10 @@ fini(context_t *c)
     if (QUO_SUCCESS != quo_finalize(c->quo)) return 1;
     if (QUO_SUCCESS != quo_destruct(c->quo)) return 1;
     /* finalize mpi AFTER quo_destruct - we may mpi in our destruct */
-    if (c->mpi_inited) MPI_Finalize();
+    if (c->mpi_inited) {
+        MPI_Comm_free(&c->smp_comm);
+        MPI_Finalize();
+    }
     if (c->cbindstr) free(c->cbindstr);
     free(c);
     return 0;
@@ -82,12 +85,49 @@ init(context_t **c)
      * return QUO_SUCCESS_ALREADY_DONE if someone else already initialized the
      * quo context. */
     if (QUO_SUCCESS != quo_init(newc->quo)) goto err;
+    /* mpi initialized at this point */
     newc->mpi_inited = true;
+    /* return pointer to allocated resources */
     *c = newc;
     return 0;
 err:
     (void)fini(newc);
     return 1;
+}
+
+/**
+ * creates our own copy of the smp comm. can safely be called after quo has been
+ * successfully initialized. this is used as a communication channel for
+ * intra-node messages.
+ */
+static int
+smpcomm_dup(context_t *c)
+{
+    int rc = QUO_SUCCESS;
+    int nnoderanks = 0;
+    int *ranks = NULL;
+    MPI_Group world_group;
+    MPI_Group smp_group;
+    /* figure out what MPI_COMM_WORLD ranks share a node with me */
+    if (QUO_SUCCESS != quo_ranks_on_node(c->quo, &nnoderanks, &ranks)) return 1;
+    if (MPI_SUCCESS != MPI_Comm_group(MPI_COMM_WORLD, &world_group)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Group_incl(world_group, nnoderanks,
+                                      ranks, &smp_group)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Comm_create(MPI_COMM_WORLD,
+                                       smp_group,
+                                       &(c->smp_comm))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+out:
+    quo_free(ranks);
+    return (QUO_SUCCESS == rc) ? 0 : 1;
 }
 
 /**
@@ -174,10 +214,7 @@ emit_node_basics(const context_t *c)
  * system, but you can imagine doing the same for NUMA nodes, for example.
  */
 static int
-elect_workers(context_t *c,
-              bool *working,
-              quo_obj_type_t *obj_if_working,
-              int *obj_index_if_working)
+init_wcomm(context_t *c)
 {
     /* points to an array that stores the number of elements in the
      * rank_ids_bound_to_socket array at a particular socket index */
@@ -187,8 +224,6 @@ elect_workers(context_t *c,
      * matrix where [i][j] is the ith socket that smp rank j covers. */
     int **rank_ids_bound_to_socket = NULL;
     int rc = QUO_ERR;
-    /* set some defaults -- "bind to what" info only valid if working */
-    *obj_if_working = QUO_MACHINE; *obj_index_if_working = 0;
     /* allocate some memory for our arrays */
     nranks_bound_to_socket = calloc(c->nsockets, sizeof(*nranks_bound_to_socket));
     if (!nranks_bound_to_socket) return 1;
@@ -208,12 +243,14 @@ elect_workers(context_t *c,
                                   &(rank_ids_bound_to_socket[socket]));
         if (QUO_SUCCESS != rc) goto out;
     }
-    /* everyone display the list of smp ranks that cover each socket on the
-     * system. */
+    /* everyone has the same info on the node, so just have node rank 0 display
+     * the list of smp ranks that cover each socket on the system. */
     for (int socket = 0; socket < c->nsockets; ++socket) {
         for (int rank = 0; rank < nranks_bound_to_socket[socket]; ++rank) {
-            printf("### [rank %d] rank %d covers socket %d\n", c->rank,
-                   rank_ids_bound_to_socket[socket][rank], socket);
+            if (0 == c->noderank) {
+                printf("### [rank %d] rank %d covers socket %d\n", c->rank,
+                       rank_ids_bound_to_socket[socket][rank], socket);
+            }
         }
     }
     demo_emit_sync(c);
@@ -237,48 +274,25 @@ elect_workers(context_t *c,
              * my current cpuset covers the resource in question and
              * someone else won't be assigned to that resource
              */
-            if (!res_assigned&&
+            if (!res_assigned &&
                 c->noderank == rank_ids_bound_to_socket[socket][rank] &&
                 rank < max_workers_per_res) {
                 res_assigned = true;
                 printf("### [rank %d] smp rank %d assigned to socket %d\n",
                         c->rank, c->noderank, socket);
-                *obj_if_working = QUO_SOCKET;
-                *obj_index_if_working = socket;
             }
         }
     }
-    *working = res_assigned;
     demo_emit_sync(c);
+    /* now that every one knows whether or not they are donig work, exchange
+     * that info so we can identify who is doing work on the node. */
 out:
     /* the resources returned by quo_smpranks_in_type must be freed by us */
     for (int i = 0; i < c->nsockets; ++i) {
-        if (rank_ids_bound_to_socket[i]) free(rank_ids_bound_to_socket[i]);
+        quo_free(rank_ids_bound_to_socket[i]);
     }
     free(rank_ids_bound_to_socket);
     free(nranks_bound_to_socket);
-    return 0;
-}
-
-static int
-enter_p1(context_t *c)
-{
-    bool working = false;
-    quo_obj_type_t target_res = QUO_MACHINE;
-    int res_index = 0;
-    /* ////////////////////////////////////////////////////////////////////// */
-    /* now enter into the other library so it can do its thing... */
-    /* ////////////////////////////////////////////////////////////////////// */
-    if (elect_workers(c, &working, &target_res, &res_index)) return 1;
-    if (working) {
-        if (p1_entry_point(c)) return 1;
-        /* signal completion */
-        if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) return 1;
-    }
-    else {
-        /* everyone else wait for the workers to complete their thing... */
-        if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) return 1;
-    }
     return 0;
 }
 
@@ -307,6 +321,12 @@ main(void)
         bad_func = "sys_grok";
         goto out;
     }
+    /* "dup" the smp (node) communicator so we can use that as a node
+     * communicator for messages that don't need to leave the node. */
+    if (smpcomm_dup(context)) {
+        bad_func = "smpcomm_dup";
+        goto out;
+    }
     /* show some info that we got about our nodes - one per node */
     if (emit_node_basics(context)) {
         bad_func = "emit_node_basics";
@@ -317,11 +337,10 @@ main(void)
         bad_func = "emit_bind_state";
         goto out;
     }
-
     /* ////////////////////////////////////////////////////////////////////// */
-    /* now elect some subset of the mpi processes to to work in p1 */
+    /* setup worker communicator so we can properly init p1 */
     /* ////////////////////////////////////////////////////////////////////// */
-    if (enter_p1(context)) {
+    if (init_wcomm(context)) {
         bad_func = "p1_entry_point";
         goto out;
     }

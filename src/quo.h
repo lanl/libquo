@@ -72,6 +72,11 @@ quo_initialized(const quo_t *q,
                 int *out_initialized);
 
 int
+quo_ranks_on_node(const quo_t *q,
+                  int *out_nranks,
+                  int **out_ranks);
+
+int
 quo_node_topo_stringify(const quo_t *q,
                         char **out_str);
 
@@ -86,6 +91,10 @@ quo_get_nobjs_in_type_by_type(const quo_t *q,
                               int in_type_index,
                               quo_obj_type_t type,
                               int *out_result);
+/**
+ * returns whether or not my current binding policy covers a particular system
+ * hardware resource.
+ */
 int
 quo_cur_cpuset_in_type(const quo_t *q,
                        quo_obj_type_t type,
@@ -137,6 +146,9 @@ quo_bind_push(quo_t *q,
               int obj_index);
 int
 quo_bind_pop(quo_t *q);
+
+void
+quo_free(void *target);
 
 #ifdef __cplusplus
 }

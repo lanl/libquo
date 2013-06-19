@@ -42,4 +42,8 @@ quo_mpi_smprank2pid(quo_mpi_t *mpi,
                     int smprank,
                     pid_t *out_pid);
 
+int
+quo_mpi_ranks_on_node(const quo_mpi_t *mpi,
+                      int *out_nranks,
+                      int **out_ranks);
 #endif

@@ -67,6 +67,13 @@ quo_version(int *version,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_free(void *target)
+{
+    if (target) free(target);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_init(quo_t *q)
 {
@@ -378,4 +385,15 @@ quo_bind_pop(quo_t *q)
     noinit_action(q);
     if (!q) return QUO_ERR_INVLD_ARG;
     return quo_hwloc_bind_pop(q->hwloc);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_ranks_on_node(const quo_t *q,
+                  int *out_nranks,
+                  int **out_ranks)
+{
+    noinit_action(q);
+    if (!out_nranks || !out_ranks) return QUO_ERR_INVLD_ARG;
+    return quo_mpi_ranks_on_node(q->mpi, out_nranks, out_ranks);
 }
