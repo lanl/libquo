@@ -131,6 +131,12 @@ smpcomm_dup(context_t *c)
     }
 out:
     quo_free(ranks);
+    if (MPI_SUCCESS != MPI_Group_free(&world_group)) {
+        return 1;
+    }
+    if (MPI_SUCCESS != MPI_Group_free(&smp_group)) {
+        return 1;
+    }
     return (QUO_SUCCESS == rc) ? 0 : 1;
 }
 
@@ -394,6 +400,13 @@ main(void)
     /* ////////////////////////////////////////////////////////////////////// */
     if (p1_init(context, tot_workers, worker_ranks)) {
         bad_func = "p1_init";
+        goto out;
+    }
+    if (0 == context->noderank) {
+        printf("### [rank %d] doing science!\n", context->rank);
+    }
+    if (p1_fini()) {
+        bad_func = "p1_fini";
         goto out;
     }
 out:

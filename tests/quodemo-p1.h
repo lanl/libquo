@@ -19,6 +19,9 @@ p1_init(context_t *c,
         int *p1who);
 
 int
+p1_fini(void);
+
+int
 p1_entry_point(context_t *c);
 
 #endif

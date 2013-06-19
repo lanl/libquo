@@ -29,15 +29,18 @@ typedef struct p1context_t {
     /* size of p1_comm */
     int comm_size;
     /* my rank in p1_comm */
-    int rank;
+    int comm_rank;
+    /* flag indicating whether or not i'm in the p1 group */
+    int incomm;
 } p1context_t;
 
+static p1context_t p1;
+
 static inline void
-p1_emit_sync(const context_t *c,
-             const p1context_t *p1c)
+p1_emit_sync(const p1context_t *p1c)
 {
     MPI_Barrier(p1c->comm);
-    usleep((p1c->rank) * 1000);
+    usleep((p1c->comm_rank) * 1000);
 }
 
 int
@@ -45,6 +48,7 @@ p1_init(context_t *c,
         int np1s /* number of participants |p1who| */,
         int *p1who /* the participating ranks (MPI_COMM_WORLD) */)
 {
+    int rc = QUO_SUCCESS;
     if (0 == c->noderank) {
         printf("ooo [rank %d] %d ranks doing work...\n", c->rank, np1s);
         printf("ooo [rank %d] and they are: ", c->rank);
@@ -57,6 +61,44 @@ p1_init(context_t *c,
     /* ////////////////////////////////////////////////////////////////////// */
     /* now create our own communicator based on the rank ids passed here */
     /* ////////////////////////////////////////////////////////////////////// */
+    MPI_Group world_group;
+    MPI_Group p1_group;
+    /* figure out what MPI_COMM_WORLD ranks share a node with me */
+    if (MPI_SUCCESS != MPI_Comm_group(MPI_COMM_WORLD, &world_group)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Group_incl(world_group, np1s,
+                                      p1who, &p1_group)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Comm_create(MPI_COMM_WORLD,
+                                       p1_group,
+                                       &(p1.comm))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* am i in the new communicator? */
+    /* XXX is this the correct way of determining this? */
+    p1.incomm = (MPI_COMM_NULL != p1.comm) ? 1 : 0;
+    if (p1.incomm) {
+        if (MPI_SUCCESS != MPI_Comm_size(p1.comm, &p1.comm_size)) {
+            rc = QUO_ERR_MPI;
+            goto out;
+        }
+    }
+out:
+    if (MPI_SUCCESS != MPI_Group_free(&world_group)) return 1;
+    return (QUO_SUCCESS == rc) ? 0 : 1;
+}
+
+int
+p1_fini(void)
+{
+    if (p1.incomm) {
+        if (MPI_SUCCESS != MPI_Comm_free(&p1.comm)) return 1;
+    }
     return 0;
 }
 
