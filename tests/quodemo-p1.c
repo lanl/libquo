@@ -26,9 +26,9 @@
 int
 p1_entry_point(context_t *c)
 {
-    if (0 == c->rank) {
-        fprintf(stdout, "ooo [rank %d] in %s\n", c->rank, __func__);
-        fflush(stdout);
-    }
+    fprintf(stdout, "ooo [rank %d] in %s\n", c->rank, __func__);
+    fflush(stdout);
+    /* for pretty print */
+    usleep((c->rank) * 1000);
     return 0;
 }

@@ -174,7 +174,10 @@ emit_node_basics(const context_t *c)
  * system, but you can imagine doing the same for NUMA nodes, for example.
  */
 static int
-elect_workers(context_t *c)
+elect_workers(context_t *c,
+              bool *working,
+              quo_obj_type_t *obj_if_working,
+              int *obj_index_if_working)
 {
     /* points to an array that stores the number of elements in the
      * rank_ids_bound_to_socket array at a particular socket index */
@@ -184,6 +187,8 @@ elect_workers(context_t *c)
      * matrix where [i][j] is the ith socket that smp rank j covers. */
     int **rank_ids_bound_to_socket = NULL;
     int rc = QUO_ERR;
+    /* set some defaults -- "bind to what" info only valid if working */
+    *obj_if_working = QUO_MACHINE; *obj_index_if_working = 0;
     /* allocate some memory for our arrays */
     nranks_bound_to_socket = calloc(c->nsockets, sizeof(*nranks_bound_to_socket));
     if (!nranks_bound_to_socket) return 1;
@@ -212,6 +217,39 @@ elect_workers(context_t *c)
         }
     }
     demo_emit_sync(c);
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* now elect the workers. NOTE: the setup for this was fairly ugly and not
+     * cheap, so caching the following result may be a good thing.
+     * o setup.
+     * o elect workers for a particular regime.
+     * o cache that result for later use to avoid setup and query costs.
+     */
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* maximum number of workers for a given resource (socket in this case). we
+     * are statically setting this number, but one could imagine this number
+     * being exchanged at the beginning of time in a real application. */
+    int max_workers_per_res = 2;
+    /* whether or not we are already assigned to a particular resource */
+    bool res_assigned = false;
+    for (int socket = 0; socket < c->nsockets; ++socket) {
+        for (int rank = 0; rank < nranks_bound_to_socket[socket]; ++rank) {
+            /* if i'm not already assigned to a particular resource and
+             * my current cpuset covers the resource in question and
+             * someone else won't be assigned to that resource
+             */
+            if (!res_assigned&&
+                c->noderank == rank_ids_bound_to_socket[socket][rank] &&
+                rank < max_workers_per_res) {
+                res_assigned = true;
+                printf("### [rank %d] smp rank %d assigned to socket %d\n",
+                        c->rank, c->noderank, socket);
+                *obj_if_working = QUO_SOCKET;
+                *obj_index_if_working = socket;
+            }
+        }
+    }
+    *working = res_assigned;
+    demo_emit_sync(c);
 out:
     /* the resources returned by quo_smpranks_in_type must be freed by us */
     for (int i = 0; i < c->nsockets; ++i) {
@@ -225,11 +263,22 @@ out:
 static int
 enter_p1(context_t *c)
 {
+    bool working = false;
+    quo_obj_type_t target_res = QUO_MACHINE;
+    int res_index = 0;
     /* ////////////////////////////////////////////////////////////////////// */
     /* now enter into the other library so it can do its thing... */
     /* ////////////////////////////////////////////////////////////////////// */
-    if (elect_workers(c)) return 1;
-    if (p1_entry_point(c)) return 1;
+    if (elect_workers(c, &working, &target_res, &res_index)) return 1;
+    if (working) {
+        if (p1_entry_point(c)) return 1;
+        /* signal completion */
+        if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) return 1;
+    }
+    else {
+        /* everyone else wait for the workers to complete their thing... */
+        if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) return 1;
+    }
     return 0;
 }
 
