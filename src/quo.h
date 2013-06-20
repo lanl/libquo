@@ -33,6 +33,7 @@ enum {
 
 typedef enum {
     QUO_MACHINE = 0,
+    /* XXX consider renaming to NUMA something */
     QUO_NODE,
     QUO_SOCKET,
     QUO_CORE,
@@ -41,7 +42,7 @@ typedef enum {
 
 typedef enum {
     QUO_BIND_PUSH_PROVIDED = 0,
-    QUO_BIND_PUSH_PARENT_OBJ
+    QUO_BIND_PUSH_OBJ
 } quo_bind_push_policy_t;
 
 /* ////////////////////////////////////////////////////////////////////////// */
