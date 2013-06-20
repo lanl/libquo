@@ -105,8 +105,7 @@ p1_init(context_t *c,
         goto out;
     }
     /* am i in the new communicator? */
-    /* XXX is this the correct way of determining this? */
-    p1.incomm = (MPI_COMM_NULL != p1.comm) ? 1 : 0;
+    p1.incomm = (MPI_COMM_NULL == p1.comm) ? 0 : 1;
     if (p1.incomm) {
         if (MPI_SUCCESS != MPI_Comm_size(p1.comm, &p1.comm_size)) {
             rc = QUO_ERR_MPI;
