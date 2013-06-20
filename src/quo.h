@@ -40,8 +40,8 @@ typedef enum {
 } quo_obj_type_t;
 
 typedef enum {
-    QUO_BIND_PUSH_ALL = 0,
-    QUO_BIND_PUSH_RES
+    QUO_BIND_PUSH_PROVIDED = 0,
+    QUO_BIND_PUSH_PARENT_OBJ
 } quo_bind_push_policy_t;
 
 /* ////////////////////////////////////////////////////////////////////////// */

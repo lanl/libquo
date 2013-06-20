@@ -43,6 +43,20 @@ struct quo_hwloc_t {
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static bool
+valid_bind_policy(quo_bind_push_policy_t policy)
+{
+    switch (policy) {
+        case QUO_BIND_PUSH_PROVIDED:
+        case QUO_BIND_PUSH_PARENT_OBJ:
+            return true;
+        default:
+            return false;
+    }
+    return false;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 /**
  * takes a quo obj type and converts it to hwloc's equivalent.
  */
@@ -506,7 +520,39 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
+rebind_policy_parent_obj_only(const quo_hwloc_t *hwloc,
+                              quo_obj_type_t type,
+                              hwloc_cpuset_t *out_cpuset)
+{
+    int rc = QUO_ERR;
+    hwloc_obj_t obj = NULL;
+    hwloc_cpuset_t curbind = NULL;
+    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+    if (NULL == (*out_cpuset = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
+    if (QUO_SUCCESS != (rc = ext2intobj(type, &real_type))) return rc;
+    if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, hwloc->mypid, &curbind))) {
+        return rc;
+    }
+    obj = hwloc_get_next_obj_covering_cpuset_by_type(hwloc->topo, curbind,
+                                                     real_type, NULL); 
+    if (!obj) {
+        rc = QUO_ERR_NOT_FOUND;
+        goto out;
+    }
+    hwloc_bitmap_copy(*out_cpuset, obj->cpuset);
+out:
+    if (QUO_SUCCESS != rc) {
+    }
+    if (curbind) hwloc_bitmap_free(curbind);
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
 rebind(const quo_hwloc_t *hwloc,
+       quo_bind_push_policy_t policy,
        quo_obj_type_t type,
        unsigned obj_index)
 {
@@ -515,13 +561,22 @@ rebind(const quo_hwloc_t *hwloc,
     hwloc_cpuset_t cpu_set = NULL;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
-    if (QUO_SUCCESS != (rc = get_obj_by_type(hwloc,
-                                             type,
-                                             obj_index,
-                                             &target_obj))) return rc;
-    if (NULL == (cpu_set = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
-    /* void func */
-    hwloc_bitmap_copy(cpu_set, target_obj->cpuset);
+    switch (policy) {
+        case QUO_BIND_PUSH_PROVIDED: {
+            if (QUO_SUCCESS != (rc =
+                get_obj_by_type(hwloc, type, obj_index, &target_obj))) return rc;
+            if (NULL == (cpu_set = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
+            /* void func */
+            hwloc_bitmap_copy(cpu_set, target_obj->cpuset);
+            break;
+        }
+        case QUO_BIND_PUSH_PARENT_OBJ: {
+            if (QUO_SUCCESS != (rc =
+                rebind_policy_parent_obj_only(hwloc, type, &cpu_set))) {
+                goto out;
+            }
+        }
+    }
     /* set the policy */
     if (-1 == hwloc_set_cpubind(hwloc->topo, cpu_set,
                                 HWLOC_CPUBIND_PROCESS)) {
@@ -541,25 +596,15 @@ quo_hwloc_bind_push(quo_hwloc_t *hwloc,
                     unsigned obj_index)
 {
     int rc = QUO_SUCCESS;
-    bool valid_policy = false;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
     /* make sure that we are dealing with a valid policy */
-    switch (policy) {
-        case QUO_BIND_PUSH_ALL:
-        case QUO_BIND_PUSH_RES:
-            valid_policy = true;
-            break;
-        default:
-            valid_policy = false;
-            break;
-    }
-    if (!valid_policy) {
+    if (!valid_bind_policy(policy)) {
         QUO_ERR_MSG("invalid policy");
         return QUO_ERR_INVLD_ARG;
     }
     /* change binding */
-    if (QUO_SUCCESS != (rc = rebind(hwloc, type, obj_index))) {
+    if (QUO_SUCCESS != (rc = rebind(hwloc, policy, type, obj_index))) {
         return rc;
     }
     /* stash our shiny new binding */
