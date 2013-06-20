@@ -111,7 +111,7 @@ p1_fini(void)
 int
 p1_entry_point(context_t *c)
 {
-    printf("### [rank %d] p1pe rank %d doing science in p1!\n",
+    printf("ooo [rank %d] p1pe rank %d doing science in p1!\n",
            c->rank, p1.comm_rank);
     fflush(stdout);
     p1_emit_sync(&p1);

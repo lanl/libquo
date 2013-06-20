@@ -431,6 +431,10 @@ main(void)
             goto out;
         }
     }
+    if (0 == context->noderank) {
+        printf("### [rank %d] %d p0pes doing science in p0!\n",
+               context->rank, context->nnoderanks);
+    }
     if (p1_fini()) {
         bad_func = "p1_fini";
         goto out;
