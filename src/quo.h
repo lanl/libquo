@@ -15,8 +15,9 @@ extern "C" {
 struct quo_t;
 typedef struct quo_t quo_t;
 
+/** quo return codes */
 enum {
-    QUO_SUCCESS,
+    QUO_SUCCESS = 0,
     QUO_SUCCESS_ALREADY_DONE,
     QUO_ERR,
     QUO_ERR_SYS,
@@ -31,12 +32,17 @@ enum {
 };
 
 typedef enum {
-    QUO_MACHINE,
+    QUO_MACHINE = 0,
     QUO_NODE,
     QUO_SOCKET,
     QUO_CORE,
     QUO_PU
 } quo_obj_type_t;
+
+typedef enum {
+    QUO_BIND_PUSH_ALL = 0,
+    QUO_BIND_PUSH_RES
+} quo_bind_push_policy_t;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -142,6 +148,7 @@ quo_noderank(const quo_t *q,
 
 int
 quo_bind_push(quo_t *q,
+              quo_bind_push_policy_t policy,
               quo_obj_type_t type,
               int obj_index);
 int

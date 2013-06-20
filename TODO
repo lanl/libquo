@@ -5,7 +5,6 @@ o global placement api
 - hwloc_obj_cpuset_snprintf
 o add support query
 o auto set library version (api call and so)
-o Thread protection - Should we do this?
 o Expose memory API.
 o Return popped CPU set to caller (API).
 o NUMA nodes.

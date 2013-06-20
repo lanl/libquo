@@ -231,7 +231,8 @@ bindup_sockets(const context_t *c)
 {
     /* if you are going to change bindings often, then cache this */
     if (c->noderank + 1 <= c->nsockets) {
-        if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_SOCKET, c->noderank)) {
+        if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_BIND_PUSH_ALL,
+                                         QUO_SOCKET, c->noderank)) {
             return 1;
         }
     }

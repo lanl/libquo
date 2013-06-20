@@ -70,6 +70,7 @@ quo_hwloc_rebind(const quo_hwloc_t *hwloc,
 
 int
 quo_hwloc_bind_push(quo_hwloc_t *hwloc,
+                    quo_bind_push_policy_t policy,
                     quo_obj_type_t type,
                     unsigned obj_index);
 

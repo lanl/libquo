@@ -200,9 +200,7 @@ quo_cur_cpuset_in_type(const quo_t *q,
     /* make sure we are initialized before we continue */
     noinit_action(q);
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_is_in_cpuset_by_type_id(q->hwloc,
-                                             type,
-                                             q->pid,
+    return quo_hwloc_is_in_cpuset_by_type_id(q->hwloc, type, q->pid,
                                              (unsigned)in_type_index,
                                              out_result);
 }
@@ -237,11 +235,8 @@ quo_smpranks_in_type(const quo_t *q,
             /* rc set in failure path */
             goto out;
         }
-        rc = quo_hwloc_is_in_cpuset_by_type_id(q->hwloc,
-                                               type,
-                                               rpid,
-                                               in_type_index,
-                                               &in_cpuset);
+        rc = quo_hwloc_is_in_cpuset_by_type_id(q->hwloc, type, rpid,
+                                               in_type_index, &in_cpuset);
         if (QUO_SUCCESS != rc) goto out;
         /* if the rank's cpuset falls within the given obj, then add it */
         if (in_cpuset) {
@@ -370,12 +365,13 @@ quo_noderank(const quo_t *q,
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_bind_push(quo_t *q,
+              quo_bind_push_policy_t policy,
               quo_obj_type_t type,
               int obj_index)
 {
     noinit_action(q);
     if (!q) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_bind_push(q->hwloc, type, (unsigned)obj_index);
+    return quo_hwloc_bind_push(q->hwloc, policy, type, (unsigned)obj_index);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

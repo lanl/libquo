@@ -536,12 +536,28 @@ out:
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_bind_push(quo_hwloc_t *hwloc,
+                    quo_bind_push_policy_t policy,
                     quo_obj_type_t type,
                     unsigned obj_index)
 {
     int rc = QUO_SUCCESS;
+    bool valid_policy = false;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
+    /* make sure that we are dealing with a valid policy */
+    switch (policy) {
+        case QUO_BIND_PUSH_ALL:
+        case QUO_BIND_PUSH_RES:
+            valid_policy = true;
+            break;
+        default:
+            valid_policy = false;
+            break;
+    }
+    if (!valid_policy) {
+        QUO_ERR_MSG("invalid policy");
+        return QUO_ERR_INVLD_ARG;
+    }
     /* change binding */
     if (QUO_SUCCESS != (rc = rebind(hwloc, type, obj_index))) {
         return rc;

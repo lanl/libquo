@@ -114,7 +114,8 @@ main(void)
         bad_func = "quo_nnodes";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_bind_push(quo, QUO_SOCKET, 0))) {
+    if (QUO_SUCCESS != (qrc = quo_bind_push(quo, QUO_BIND_PUSH_ALL,
+                                            QUO_SOCKET, 0))) {
         bad_func = "quo_bind_push";
         goto out;
     }

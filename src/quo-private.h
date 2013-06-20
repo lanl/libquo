@@ -33,4 +33,9 @@ do {                                                                           \
     fflush(stderr);                                                            \
 } while (0)
 
+#define QUO_ERR_MSG(whystr)                                                    \
+do {                                                                           \
+    fprintf(stderr, QUO_ERR_PREFIX"%s failed: %s.\n", __func__, (whystr));     \
+} while (0)
+
 #endif
