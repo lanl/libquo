@@ -9,7 +9,7 @@ quodemo \
 quodemo-multilib \
 rebind
 
-lib_LTLIBRARIES = \
+noinst_LTLIBRARIES = \
 libdemop1.la
 
 ### demo 0

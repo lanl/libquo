@@ -66,6 +66,22 @@ quo_version(int *version,
     return QUO_SUCCESS;
 }
 
+void
+QUO_VERSION(int *version,
+            int *subversion,
+            int *ierr)
+{
+    *ierr = quo_version(version, subversion);
+}
+
+void
+quo_version_(int *version,
+            int *subversion,
+            int *ierr)
+{
+    *ierr = quo_version(version, subversion);
+}
+
 /* ////////////////////////////////////////////////////////////////////////// */
 void
 quo_free(void *target)
