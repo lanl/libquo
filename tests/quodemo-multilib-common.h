@@ -18,6 +18,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
 
 /* shared context. note that the only think that really needs to be shared is
  * the quo context pointer -- *quo in this case. passing this around makes the
