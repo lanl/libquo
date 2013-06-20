@@ -383,10 +383,11 @@ main(void)
         goto out;
     }
     /* display our binding */
-    if (emit_bind_state(context)) {
+    if (emit_bind_state(context, "###")) {
         bad_func = "emit_bind_state";
         goto out;
     }
+    demo_emit_sync(context);
     /* ////////////////////////////////////////////////////////////////////// */
     /* setup needed before we can init p1 */
     /* ////////////////////////////////////////////////////////////////////// */
@@ -431,6 +432,13 @@ main(void)
             goto out;
         }
     }
+    demo_emit_sync(context);
+    /* display our binding */
+    if (emit_bind_state(context, "###")) {
+        bad_func = "emit_bind_state";
+        goto out;
+    }
+    demo_emit_sync(context);
     if (0 == context->noderank) {
         printf("### [rank %d] %d p0pes doing science in p0!\n",
                context->rank, context->nnoderanks);

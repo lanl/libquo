@@ -73,7 +73,8 @@ demo_emit_sync(const context_t *c)
 }
 
 static inline int
-emit_bind_state(const context_t *c)
+emit_bind_state(const context_t *c,
+                char *msg_prefix)
 {
     char *cbindstr = NULL, *bad_func = NULL;
     int bound = 0;
@@ -86,11 +87,11 @@ emit_bind_state(const context_t *c)
         bad_func = "quo_bound";
         goto out;
     }
-    printf("### [rank %d] process %d [%s] bound: %s\n",
-           c->rank, (int)getpid(), cbindstr, bound ? "true" : "false");
+    printf("%s [rank %d] process %d [%s] bound: %s\n",
+           msg_prefix, c->rank, (int)getpid(),
+           cbindstr, bound ? "true" : "false");
     fflush(stdout);
 out:
-    demo_emit_sync(c);
     if (cbindstr) free(cbindstr);
     if (bad_func) {
         fprintf(stderr, "%s: %s failure :-(\n", __func__, bad_func);

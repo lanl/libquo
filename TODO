@@ -1,4 +1,5 @@
 libquo TODO
+o add better error messages
 o Fortran interface.
 o global placement api
 - hwloc_obj_type_snprintf

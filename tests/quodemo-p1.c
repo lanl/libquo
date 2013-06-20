@@ -36,11 +36,36 @@ typedef struct p1context_t {
 
 static p1context_t p1;
 
-static inline void
+static void
 p1_emit_sync(const p1context_t *p1c)
 {
     MPI_Barrier(p1c->comm);
     usleep((p1c->comm_rank) * 1000);
+}
+
+static int
+push_bind(const context_t *c)
+{
+    /* p1 wants each pe to expand their bindings to the socket in which they are
+     * current bound. the idea here is that p0 will call us with a particular
+     * binding policy, but we need a different one. we'll "bind up" to the
+     * closest socket. notice that with QUO_BIND_PUSH_OBJ, the last argument
+     * (the obj index [e.g socket 1]) is ignored. this is NOT the case when
+     * using the QUO_BIND_PUSH_PROVIDED option. */
+    if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_BIND_PUSH_OBJ,
+                                     QUO_SOCKET, -1)) {
+        return 1;
+    }
+    return 0;
+}
+
+/* revert our binding policy so p0 can go about its business with its own
+ * binding policy... */
+static int
+pop_bind(const context_t *c)
+{
+    if (QUO_SUCCESS != quo_bind_pop(c->quo)) return 1;
+    return 0;
 }
 
 int
@@ -108,12 +133,28 @@ p1_fini(void)
     return 0;
 }
 
+
 int
 p1_entry_point(context_t *c)
 {
+    /* change our binding */
+    if (push_bind(c)) {
+        fprintf(stderr, "push_bind failure in %s\n", __func__);
+        return 1;
+    }
+    if (emit_bind_state(c, "ooo")) {
+        fprintf(stderr, "emit_bind_state failure in %s\n", __func__);
+        return 1;
+    }
+    p1_emit_sync(&p1);
     printf("ooo [rank %d] p1pe rank %d doing science in p1!\n",
            c->rank, p1.comm_rank);
     fflush(stdout);
+    /* revert our binding policy */
+    if (pop_bind(c)) {
+        fprintf(stderr, "pop_bind failure in %s\n", __func__);
+        return 1;
+    }
     p1_emit_sync(&p1);
     return 0;
 }
