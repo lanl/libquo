@@ -1,5 +1,4 @@
 libquo TODO
-o add fortran data type size checks and defines
 o add better error messages
 o Fortran interface.
 o global placement api

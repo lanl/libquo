@@ -21,7 +21,8 @@ quo_version_f(int *version,
               int *subversion,
               int *ierr)
 {
-    *ierr = QUO_version(version, subversion);
+    int cerr = QUO_version(version, subversion);
+    if (ierr) *ierr = cerr;
 }
 
 QUO_GENERATE_F77_BINDINGS(QUO_VERSION,
