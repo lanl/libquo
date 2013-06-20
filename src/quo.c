@@ -296,7 +296,7 @@ quo_nsockets(const quo_t *q,
     /* make sure we are initialized before we continue */
     noinit_action(q);
     if (!q || !out_nsockets) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_SOCKET, out_nsockets);
+    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_SOCKET, out_nsockets);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -307,7 +307,7 @@ quo_ncores(const quo_t *q,
     /* make sure we are initialized before we continue */
     noinit_action(q);
     if (!q || !out_ncores) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_CORE, out_ncores);
+    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_CORE, out_ncores);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -318,7 +318,7 @@ quo_npus(const quo_t *q,
     /* make sure we are initialized before we continue */
     noinit_action(q);
     if (!q || !out_npus) return QUO_ERR_INVLD_ARG;
-    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_PU, out_npus);
+    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_PU, out_npus);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

@@ -135,9 +135,9 @@ sys_grok(context_t *c)
      * the machine. note: you can also use the quo_nsockets or
      * quo_get_nobjs_by_type to get the same info. */
     if (QUO_SUCCESS != quo_get_nobjs_in_type_by_type(c->quo,
-                                                     QUO_MACHINE,
+                                                     QUO_OBJ_MACHINE,
                                                      0,
-                                                     QUO_SOCKET,
+                                                     QUO_OBJ_SOCKET,
                                                      &c->nsockets)) {
         bad_func = "quo_get_nobjs_in_type_by_type";
         goto out;
@@ -232,7 +232,7 @@ bindup_sockets(const context_t *c)
     /* if you are going to change bindings often, then cache this */
     if (c->noderank + 1 <= c->nsockets) {
         if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_BIND_PUSH_PROVIDED,
-                                         QUO_SOCKET, c->noderank)) {
+                                         QUO_OBJ_SOCKET, c->noderank)) {
             return 1;
         }
     }
@@ -281,8 +281,8 @@ static int
 cores_in_cur_bind_test(const context_t *c)
 {
     int b0 = -1, blast = -1;
-    if (type_in_cur_bind(c, QUO_CORE, 0, &b0)) return 1;
-    if (type_in_cur_bind(c, QUO_CORE, c->ncores - 1, &blast)) return 1;
+    if (type_in_cur_bind(c, QUO_OBJ_CORE, 0, &b0)) return 1;
+    if (type_in_cur_bind(c, QUO_OBJ_CORE, c->ncores - 1, &blast)) return 1;
 
     printf("### [rank %d] core %d in current bind policy: %s\n",
            c->rank, 0, b0 ? "true" : "false");

@@ -154,9 +154,9 @@ sys_grok(context_t *c)
      * the machine. note: you can also use the quo_nsockets or
      * quo_get_nobjs_by_type to get the same info. */
     if (QUO_SUCCESS != quo_get_nobjs_in_type_by_type(c->quo,
-                                                     QUO_MACHINE,
+                                                     QUO_OBJ_MACHINE,
                                                      0,
-                                                     QUO_SOCKET,
+                                                     QUO_OBJ_SOCKET,
                                                      &c->nsockets)) {
         bad_func = "quo_get_nobjs_in_type_by_type";
         goto out;
@@ -252,7 +252,7 @@ get_p1pes(context_t *c,
     /* grab the smp ranks (node ranks) that are in each socket */
     for (int socket = 0; socket < c->nsockets; ++socket) {
         rc = quo_smpranks_in_type(c->quo,
-                                  QUO_SOCKET,
+                                  QUO_OBJ_SOCKET,
                                   socket,
                                   &(nranks_bound_to_socket[socket]),
                                   &(rank_ids_bound_to_socket[socket]));

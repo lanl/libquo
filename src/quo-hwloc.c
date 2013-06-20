@@ -68,19 +68,19 @@ ext2intobj(quo_obj_type_t external,
     /* convert from ours to hwloc's. if you ever need more types, add them here
      * and in quo.h. */
     switch (external) {
-        case QUO_MACHINE:
+        case QUO_OBJ_MACHINE:
             *internal = HWLOC_OBJ_MACHINE;
             break;
-        case QUO_NODE:
+        case QUO_OBJ_NODE:
             *internal = HWLOC_OBJ_NODE;
             break;
-        case QUO_SOCKET:
+        case QUO_OBJ_SOCKET:
             *internal = HWLOC_OBJ_SOCKET;
             break;
-        case QUO_CORE:
+        case QUO_OBJ_CORE:
             *internal = HWLOC_OBJ_CORE;
             break;
-        case QUO_PU:
+        case QUO_OBJ_PU:
             *internal = HWLOC_OBJ_PU;
             break;
         default:

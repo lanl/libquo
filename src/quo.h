@@ -32,12 +32,11 @@ enum {
 };
 
 typedef enum {
-    QUO_MACHINE = 0,
-    /* XXX consider renaming to NUMA something */
-    QUO_NODE,
-    QUO_SOCKET,
-    QUO_CORE,
-    QUO_PU
+    QUO_OBJ_MACHINE = 0,
+    QUO_OBJ_NODE,
+    QUO_OBJ_SOCKET,
+    QUO_OBJ_CORE,
+    QUO_OBJ_PU
 } quo_obj_type_t;
 
 typedef enum {

@@ -53,7 +53,7 @@ push_bind(const context_t *c)
      * (the obj index [e.g socket 1]) is ignored. this is NOT the case when
      * using the QUO_BIND_PUSH_PROVIDED option. */
     if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_BIND_PUSH_OBJ,
-                                     QUO_SOCKET, -1)) {
+                                     QUO_OBJ_SOCKET, -1)) {
         return 1;
     }
     return 0;
