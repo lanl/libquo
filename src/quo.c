@@ -66,22 +66,6 @@ QUO_version(int *version,
     return QUO_SUCCESS;
 }
 
-void
-QUO_VERSION(int *version,
-            int *subversion,
-            int *ierr)
-{
-    *ierr = QUO_version(version, subversion);
-}
-
-void
-QUO_version_(int *version,
-            int *subversion,
-            int *ierr)
-{
-    *ierr = QUO_version(version, subversion);
-}
-
 /* ////////////////////////////////////////////////////////////////////////// */
 void
 QUO_free(void *target)

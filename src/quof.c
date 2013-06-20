@@ -4,12 +4,18 @@
  */
 
 #include "quo.h"
+#include "quof-private.h"
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* fortran public api routines */
 /* ////////////////////////////////////////////////////////////////////////// */
 
 /* ////////////////////////////////////////////////////////////////////////// */
+#pragma weak QUO_VERSION   = quo_version_f
+#pragma weak quo_version   = quo_version_f
+#pragma weak quo_version_  = quo_version_f
+#pragma weak quo_version__ = quo_version_f
+
 void
 quo_version_f(int *version,
               int *subversion,
@@ -18,6 +24,13 @@ quo_version_f(int *version,
     *ierr = QUO_version(version, subversion);
 }
 
+QUO_GENERATE_F77_BINDINGS(QUO_VERSION,
+                          quo_version,
+                          quo_version_,
+                          quo_version__,
+                          quo_version_f,
+                          (int *version, int *subversion, int *ierr),
+                          (version, subversion, ierr) )
 #if 0
 /* ////////////////////////////////////////////////////////////////////////// */
 void
