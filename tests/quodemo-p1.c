@@ -50,7 +50,7 @@ p1_init(context_t *c,
 {
     int rc = QUO_SUCCESS;
     if (0 == c->noderank) {
-        printf("ooo [rank %d] %d ranks doing work...\n", c->rank, np1s);
+        printf("ooo [rank %d] %d p1pes initializing p1\n", c->rank, np1s);
         printf("ooo [rank %d] and they are: ", c->rank);
         fflush(stdout);
         for (int i = 0; i < np1s; ++i) {
@@ -87,6 +87,10 @@ p1_init(context_t *c,
             rc = QUO_ERR_MPI;
             goto out;
         }
+        if (MPI_SUCCESS != MPI_Comm_rank(p1.comm, &p1.comm_rank)) {
+            rc = QUO_ERR_MPI;
+            goto out;
+        }
     }
     /* for pretty print */
     usleep((c->rank) * 1000);
@@ -107,7 +111,8 @@ p1_fini(void)
 int
 p1_entry_point(context_t *c)
 {
-    fprintf(stdout, "ooo [rank %d] in %s\n", c->rank, __func__);
+    printf("### [rank %d] p1pe rank %d doing science in p1!\n",
+           c->rank, p1.comm_rank);
     fflush(stdout);
     p1_emit_sync(&p1);
     return 0;

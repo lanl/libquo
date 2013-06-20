@@ -409,12 +409,25 @@ main(void)
         goto out;
     }
     if (0 == context->noderank) {
-        printf("### [rank %d] doing science!\n", context->rank);
+        printf("### [rank %d] %d p0pes doing science in p0!\n",
+               context->rank, context->nnoderanks);
     }
     /* time for p1 to do some work with some of the ranks */
     if (p1pe) {
         if (p1_entry_point(context)) {
             bad_func = "p1_entry_point";
+            goto out;
+        }
+        /* signals completion within p1 */
+        if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) {
+            bad_func = "MPI_Barrier";
+            goto out;
+        }
+    }
+    else {
+        /* non p1pes wait in a barrier */
+        if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) {
+            bad_func = "MPI_Barrier";
             goto out;
         }
     }
