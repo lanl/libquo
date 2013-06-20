@@ -6,6 +6,9 @@
 lib_LTLIBRARIES = \
 libquo.la
 
+include_HEADERS = \
+quo.h quof.h
+
 libquo_la_SOURCES = \
 quo-private.h \
 quo-hwloc.h quo-hwloc.c \
