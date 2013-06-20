@@ -16,5 +16,11 @@ integer QUO_ERR_NOT_SUPPORTED
 integer QUO_ERR_POP
 integer QUO_ERR_NOT_FOUND
 
+integer QUO_OBJ_MACHINE
+integer QUO_OBJ_NODE
+integer QUO_OBJ_SOCKET
+integer QUO_OBJ_CORE
+integer QUO_OBJ_PU
+
 integer QUO_BIND_PUSH_PROVIDED
 integer QUO_BIND_PUSH_OBJ
