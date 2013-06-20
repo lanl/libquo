@@ -60,7 +60,7 @@ typedef struct context_t {
     int bound;
     /* a pointer to our quo context (the thing that gets passed around all over
      * the place). filler words that make this comment line look mo better... */
-    quo_t *quo;
+    QUO_t *quo;
 } context_t;
 
 /**
@@ -77,9 +77,9 @@ static int
 fini(context_t *c)
 {
     if (!c) return 1;
-    if (QUO_SUCCESS != quo_finalize(c->quo)) return 1;
-    if (QUO_SUCCESS != quo_destruct(c->quo)) return 1;
-    /* finalize mpi AFTER quo_destruct - we may mpi in our destruct */
+    if (QUO_SUCCESS != QUO_finalize(c->quo)) return 1;
+    if (QUO_SUCCESS != QUO_destruct(c->quo)) return 1;
+    /* finalize mpi AFTER QUO_destruct - we may mpi in our destruct */
     if (c->mpi_inited) MPI_Finalize();
     if (c->cbindstr) free(c->cbindstr);
     free(c);
@@ -89,7 +89,7 @@ fini(context_t *c)
 /**
  * i'm being really sloppy here. ideally, one should probably save the rc and
  * then display or do some other cool thing with it. don't be like this code. if
- * quo_construct or quo_init fail, then someone using this could just continue
+ * QUO_construct or QUO_init fail, then someone using this could just continue
  * without the awesomeness that is libquo. they cleanup after themselves, so
  * things *should* be in an okay state after an early failure. the failures may
  * be part of a larger problem, however. */
@@ -106,13 +106,13 @@ init(context_t **c)
     /* ...and more */
     if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(newc->rank))) goto err;
     /* can be called at any point -- even before init and construct. */
-    if (QUO_SUCCESS != quo_version(&(newc->qv), &(newc->qsv))) goto err;
+    if (QUO_SUCCESS != QUO_version(&(newc->qv), &(newc->qsv))) goto err;
     /* cheap call -- must be called before init. */
-    if (QUO_SUCCESS != quo_construct(&(newc->quo))) goto err;
+    if (QUO_SUCCESS != QUO_construct(&(newc->quo))) goto err;
     /* relatively expensive call. you only really want to do this once at the
      * beginning of time and pass the context all over the place within your
      * code. */
-    if (QUO_SUCCESS != quo_init(newc->quo)) goto err;
+    if (QUO_SUCCESS != QUO_init(newc->quo)) goto err;
     newc->mpi_inited = true;
     *c = newc;
     return 0;
@@ -131,43 +131,43 @@ sys_grok(context_t *c)
 
     /* this interface is more powerful, but the other n* calls can be more
      * convenient. at any rate, this is an example of the
-     * quo_get_nobjs_in_type_by_type interface to get the number of sockets on
-     * the machine. note: you can also use the quo_nsockets or
-     * quo_get_nobjs_by_type to get the same info. */
-    if (QUO_SUCCESS != quo_get_nobjs_in_type_by_type(c->quo,
+     * QUO_get_nobjs_in_type_by_type interface to get the number of sockets on
+     * the machine. note: you can also use the QUO_nsockets or
+     * QUO_get_nobjs_by_type to get the same info. */
+    if (QUO_SUCCESS != QUO_get_nobjs_in_type_by_type(c->quo,
                                                      QUO_OBJ_MACHINE,
                                                      0,
                                                      QUO_OBJ_SOCKET,
                                                      &c->nsockets)) {
-        bad_func = "quo_get_nobjs_in_type_by_type";
+        bad_func = "QUO_get_nobjs_in_type_by_type";
         goto out;
     }
-    if (QUO_SUCCESS != quo_ncores(c->quo, &c->ncores)) {
-        bad_func = "quo_ncores";
+    if (QUO_SUCCESS != QUO_ncores(c->quo, &c->ncores)) {
+        bad_func = "QUO_ncores";
         goto out;
     }
-    if (QUO_SUCCESS != quo_npus(c->quo, &c->npus)) {
-        bad_func = "quo_npus";
+    if (QUO_SUCCESS != QUO_npus(c->quo, &c->npus)) {
+        bad_func = "QUO_npus";
         goto out;
     }
-    if (QUO_SUCCESS != quo_bound(c->quo, &c->bound)) {
-        bad_func = "quo_bound";
+    if (QUO_SUCCESS != QUO_bound(c->quo, &c->bound)) {
+        bad_func = "QUO_bound";
         goto out;
     }
-    if (QUO_SUCCESS != quo_stringify_cbind(c->quo, &c->cbindstr)) {
-        bad_func = "quo_stringify_cbind";
+    if (QUO_SUCCESS != QUO_stringify_cbind(c->quo, &c->cbindstr)) {
+        bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != quo_nnodes(c->quo, &c->nnodes)) {
-        bad_func = "quo_nnodes";
+    if (QUO_SUCCESS != QUO_nnodes(c->quo, &c->nnodes)) {
+        bad_func = "QUO_nnodes";
         goto out;
     }
-    if (QUO_SUCCESS != quo_nnoderanks(c->quo, &c->nnoderanks)) {
-        bad_func = "quo_nnoderanks";
+    if (QUO_SUCCESS != QUO_nnoderanks(c->quo, &c->nnoderanks)) {
+        bad_func = "QUO_nnoderanks";
         goto out;
     }
-    if (QUO_SUCCESS != quo_noderank(c->quo, &c->noderank)) {
-        bad_func = "quo_noderank";
+    if (QUO_SUCCESS != QUO_noderank(c->quo, &c->noderank)) {
+        bad_func = "QUO_noderank";
         goto out;
     }
 out:
@@ -185,12 +185,12 @@ emit_bind_state(const context_t *c)
     int bound = 0;
 
     demo_emit_sync(c);
-    if (QUO_SUCCESS != quo_stringify_cbind(c->quo, &cbindstr)) {
-        bad_func = "quo_stringify_cbind";
+    if (QUO_SUCCESS != QUO_stringify_cbind(c->quo, &cbindstr)) {
+        bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != quo_bound(c->quo, &bound)) {
-        bad_func = "quo_bound";
+    if (QUO_SUCCESS != QUO_bound(c->quo, &bound)) {
+        bad_func = "QUO_bound";
         goto out;
     }
     printf("### process %d rank %d [%s] bound: %s\n",
@@ -231,7 +231,7 @@ bindup_sockets(const context_t *c)
 {
     /* if you are going to change bindings often, then cache this */
     if (c->noderank + 1 <= c->nsockets) {
-        if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_BIND_PUSH_PROVIDED,
+        if (QUO_SUCCESS != QUO_bind_push(c->quo, QUO_BIND_PUSH_PROVIDED,
                                          QUO_OBJ_SOCKET, c->noderank)) {
             return 1;
         }
@@ -247,7 +247,7 @@ static int
 binddown_sockets(const context_t *c)
 {
     if (c->noderank + 1 <= c->nsockets) {
-        if (QUO_SUCCESS != quo_bind_pop(c->quo)) {
+        if (QUO_SUCCESS != QUO_bind_pop(c->quo)) {
             return 1;
         }
     }
@@ -264,11 +264,11 @@ binddown_sockets(const context_t *c)
  */
 static int
 type_in_cur_bind(const context_t *c,
-                 quo_obj_type_t type,
+                 QUO_obj_type_t type,
                  int type_id,
                  int *in_cur_bind)
 {
-    if (QUO_SUCCESS != quo_cur_cpuset_in_type(c->quo,
+    if (QUO_SUCCESS != QUO_cur_cpuset_in_type(c->quo,
                                               type,
                                               type_id,
                                               in_cur_bind)) {

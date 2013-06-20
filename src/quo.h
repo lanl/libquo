@@ -12,8 +12,8 @@
 extern "C" {
 #endif
 
-struct quo_t;
-typedef struct quo_t quo_t;
+struct QUO_t;
+typedef struct QUO_t QUO_t;
 
 /** quo return codes */
 enum {
@@ -37,12 +37,12 @@ typedef enum {
     QUO_OBJ_SOCKET,
     QUO_OBJ_CORE,
     QUO_OBJ_PU
-} quo_obj_type_t;
+} QUO_obj_type_t;
 
 typedef enum {
     QUO_BIND_PUSH_PROVIDED = 0,
     QUO_BIND_PUSH_OBJ
-} quo_bind_push_policy_t;
+} QUO_bind_push_policy_t;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -51,111 +51,111 @@ typedef enum {
 /* ////////////////////////////////////////////////////////////////////////// */
 
 /**
- * this routine can be called before quo_init.
+ * this routine can be called before QUO_init.
  */
 int
-quo_version(int *version,
+QUO_version(int *version,
             int *subversion);
 
 /* 1st call */
 int
-quo_construct(quo_t **q);
+QUO_construct(QUO_t **q);
 
 /* 2nd call */
 int
-quo_init(quo_t *q);
+QUO_init(QUO_t *q);
 
 /* 2nd-to-last call */
 int
-quo_finalize(quo_t *q);
+QUO_finalize(QUO_t *q);
 
 /* last call - call before MPI_Finalize */
 int
-quo_destruct(quo_t *q);
+QUO_destruct(QUO_t *q);
 
 int
-quo_initialized(const quo_t *q,
+QUO_initialized(const QUO_t *q,
                 int *out_initialized);
 
 int
-quo_ranks_on_node(const quo_t *q,
+QUO_ranks_on_node(const QUO_t *q,
                   int *out_nranks,
                   int **out_ranks);
 
 int
-quo_node_topo_stringify(const quo_t *q,
+QUO_node_topo_stringify(const QUO_t *q,
                         char **out_str);
 
 int
-quo_get_nobjs_by_type(const quo_t *q,
-                      quo_obj_type_t target_type,
+QUO_get_nobjs_by_type(const QUO_t *q,
+                      QUO_obj_type_t target_type,
                       int *out_nobjs);
 
 int
-quo_get_nobjs_in_type_by_type(const quo_t *q,
-                              quo_obj_type_t in_type,
+QUO_get_nobjs_in_type_by_type(const QUO_t *q,
+                              QUO_obj_type_t in_type,
                               int in_type_index,
-                              quo_obj_type_t type,
+                              QUO_obj_type_t type,
                               int *out_result);
 /**
  * returns whether or not my current binding policy covers a particular system
  * hardware resource.
  */
 int
-quo_cur_cpuset_in_type(const quo_t *q,
-                       quo_obj_type_t type,
+QUO_cur_cpuset_in_type(const QUO_t *q,
+                       QUO_obj_type_t type,
                        int in_type_index,
                        int *out_result);
 
 int
-quo_smpranks_in_type(const quo_t *q,
-                     quo_obj_type_t type,
+QUO_smpranks_in_type(const QUO_t *q,
+                     QUO_obj_type_t type,
                      int in_type_index,
                      int *n_out_smpranks,
                      int **out_smpranks);
 
 int
-quo_nsockets(const quo_t *q,
+QUO_nsockets(const QUO_t *q,
              int *out_nsockets);
 
 int
-quo_ncores(const quo_t *q,
+QUO_ncores(const QUO_t *q,
            int *out_ncores);
 
 int
-quo_npus(const quo_t *q,
+QUO_npus(const QUO_t *q,
          int *out_npus);
 
 int
-quo_bound(const quo_t *q,
+QUO_bound(const QUO_t *q,
           int *bound);
 
 int
-quo_stringify_cbind(const quo_t *q,
+QUO_stringify_cbind(const QUO_t *q,
                     char **cbind_str);
 
 int
-quo_nnodes(const quo_t *q,
+QUO_nnodes(const QUO_t *q,
            int *out_nodes);
 
 int
-quo_nnoderanks(const quo_t *q,
+QUO_nnoderanks(const QUO_t *q,
                int *out_nnoderanks);
 
 int
-quo_noderank(const quo_t *q,
+QUO_noderank(const QUO_t *q,
              int *out_noderank);
 
 int
-quo_bind_push(quo_t *q,
-              quo_bind_push_policy_t policy,
-              quo_obj_type_t type,
+QUO_bind_push(QUO_t *q,
+              QUO_bind_push_policy_t policy,
+              QUO_obj_type_t type,
               int obj_index);
 int
-quo_bind_pop(quo_t *q);
+QUO_bind_pop(QUO_t *q);
 
 void
-quo_free(void *target);
+QUO_free(void *target);
 
 #ifdef __cplusplus
 }

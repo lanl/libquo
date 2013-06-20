@@ -52,7 +52,7 @@ push_bind(const context_t *c)
      * closest socket. notice that with QUO_BIND_PUSH_OBJ, the last argument
      * (the obj index [e.g socket 1]) is ignored. this is NOT the case when
      * using the QUO_BIND_PUSH_PROVIDED option. */
-    if (QUO_SUCCESS != quo_bind_push(c->quo, QUO_BIND_PUSH_OBJ,
+    if (QUO_SUCCESS != QUO_bind_push(c->quo, QUO_BIND_PUSH_OBJ,
                                      QUO_OBJ_SOCKET, -1)) {
         return 1;
     }
@@ -64,7 +64,7 @@ push_bind(const context_t *c)
 static int
 pop_bind(const context_t *c)
 {
-    if (QUO_SUCCESS != quo_bind_pop(c->quo)) return 1;
+    if (QUO_SUCCESS != QUO_bind_pop(c->quo)) return 1;
     return 0;
 }
 

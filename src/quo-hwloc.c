@@ -44,7 +44,7 @@ struct quo_hwloc_t {
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static bool
-valid_bind_policy(quo_bind_push_policy_t policy)
+valid_bind_policy(QUO_bind_push_policy_t policy)
 {
     switch (policy) {
         case QUO_BIND_PUSH_PROVIDED:
@@ -61,7 +61,7 @@ valid_bind_policy(quo_bind_push_policy_t policy)
  * takes a quo obj type and converts it to hwloc's equivalent.
  */
 static int
-ext2intobj(quo_obj_type_t external,
+ext2intobj(QUO_obj_type_t external,
            hwloc_obj_type_t *internal)
 {
     if (!internal) return QUO_ERR_INVLD_ARG;
@@ -135,7 +135,7 @@ out:
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 get_obj_by_type(const quo_hwloc_t *hwloc,
-                quo_obj_type_t type,
+                QUO_obj_type_t type,
                 unsigned type_index,
                 hwloc_obj_t *out_obj)
 {
@@ -159,7 +159,7 @@ get_obj_by_type(const quo_hwloc_t *hwloc,
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 get_obj_covering_cur_bind(const quo_hwloc_t *hwloc,
-                          quo_obj_type_t type,
+                          QUO_obj_type_t type,
                           hwloc_obj_t *out_obj)
 {
     int rc = QUO_ERR;
@@ -402,9 +402,9 @@ quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
-                                    quo_obj_type_t in_type,
+                                    QUO_obj_type_t in_type,
                                     unsigned in_type_index,
-                                    quo_obj_type_t type,
+                                    QUO_obj_type_t type,
                                     int *out_result)
 {
     int rc = QUO_ERR;
@@ -453,7 +453,7 @@ out:
  */
 int
 quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
-                            quo_obj_type_t target_type,
+                            QUO_obj_type_t target_type,
                             int *out_nobjs)
 {
     int depth = 0, rc = QUO_ERR;
@@ -477,7 +477,7 @@ quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
-                                  quo_obj_type_t type,
+                                  QUO_obj_type_t type,
                                   pid_t pid,
                                   unsigned type_index,
                                   int *out_result)
@@ -547,8 +547,8 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 rebind(const quo_hwloc_t *hwloc,
-       quo_bind_push_policy_t policy,
-       quo_obj_type_t type,
+       QUO_bind_push_policy_t policy,
+       QUO_obj_type_t type,
        unsigned obj_index)
 {
     int rc = QUO_SUCCESS;
@@ -585,8 +585,8 @@ out:
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_bind_push(quo_hwloc_t *hwloc,
-                    quo_bind_push_policy_t policy,
-                    quo_obj_type_t type,
+                    QUO_bind_push_policy_t policy,
+                    QUO_obj_type_t type,
                     unsigned obj_index)
 {
     int rc = QUO_SUCCESS;

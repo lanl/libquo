@@ -40,9 +40,9 @@ static int
 fini(context_t *c)
 {
     if (!c) return 1;
-    if (QUO_SUCCESS != quo_finalize(c->quo)) return 1;
-    if (QUO_SUCCESS != quo_destruct(c->quo)) return 1;
-    /* finalize mpi AFTER quo_destruct - we may mpi in our destruct */
+    if (QUO_SUCCESS != QUO_finalize(c->quo)) return 1;
+    if (QUO_SUCCESS != QUO_destruct(c->quo)) return 1;
+    /* finalize mpi AFTER QUO_destruct - we may mpi in our destruct */
     if (c->mpi_inited) {
         MPI_Comm_free(&c->smp_comm);
         MPI_Finalize();
@@ -55,7 +55,7 @@ fini(context_t *c)
 /**
  * i'm being really sloppy here. ideally, one should probably save the rc and
  * then display or do some other cool thing with it. don't be like this code. if
- * quo_construct or quo_init fail, then someone using this could just continue
+ * QUO_construct or QUO_init fail, then someone using this could just continue
  * without the awesomeness that is libquo. they cleanup after themselves, so
  * things *should* be in an okay state after an early failure. the failures may
  * be part of a larger problem, however. if you are reading this, you are
@@ -79,16 +79,16 @@ init(context_t **c)
     /* ////////////////////////////////////////////////////////////////////// */
 
     /* can be called at any point -- even before init and construct. */
-    if (QUO_SUCCESS != quo_version(&(newc->qv), &(newc->qsv))) goto err;
+    if (QUO_SUCCESS != QUO_version(&(newc->qv), &(newc->qsv))) goto err;
     /* cheap call -- must be called before init. */
-    if (QUO_SUCCESS != quo_construct(&(newc->quo))) goto err;
+    if (QUO_SUCCESS != QUO_construct(&(newc->quo))) goto err;
     /* relatively expensive call. you only really want to do this once at the
      * beginning of time and pass the context all over the place within your
      * code. that being said, this routine can be called, from within the same
      * quo context, multiple times. the first time is expensive, the others just
      * return QUO_SUCCESS_ALREADY_DONE if someone else already initialized the
      * quo context. */
-    if (QUO_SUCCESS != quo_init(newc->quo)) goto err;
+    if (QUO_SUCCESS != QUO_init(newc->quo)) goto err;
     /* mpi initialized at this point */
     newc->mpi_inited = true;
     /* return pointer to allocated resources */
@@ -113,7 +113,7 @@ smpcomm_dup(context_t *c)
     MPI_Group world_group;
     MPI_Group smp_group;
     /* figure out what MPI_COMM_WORLD ranks share a node with me */
-    if (QUO_SUCCESS != quo_ranks_on_node(c->quo, &nnoderanks, &ranks)) return 1;
+    if (QUO_SUCCESS != QUO_ranks_on_node(c->quo, &nnoderanks, &ranks)) return 1;
     if (MPI_SUCCESS != MPI_Comm_group(MPI_COMM_WORLD, &world_group)) {
         rc = QUO_ERR_MPI;
         goto out;
@@ -130,7 +130,7 @@ smpcomm_dup(context_t *c)
         goto out;
     }
 out:
-    quo_free(ranks);
+    QUO_free(ranks);
     if (MPI_SUCCESS != MPI_Group_free(&world_group)) {
         return 1;
     }
@@ -150,43 +150,43 @@ sys_grok(context_t *c)
 
     /* this interface is more powerful, but the other n* calls can be more
      * convenient. at any rate, this is an example of the
-     * quo_get_nobjs_in_type_by_type interface to get the number of sockets on
-     * the machine. note: you can also use the quo_nsockets or
-     * quo_get_nobjs_by_type to get the same info. */
-    if (QUO_SUCCESS != quo_get_nobjs_in_type_by_type(c->quo,
+     * QUO_get_nobjs_in_type_by_type interface to get the number of sockets on
+     * the machine. note: you can also use the QUO_nsockets or
+     * QUO_get_nobjs_by_type to get the same info. */
+    if (QUO_SUCCESS != QUO_get_nobjs_in_type_by_type(c->quo,
                                                      QUO_OBJ_MACHINE,
                                                      0,
                                                      QUO_OBJ_SOCKET,
                                                      &c->nsockets)) {
-        bad_func = "quo_get_nobjs_in_type_by_type";
+        bad_func = "QUO_get_nobjs_in_type_by_type";
         goto out;
     }
-    if (QUO_SUCCESS != quo_ncores(c->quo, &c->ncores)) {
-        bad_func = "quo_ncores";
+    if (QUO_SUCCESS != QUO_ncores(c->quo, &c->ncores)) {
+        bad_func = "QUO_ncores";
         goto out;
     }
-    if (QUO_SUCCESS != quo_npus(c->quo, &c->npus)) {
-        bad_func = "quo_npus";
+    if (QUO_SUCCESS != QUO_npus(c->quo, &c->npus)) {
+        bad_func = "QUO_npus";
         goto out;
     }
-    if (QUO_SUCCESS != quo_bound(c->quo, &c->bound)) {
-        bad_func = "quo_bound";
+    if (QUO_SUCCESS != QUO_bound(c->quo, &c->bound)) {
+        bad_func = "QUO_bound";
         goto out;
     }
-    if (QUO_SUCCESS != quo_stringify_cbind(c->quo, &c->cbindstr)) {
-        bad_func = "quo_stringify_cbind";
+    if (QUO_SUCCESS != QUO_stringify_cbind(c->quo, &c->cbindstr)) {
+        bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != quo_nnodes(c->quo, &c->nnodes)) {
-        bad_func = "quo_nnodes";
+    if (QUO_SUCCESS != QUO_nnodes(c->quo, &c->nnodes)) {
+        bad_func = "QUO_nnodes";
         goto out;
     }
-    if (QUO_SUCCESS != quo_nnoderanks(c->quo, &c->nnoderanks)) {
-        bad_func = "quo_nnoderanks";
+    if (QUO_SUCCESS != QUO_nnoderanks(c->quo, &c->nnoderanks)) {
+        bad_func = "QUO_nnoderanks";
         goto out;
     }
-    if (QUO_SUCCESS != quo_noderank(c->quo, &c->noderank)) {
-        bad_func = "quo_noderank";
+    if (QUO_SUCCESS != QUO_noderank(c->quo, &c->noderank)) {
+        bad_func = "QUO_noderank";
         goto out;
     }
 out:
@@ -251,7 +251,7 @@ get_p1pes(context_t *c,
     }
     /* grab the smp ranks (node ranks) that are in each socket */
     for (int socket = 0; socket < c->nsockets; ++socket) {
-        rc = quo_smpranks_in_type(c->quo,
+        rc = QUO_smpranks_in_type(c->quo,
                                   QUO_OBJ_SOCKET,
                                   socket,
                                   &(nranks_bound_to_socket[socket]),
@@ -332,9 +332,9 @@ get_p1pes(context_t *c,
     *workers = worker_ranks;
     demo_emit_sync(c);
 out:
-    /* the resources returned by quo_smpranks_in_type must be freed by us */
+    /* the resources returned by QUO_smpranks_in_type must be freed by us */
     for (int i = 0; i < c->nsockets; ++i) {
-        quo_free(rank_ids_bound_to_socket[i]);
+        QUO_free(rank_ids_bound_to_socket[i]);
     }
     if (rank_ids_bound_to_socket) free(rank_ids_bound_to_socket);
     if (nranks_bound_to_socket) free(nranks_bound_to_socket);

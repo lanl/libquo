@@ -36,19 +36,19 @@ quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
 
 int
 quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
-                            quo_obj_type_t target_type,
+                            QUO_obj_type_t target_type,
                             int *out_nobjs);
 
 int
 quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
-                                    quo_obj_type_t in_type,
+                                    QUO_obj_type_t in_type,
                                     unsigned in_type_index,
-                                    quo_obj_type_t type,
+                                    QUO_obj_type_t type,
                                     int *out_result);
 
 int
 quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
-                                  quo_obj_type_t type,
+                                  QUO_obj_type_t type,
                                   pid_t pid,
                                   unsigned type_index,
                                   int *out_result);
@@ -65,13 +65,13 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
 
 int
 quo_hwloc_rebind(const quo_hwloc_t *hwloc,
-                 quo_obj_type_t type,
+                 QUO_obj_type_t type,
                  unsigned obj_index);
 
 int
 quo_hwloc_bind_push(quo_hwloc_t *hwloc,
-                    quo_bind_push_policy_t policy,
-                    quo_obj_type_t type,
+                    QUO_bind_push_policy_t policy,
+                    QUO_obj_type_t type,
                     unsigned obj_index);
 
 int

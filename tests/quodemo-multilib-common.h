@@ -55,7 +55,7 @@ typedef struct context_t {
     int size_smp_comm;
     /* a pointer to our quo context (the thing that gets passed around all over
      * the place). filler words that make this comment line look mo better... */
-    quo_t *quo;
+    QUO_t *quo;
 } context_t;
 
 
@@ -79,12 +79,12 @@ emit_bind_state(const context_t *c,
     char *cbindstr = NULL, *bad_func = NULL;
     int bound = 0;
 
-    if (QUO_SUCCESS != quo_stringify_cbind(c->quo, &cbindstr)) {
-        bad_func = "quo_stringify_cbind";
+    if (QUO_SUCCESS != QUO_stringify_cbind(c->quo, &cbindstr)) {
+        bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != quo_bound(c->quo, &bound)) {
-        bad_func = "quo_bound";
+    if (QUO_SUCCESS != QUO_bound(c->quo, &bound)) {
+        bad_func = "QUO_bound";
         goto out;
     }
     printf("%s [rank %d] process %d [%s] bound: %s\n",

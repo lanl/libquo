@@ -61,91 +61,91 @@ main(void)
     char *bad_func = NULL;
     char *topostr = NULL, *cbindstr = NULL, *cbindstr2 = NULL, *cbindstr3 = NULL;
     int bound = 0, bound2 = 0, bound3 = 0;
-    quo_t *quo = NULL;
+    QUO_t *quo = NULL;
     inf_t info;
 
     if (init(&info)) {
         bad_func = "info";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_version(&qv, &qsv))) {
-        bad_func = "quo_version";
+    if (QUO_SUCCESS != (qrc = QUO_version(&qv, &qsv))) {
+        bad_func = "QUO_version";
         goto out;
     }
     /* cheap call */
-    if (QUO_SUCCESS != (qrc = quo_construct(&quo))) {
-        bad_func = "quo_construct";
+    if (QUO_SUCCESS != (qrc = QUO_construct(&quo))) {
+        bad_func = "QUO_construct";
         goto out;
     }
     /* relatively expensive call */
-    if (QUO_SUCCESS != (qrc = quo_init(quo))) {
-        bad_func = "quo_init";
+    if (QUO_SUCCESS != (qrc = QUO_init(quo))) {
+        bad_func = "QUO_init";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_node_topo_stringify(quo, &topostr))) {
-        bad_func = "quo_node_topo_emit";
+    if (QUO_SUCCESS != (qrc = QUO_node_topo_stringify(quo, &topostr))) {
+        bad_func = "QUO_node_topo_emit";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_nsockets(quo, &nsockets))) {
-        bad_func = "quo_nsockets";
+    if (QUO_SUCCESS != (qrc = QUO_nsockets(quo, &nsockets))) {
+        bad_func = "QUO_nsockets";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_ncores(quo, &ncores))) {
-        bad_func = "quo_ncores";
+    if (QUO_SUCCESS != (qrc = QUO_ncores(quo, &ncores))) {
+        bad_func = "QUO_ncores";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_npus(quo, &npus))) {
-        bad_func = "quo_npus";
+    if (QUO_SUCCESS != (qrc = QUO_npus(quo, &npus))) {
+        bad_func = "QUO_npus";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_bound(quo, &bound))) {
-        bad_func = "quo_bound";
+    if (QUO_SUCCESS != (qrc = QUO_bound(quo, &bound))) {
+        bad_func = "QUO_bound";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_stringify_cbind(quo, &cbindstr))) {
-        bad_func = "quo_stringify_cbind";
+    if (QUO_SUCCESS != (qrc = QUO_stringify_cbind(quo, &cbindstr))) {
+        bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_nnodes(quo, &nnodes))) {
-        bad_func = "quo_nnodes";
+    if (QUO_SUCCESS != (qrc = QUO_nnodes(quo, &nnodes))) {
+        bad_func = "QUO_nnodes";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_nnoderanks(quo, &nnoderanks))) {
-        bad_func = "quo_nnodes";
+    if (QUO_SUCCESS != (qrc = QUO_nnoderanks(quo, &nnoderanks))) {
+        bad_func = "QUO_nnodes";
         goto out;
     }
     /* last argument ignored with QUO_BIND_PUSH_OBJ option */
-    if (QUO_SUCCESS != (qrc = quo_bind_push(quo, QUO_BIND_PUSH_OBJ,
+    if (QUO_SUCCESS != (qrc = QUO_bind_push(quo, QUO_BIND_PUSH_OBJ,
                                             QUO_OBJ_CORE, 0))) {
-        bad_func = "quo_bind_push";
+        bad_func = "QUO_bind_push";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_stringify_cbind(quo, &cbindstr2))) {
-        bad_func = "quo_stringify_cbind";
+    if (QUO_SUCCESS != (qrc = QUO_stringify_cbind(quo, &cbindstr2))) {
+        bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_bound(quo, &bound2))) {
-        bad_func = "quo_bound";
+    if (QUO_SUCCESS != (qrc = QUO_bound(quo, &bound2))) {
+        bad_func = "QUO_bound";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_bind_pop(quo))) {
-        bad_func = "quo_bind_pop";
+    if (QUO_SUCCESS != (qrc = QUO_bind_pop(quo))) {
+        bad_func = "QUO_bind_pop";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_stringify_cbind(quo, &cbindstr3))) {
-        bad_func = "quo_stringify_cbind";
+    if (QUO_SUCCESS != (qrc = QUO_stringify_cbind(quo, &cbindstr3))) {
+        bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_bound(quo, &bound3))) {
-        bad_func = "quo_bound";
+    if (QUO_SUCCESS != (qrc = QUO_bound(quo, &bound3))) {
+        bad_func = "QUO_bound";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_finalize(quo))) {
-        bad_func = "quo_finalize";
+    if (QUO_SUCCESS != (qrc = QUO_finalize(quo))) {
+        bad_func = "QUO_finalize";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_destruct(quo))) {
-        bad_func = "quo_destruct";
+    if (QUO_SUCCESS != (qrc = QUO_destruct(quo))) {
+        bad_func = "QUO_destruct";
         goto out;
     }
     printf("### quo version: %d.%d ###\n", qv, qsv);
@@ -161,7 +161,7 @@ main(void)
     printf("### process %d [%s] bound: %s\n",
            (int)getpid(), cbindstr3, bound3 ? "true" : "false");
     printf("### begin system topology\n%s###end system topology\n", topostr);
-    /* the string returned by quo_node_topo_stringify MUST be free'd by us */
+    /* the string returned by QUO_node_topo_stringify MUST be free'd by us */
     free(topostr);
     free(cbindstr);
     free(cbindstr2);

@@ -25,8 +25,8 @@
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* quo_t type definition */
-struct quo_t {
+/* QUO_t type definition */
+struct QUO_t {
     bool initialized;
     pid_t pid;
     quo_hwloc_t *hwloc;
@@ -40,7 +40,7 @@ static void
 noinit_msg_emit(const char *func)
 {
     fprintf(stderr, QUO_ERR_PREFIX"%s called before %s. Cannot continue.\n",
-            func, "quo_init");
+            func, "QUO_init");
 }
 
 #define noinit_action(qp)                                                      \
@@ -57,7 +57,7 @@ do {                                                                           \
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_version(int *version,
+QUO_version(int *version,
             int *subversion)
 {
     if (!version || !subversion) return QUO_ERR_INVLD_ARG;
@@ -71,27 +71,27 @@ QUO_VERSION(int *version,
             int *subversion,
             int *ierr)
 {
-    *ierr = quo_version(version, subversion);
+    *ierr = QUO_version(version, subversion);
 }
 
 void
-quo_version_(int *version,
+QUO_version_(int *version,
             int *subversion,
             int *ierr)
 {
-    *ierr = quo_version(version, subversion);
+    *ierr = QUO_version(version, subversion);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
-quo_free(void *target)
+QUO_free(void *target)
 {
     if (target) free(target);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_init(quo_t *q)
+QUO_init(QUO_t *q)
 {
     int rc = QUO_ERR;
     if (!q) return QUO_ERR_INVLD_ARG;
@@ -109,7 +109,7 @@ quo_init(quo_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_initialized(const quo_t *q,
+QUO_initialized(const QUO_t *q,
                 int *out_initialized)
 {
     if (!out_initialized || !q) return QUO_ERR_INVLD_ARG;
@@ -119,10 +119,10 @@ quo_initialized(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_construct(quo_t **q)
+QUO_construct(QUO_t **q)
 {
     int qrc = QUO_SUCCESS;
-    quo_t *newq = NULL;
+    QUO_t *newq = NULL;
 
     if (!q) return QUO_ERR_INVLD_ARG;
     if (NULL == (newq = calloc(1, sizeof(*newq)))) {
@@ -142,7 +142,7 @@ quo_construct(quo_t **q)
     newq->pid = getpid();
 out:
     if (QUO_SUCCESS != qrc) {
-        quo_destruct(newq);
+        QUO_destruct(newq);
         *q = NULL;
     }
     *q = newq;
@@ -151,7 +151,7 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_destruct(quo_t *q)
+QUO_destruct(QUO_t *q)
 {
     int nerrs = 0;
     if (!q) return QUO_ERR_INVLD_ARG;
@@ -168,7 +168,7 @@ quo_destruct(quo_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_finalize(quo_t *q)
+QUO_finalize(QUO_t *q)
 {
     if (!q) return QUO_ERR_INVLD_ARG;
     noinit_action(q);
@@ -179,7 +179,7 @@ quo_finalize(quo_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_node_topo_stringify(const quo_t *q,
+QUO_node_topo_stringify(const QUO_t *q,
                         char **out_str)
 {
     /* make sure we are initialized before we continue */
@@ -190,10 +190,10 @@ quo_node_topo_stringify(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_get_nobjs_in_type_by_type(const quo_t *q,
-                              quo_obj_type_t in_type,
+QUO_get_nobjs_in_type_by_type(const QUO_t *q,
+                              QUO_obj_type_t in_type,
                               int in_type_index,
-                              quo_obj_type_t type,
+                              QUO_obj_type_t type,
                               int *out_result)
 {
     /* make sure we are initialized before we continue */
@@ -208,8 +208,8 @@ quo_get_nobjs_in_type_by_type(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_cur_cpuset_in_type(const quo_t *q,
-                       quo_obj_type_t type,
+QUO_cur_cpuset_in_type(const QUO_t *q,
+                       QUO_obj_type_t type,
                        int in_type_index,
                        int *out_result)
 {
@@ -226,8 +226,8 @@ quo_cur_cpuset_in_type(const quo_t *q,
  * caller is responsible for freeing *out_smpranks.
  */
 int
-quo_smpranks_in_type(const quo_t *q,
-                     quo_obj_type_t type,
+QUO_smpranks_in_type(const QUO_t *q,
+                     QUO_obj_type_t type,
                      int in_type_index,
                      int *n_out_smpranks,
                      int **out_smpranks)
@@ -240,7 +240,7 @@ quo_smpranks_in_type(const quo_t *q,
     if (!q || !n_out_smpranks || !out_smpranks) return QUO_ERR_INVLD_ARG;
     *n_out_smpranks = 0; *out_smpranks = NULL;
     /* figure out how many node ranks on the node */
-    if (QUO_SUCCESS != (rc = quo_nnoderanks(q, &tot_smpranks))) return rc;
+    if (QUO_SUCCESS != (rc = QUO_nnoderanks(q, &tot_smpranks))) return rc;
     /* smp ranks are always monotonically increasing starting at 0 */
     for (int rank = 0; rank < tot_smpranks; ++rank) {
         /* whether or not the particular pid is in the given obj type */
@@ -278,8 +278,8 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_get_nobjs_by_type(const quo_t *q,
-                      quo_obj_type_t target_type,
+QUO_get_nobjs_by_type(const QUO_t *q,
+                      QUO_obj_type_t target_type,
                       int *out_nobjs)
 {
     /* make sure we are initialized before we continue */
@@ -290,7 +290,7 @@ quo_get_nobjs_by_type(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_nsockets(const quo_t *q,
+QUO_nsockets(const QUO_t *q,
              int *out_nsockets)
 {
     /* make sure we are initialized before we continue */
@@ -301,7 +301,7 @@ quo_nsockets(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_ncores(const quo_t *q,
+QUO_ncores(const QUO_t *q,
            int *out_ncores)
 {
     /* make sure we are initialized before we continue */
@@ -312,7 +312,7 @@ quo_ncores(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_npus(const quo_t *q,
+QUO_npus(const QUO_t *q,
          int *out_npus)
 {
     /* make sure we are initialized before we continue */
@@ -323,7 +323,7 @@ quo_npus(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_bound(const quo_t *q,
+QUO_bound(const QUO_t *q,
           int *bound)
 {
     int rc = QUO_ERR;
@@ -340,7 +340,7 @@ quo_bound(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_stringify_cbind(const quo_t *q,
+QUO_stringify_cbind(const QUO_t *q,
                     char **cbind_str)
 {
     noinit_action(q);
@@ -350,7 +350,7 @@ quo_stringify_cbind(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_nnodes(const quo_t *q,
+QUO_nnodes(const QUO_t *q,
            int *out_nodes)
 {
     noinit_action(q);
@@ -360,7 +360,7 @@ quo_nnodes(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_nnoderanks(const quo_t *q,
+QUO_nnoderanks(const QUO_t *q,
                int *out_nnoderanks)
 {
     noinit_action(q);
@@ -370,7 +370,7 @@ quo_nnoderanks(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_noderank(const quo_t *q,
+QUO_noderank(const QUO_t *q,
              int *out_noderank)
 {
     noinit_action(q);
@@ -380,9 +380,9 @@ quo_noderank(const quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_bind_push(quo_t *q,
-              quo_bind_push_policy_t policy,
-              quo_obj_type_t type,
+QUO_bind_push(QUO_t *q,
+              QUO_bind_push_policy_t policy,
+              QUO_obj_type_t type,
               int obj_index)
 {
     noinit_action(q);
@@ -392,7 +392,7 @@ quo_bind_push(quo_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_bind_pop(quo_t *q)
+QUO_bind_pop(QUO_t *q)
 {
     noinit_action(q);
     if (!q) return QUO_ERR_INVLD_ARG;
@@ -401,7 +401,7 @@ quo_bind_pop(quo_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_ranks_on_node(const quo_t *q,
+QUO_ranks_on_node(const QUO_t *q,
                   int *out_nranks,
                   int **out_ranks)
 {
