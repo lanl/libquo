@@ -224,7 +224,7 @@ emit_node_basics(const context_t *c)
  * system, but you can imagine doing the same for NUMA nodes, for example.
  */
 static int
-get_worker_ranks(context_t *c,
+get_p1pes(context_t *c,
                  bool *working,
                  int *nworkers,
                  int **workers)
@@ -390,18 +390,21 @@ main(void)
     /* ////////////////////////////////////////////////////////////////////// */
     /* setup needed before we can init p1 */
     /* ////////////////////////////////////////////////////////////////////// */
+    /* flag indicating whether or not i'm a p1pe (calling into p1) */
     bool p1pe = false;
-    int tot_workers = 0;
-    int *worker_ranks = NULL;
-    if (get_worker_ranks(context, &p1pe, &tot_workers, &worker_ranks)) {
-        bad_func = "get_worker_ranks";
+    /* total number of p1pes */
+    int tot_p1pes = 0;
+    /* the MPI_COMM_WORLD ranks of the p1pes */
+    int *p1pes = NULL;
+    if (get_p1pes(context, &p1pe, &tot_p1pes, &p1pes)) {
+        bad_func = "get_p1pes";
         goto out;
     }
     /* ////////////////////////////////////////////////////////////////////// */
     /* init p1 by letting it know the ranks that are going to do work.
      * EVERY ONE IN MPI_COMM_WORLD CALLS THIS (sorry about the yelling) */
     /* ////////////////////////////////////////////////////////////////////// */
-    if (p1_init(context, tot_workers, worker_ranks)) {
+    if (p1_init(context, tot_p1pes, p1pes)) {
         bad_func = "p1_init";
         goto out;
     }
@@ -424,7 +427,7 @@ out:
         fprintf(stderr, "XXX %s failure in: %s\n", __FILE__, bad_func);
         erc = EXIT_FAILURE;
     }
-    if (worker_ranks) free(worker_ranks);
+    if (p1pes) free(p1pes);
     (void)fini(context);
     return erc;
 }
