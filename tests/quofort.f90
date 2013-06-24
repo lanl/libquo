@@ -46,14 +46,20 @@ end subroutine QM_INIT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! gathers basic system info
-subroutine QM_SYSGROK(quoc, nnodes, nsockets, ncores, npus)
+subroutine QM_SYSGROK(quoc, nnodes, noderank, nsockets, ncores, npus)
     integer*8, intent(in) :: quoc
-    integer*4, intent(inout) :: nnodes, nsockets, ncores, npus
+    integer*4, intent(out) :: nnodes, noderank, nsockets, ncores, npus
     integer*4 :: qerr 
     ! how many nodes are in our job
     call QUO_NNODES(quoc, nnodes, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_NNODES failure: err = ', qerr
+        stop
+    end if
+    ! what is my node rank
+    call QUO_NODERANK(quoc, noderank, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NODERANK failure: err = ', qerr
         stop
     end if
     ! how many sockets are on this system
@@ -130,13 +136,8 @@ program QUOFortF90
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! gather basic system info
-    call QM_SYSGROK(quo, nnodes, nsockets, ncores, npus)
-    ! what is my node rank
-    call QUO_NODERANK(quo, noderank, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NODERANK failure: err = ', qerr
-        stop
-    end if
+    call QM_SYSGROK(quo, nnodes, noderank, nsockets, ncores, npus)
+
     ! one rank per node will emit this info
     if (0 .EQ. noderank) then
         print *, '### quoversion: ', quovmaj, quovmin
@@ -145,6 +146,7 @@ program QUOFortF90
         print *, '### ncores    : ', ncores
         print *, '### npus      : ', npus
     end if
+
     call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_BIND_PUSH failure: err = ', qerr
