@@ -241,3 +241,27 @@ QUO_GENERATE_F77_BINDINGS(QUO_BOUND,
                           quo_bound_f,
                           (QUO_f_t *q, int *bound, int *ierr),
                           (q, bound, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_bind_push_f(QUO_f_t *q,
+                int *policy,
+                int *type,
+                int *obj_index,
+                int *ierr)
+{
+    int cerr = QUO_bind_push((QUO_t *)*q,
+                             (QUO_bind_push_policy_t)*policy,
+                             (QUO_obj_type_t)*type,
+                             *obj_index);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_BIND_PUSH,
+                          quo_bind_push,
+                          quo_bind_push_,
+                          quo_bind_push__,
+                          quo_bind_push_f,
+                          (QUO_f_t *q, int *policy, int *type,
+                           int *obj_index, int *ierr),
+                          (q, policy, type, obj_index, ierr))

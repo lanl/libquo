@@ -5,10 +5,104 @@
 
 ! my very first fortran app -- don't laugh too hard...
 
-program QUOFortF90
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+module QUO_MOD
     implicit none
     ! include quof and mpif
     include "quof.h"
+
+CONTAINS
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! constructs and inits libquo context, quoc
+subroutine QM_INIT(quoc)
+    integer*8, intent(inout) :: quoc
+    integer*4 :: qerr, initialized
+    ! construct the quo context.
+    call QUO_CONSTRUCT(quoc, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_CONSTRUCT failure: err = ', qerr
+        stop
+    end if
+    ! init the newly constructed context
+    call QUO_INIT(quoc, qerr)
+    if (QUO_SUCCESS .NE. qerr .AND. QUO_SUCCESS_ALREADY_DONE .NE. qerr) then
+        print *, 'QUO_INIT failure: err = ', qerr
+        stop
+    end if
+    ! exercise the interface by checking if the context is initialized.
+    call QUO_INITIALIZED(quoc, initialized, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_INITIALIZED failure: err = ', qerr
+        stop
+    end if
+    ! how did this happen?
+    if (initialized .NE. 1) then
+        print *, '### libquo is not initialized. stopping'
+    end if
+    return
+end subroutine QM_INIT
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! gathers basic system info
+subroutine QM_SYSGROK(quoc, nnodes, nsockets, ncores, npus)
+    integer*8, intent(in) :: quoc
+    integer*4, intent(inout) :: nnodes, nsockets, ncores, npus
+    integer*4 :: qerr 
+    ! how many nodes are in our job
+    call QUO_NNODES(quoc, nnodes, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NNODES failure: err = ', qerr
+        stop
+    end if
+    ! how many sockets are on this system
+    call QUO_NSOCKETS(quoc, nsockets, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NSOCKETS failure: err = ', qerr
+        stop
+    end if
+    ! how many cores are on this system
+    call QUO_NCORES(quoc, ncores, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NCORES failure: err = ', qerr
+        stop
+    end if
+    ! how many processing units (PUs) are on this system
+    call QUO_NPUS(quoc, npus, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NPUS failure: err = ', qerr
+        stop
+    end if
+    return
+end subroutine QM_SYSGROK
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine QM_EMITBIND(quoc)
+    integer*8, intent(in) :: quoc
+    integer*4 :: bound, qerr
+    ! is the process bound (cpu binding)
+    call QUO_BOUND(quoc, bound, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_BOUND failure: err = ', qerr
+        stop
+    end if
+    if (1 .EQ. bound) then
+        print *, '### process bound'
+    else
+        print *, '### process not bound'
+    end if
+    return
+end subroutine QM_EMITBIND
+end module QUO_MOD
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+program QUOFortF90
+    use QUO_MOD
+
+    implicit none
+
     include "mpif.h"
 
     ! holds the "quo context" that is passed around (must be the same size as
@@ -19,7 +113,7 @@ program QUOFortF90
     ! libquo uses standard ints. these sizes must be the same as the system's
     ! C int type.
     integer*4 :: quovmaj, quovmin
-    integer*4 :: initialized, nnodes, nsockets, ncores, npus, bound, noderank
+    integer*4 :: nnodes, nsockets, ncores, npus, bound, noderank
 
     ! init mpi because quo needs it
     call MPI_INIT
@@ -28,58 +122,19 @@ program QUOFortF90
     if (QUO_SUCCESS .NE. qerr) then
         stop
     end if
-    ! construct the quo context.
-    call QUO_CONSTRUCT(quo, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_CONSTRUCT failure: err = ', qerr
-        stop
-    end if
-    ! init the newly constructed context
-    call QUO_INIT(quo, qerr)
-    if (QUO_SUCCESS .NE. qerr .AND. QUO_SUCCESS_ALREADY_DONE .NE. qerr) then
-        print *, 'QUO_INIT failure: err = ', qerr
-        stop
-    end if
-    ! exercise the interface by checking if the context is initialized.
-    call QUO_INITIALIZED(quo, initialized, qerr)
-    if (initialized .EQ. 1) then
-        print *, '### libquo is initialized'
-    else
-        print *, '### libquo is not initialized'
-        stop
-    end if
+    ! construct and init the quo context
+    call QM_INIT(quo)
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! libquo is initialized, so we can get to work
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    ! gather basic system info
+    call QM_SYSGROK(quo, nnodes, nsockets, ncores, npus)
     ! what is my node rank
     call QUO_NODERANK(quo, noderank, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_NODERANK failure: err = ', qerr
-        stop
-    end if
-    ! how many nodes are in our job
-    call QUO_NNODES(quo, nnodes, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NNODES failure: err = ', qerr
-        stop
-    end if
-    ! how many sockets are on this system
-    call QUO_NSOCKETS(quo, nsockets, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NSOCKETS failure: err = ', qerr
-        stop
-    end if
-    ! how many cores are on this system
-    call QUO_NCORES(quo, ncores, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NCORES failure: err = ', qerr
-        stop
-    end if
-    ! how many processing units (PUs) are on this system
-    call QUO_NPUS(quo, npus, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NPUS failure: err = ', qerr
         stop
     end if
     ! one rank per node will emit this info
@@ -90,17 +145,12 @@ program QUOFortF90
         print *, '### ncores    : ', ncores
         print *, '### npus      : ', npus
     end if
-    ! is the process bound (cpu binding)
-    call QUO_BOUND(quo, bound, qerr)
+    call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
     if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_BOUND failure: err = ', qerr
+        print *, 'QUO_BIND_PUSH failure: err = ', qerr
         stop
     end if
-    if (1 .EQ. bound) then
-        print *, '### process bound'
-    else
-        print *, '### process not bound'
-    end if
+    call QM_EMITBIND(quo)
     ! finalize the quo context (always before MPI_FINALIZE)
     call QUO_FINALIZE(quo, qerr)
     if (QUO_SUCCESS .NE. qerr) then
@@ -109,5 +159,4 @@ program QUOFortF90
     end if
     ! finalize mpi (always after QUO_FINALIZE)
     call MPI_FINALIZE(ierr)
-
 end program QUOFortF90
