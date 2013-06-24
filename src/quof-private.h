@@ -22,6 +22,19 @@
 #ifndef QUOF_PRIVATE_H_INCLUDED
 #define QUOF_PRIVATE_H_INCLUDED
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+
+#include <stdlib.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+
+/* the QUO_t type for the fortran interface */
+typedef uintptr_t QUO_f_t;
+
 /* ////////////////////////////////////////////////////////////////////////// */
 /* convenience macros                                                         */
 /* ////////////////////////////////////////////////////////////////////////// */

@@ -18,12 +18,12 @@ program QUOFortF90
 
     ! init mpi because quo needs it
     call MPI_INIT
-
+    ! get libquo's version info
     call QUO_VERSION(quovmaj, quovmin, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         stop
     end if
-    print '("### ", A10, " = ", I4, I4)', 'quoversion', quovmaj, quovmin
+    print *, '### quoversion', quovmaj, quovmin
     call QUO_CONSTRUCT(quo, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_CONSTRUCT failure: err = ', qerr
@@ -34,4 +34,9 @@ program QUOFortF90
         print *, 'QUO_INIT failure: err = ', qerr
         stop
     end if
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! libquo is initialized, so we can get to work
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    print *, '### libquo is initialized!'
+
 end program QUOFortF90

@@ -6,20 +6,12 @@
 #include "quo.h"
 #include "quof-private.h"
 
-#include <stdlib.h>
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* fortran public api routines */
 /* ////////////////////////////////////////////////////////////////////////// */
 
 /* ////////////////////////////////////////////////////////////////////////// */
-#if 0
-#pragma weak QUO_VERSION   = quo_version_f
-#pragma weak quo_version   = quo_version_f
-#pragma weak quo_version_  = quo_version_f
-#pragma weak quo_version__ = quo_version_f
-#endif
-
 void
 quo_version_f(int *version,
               int *subversion,
@@ -36,13 +28,15 @@ QUO_GENERATE_F77_BINDINGS(QUO_VERSION,
                           quo_version_f,
                           (int *version, int *subversion, int *ierr),
                           (version, subversion, ierr) )
+
+/* ////////////////////////////////////////////////////////////////////////// */
 void
-quo_construct_f(int *q,
+quo_construct_f(QUO_f_t *q,
                 int *ierr)
 {
     QUO_t *context = NULL;
     int cerr = QUO_construct(&context);
-    *q = (int)context;
+    *q = (QUO_f_t)context;
     if (ierr) *ierr = cerr;
 }
 
@@ -51,11 +45,12 @@ QUO_GENERATE_F77_BINDINGS(QUO_CONSTRUCT,
                           quo_construct_,
                           quo_construct__,
                           quo_construct_f,
-                          (int *q, int *ierr),
+                          (QUO_f_t *q, int *ierr),
                           (q, ierr) )
 
+/* ////////////////////////////////////////////////////////////////////////// */
 void
-quo_init_f(int *q,
+quo_init_f(QUO_f_t *q,
            int *ierr)
 {
     int cerr = QUO_init((QUO_t *)*q);
@@ -67,8 +62,15 @@ QUO_GENERATE_F77_BINDINGS(QUO_INIT,
                           quo_init_,
                           quo_init__,
                           quo_init_f,
-                          (int *q, int *ierr),
+                          (QUO_f_t *q, int *ierr),
                           (q, ierr) )
+
+void
+quo_nsockets_f(int *q,
+             int *out_nsockets)
+{
+    //int cerr = QUO_nsockets(
+}
 #if 0
 /* ////////////////////////////////////////////////////////////////////////// */
 void
