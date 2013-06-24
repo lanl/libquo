@@ -6,15 +6,19 @@
 #include "quo.h"
 #include "quof-private.h"
 
+#include <stdlib.h>
+
 /* ////////////////////////////////////////////////////////////////////////// */
 /* fortran public api routines */
 /* ////////////////////////////////////////////////////////////////////////// */
 
 /* ////////////////////////////////////////////////////////////////////////// */
+#if 0
 #pragma weak QUO_VERSION   = quo_version_f
 #pragma weak quo_version   = quo_version_f
 #pragma weak quo_version_  = quo_version_f
 #pragma weak quo_version__ = quo_version_f
+#endif
 
 void
 quo_version_f(int *version,
@@ -32,6 +36,39 @@ QUO_GENERATE_F77_BINDINGS(QUO_VERSION,
                           quo_version_f,
                           (int *version, int *subversion, int *ierr),
                           (version, subversion, ierr) )
+void
+quo_construct_f(QUO_t **q,
+                int *ierr)
+{
+    QUO_t *context = NULL;
+    int cerr = QUO_construct(&context);
+    *q = context;
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_CONSTRUCT,
+                          quo_construct,
+                          quo_construct_,
+                          quo_construct__,
+                          quo_construct_f,
+                          (QUO_t **q, int *ierr),
+                          (q, ierr) )
+
+void
+quo_init_f(QUO_t *q,
+           int *ierr)
+{
+    int cerr = QUO_init(q);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_INIT,
+                          quo_init,
+                          quo_init_,
+                          quo_init__,
+                          quo_init_f,
+                          (QUO_t *q, int *ierr),
+                          (q, ierr) )
 #if 0
 /* ////////////////////////////////////////////////////////////////////////// */
 void

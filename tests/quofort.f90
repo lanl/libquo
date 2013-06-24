@@ -9,12 +9,28 @@ program QUOFortF90
     implicit none
     ! include quof
     include "quof.h"
+    include "mpif.h"
+    ! holds the "quo context" that is passed around
+    integer*8 :: quo
     ! holds libquo return codes
-    integer ( kind = 4 ) qerr
-    integer ( kind = 4 ) :: quovmaj, quovmin
+    integer*4 qerr
+    integer*4 :: quovmaj, quovmin
+
+    call MPI_INIT
+
     call QUO_VERSION(quovmaj, quovmin, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         stop
     end if
     print '("### ", A10, " = ", I4, I4)', 'quoversion', quovmaj, quovmin
+    call QUO_CONSTRUCT(quo, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_CONSTRUCT failure: err = ', qerr
+        stop
+    end if
+!    call QUO_INIT(quo, qerr)
+!    if (QUO_SUCCESS .NE. qerr) then
+!        print *, 'QUO_INIT failure: err = ', qerr
+!        stop
+!    end if
 end program QUOFortF90
