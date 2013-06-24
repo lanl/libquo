@@ -37,12 +37,12 @@ QUO_GENERATE_F77_BINDINGS(QUO_VERSION,
                           (int *version, int *subversion, int *ierr),
                           (version, subversion, ierr) )
 void
-quo_construct_f(QUO_t **q,
+quo_construct_f(int *q,
                 int *ierr)
 {
     QUO_t *context = NULL;
     int cerr = QUO_construct(&context);
-    *q = context;
+    *q = (int)context;
     if (ierr) *ierr = cerr;
 }
 
@@ -51,14 +51,14 @@ QUO_GENERATE_F77_BINDINGS(QUO_CONSTRUCT,
                           quo_construct_,
                           quo_construct__,
                           quo_construct_f,
-                          (QUO_t **q, int *ierr),
+                          (int *q, int *ierr),
                           (q, ierr) )
 
 void
-quo_init_f(QUO_t *q,
+quo_init_f(int *q,
            int *ierr)
 {
-    int cerr = QUO_init(q);
+    int cerr = QUO_init((QUO_t *)*q);
     if (ierr) *ierr = cerr;
 }
 
@@ -67,7 +67,7 @@ QUO_GENERATE_F77_BINDINGS(QUO_INIT,
                           quo_init_,
                           quo_init__,
                           quo_init_f,
-                          (QUO_t *q, int *ierr),
+                          (int *q, int *ierr),
                           (q, ierr) )
 #if 0
 /* ////////////////////////////////////////////////////////////////////////// */

@@ -16,6 +16,7 @@ program QUOFortF90
     integer*4 qerr
     integer*4 :: quovmaj, quovmin
 
+    ! init mpi because quo needs it
     call MPI_INIT
 
     call QUO_VERSION(quovmaj, quovmin, qerr)
@@ -28,9 +29,9 @@ program QUOFortF90
         print *, 'QUO_CONSTRUCT failure: err = ', qerr
         stop
     end if
-!    call QUO_INIT(quo, qerr)
-!    if (QUO_SUCCESS .NE. qerr) then
-!        print *, 'QUO_INIT failure: err = ', qerr
-!        stop
-!    end if
+    call QUO_INIT(quo, qerr)
+    if (QUO_SUCCESS .NE. qerr .AND. QUO_SUCCESS_ALREADY_DONE .NE. qerr) then
+        print *, 'QUO_INIT failure: err = ', qerr
+        stop
+    end if
 end program QUOFortF90

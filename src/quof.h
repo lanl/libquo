@@ -21,6 +21,17 @@
     integer QUO_ERR_NOT_FOUND
 
     parameter(QUO_SUCCESS = 0)
+    parameter (QUO_SUCCESS_ALREADY_DONE = 1)
+    parameter (QUO_ERR = 2)
+    parameter (QUO_ERR_SYS = 3)
+    parameter (QUO_ERR_OOR = 4)
+    parameter (QUO_ERR_INVLD_ARG = 5)
+    parameter (QUO_ERR_CALL_BEFORE_INIT = 6)
+    parameter (QUO_ERR_TOPO = 7)
+    parameter (QUO_ERR_MPI = 8)
+    parameter (QUO_ERR_NOT_SUPPORTED = 9)
+    parameter (QUO_ERR_POP = 10)
+    parameter (QUO_ERR_NOT_FOUND = 11)
 
     integer QUO_OBJ_MACHINE
     integer QUO_OBJ_NODE
