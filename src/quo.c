@@ -83,8 +83,8 @@ QUO_init(QUO_t *q)
     if (q->initialized) return QUO_SUCCESS_ALREADY_DONE;
     /* else init the context */
     if (QUO_SUCCESS != (rc = quo_mpi_init(q->mpi))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
-                "quo_mpi_init");
+        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
+                "quo_mpi_init", PACKAGE);
         return rc;
     }
     q->initialized = true;

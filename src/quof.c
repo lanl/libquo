@@ -83,11 +83,46 @@ QUO_GENERATE_F77_BINDINGS(QUO_FINALIZE,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
-quo_nsockets_f(QUO_f_t *q,
-               int *nsockets,
+quo_destruct_f(QUO_f_t *q,
                int *ierr)
 {
-    int cerr = QUO_nsockets((QUO_t *)*q, nsockets);
+    int cerr = QUO_destruct((QUO_t *)*q);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_DESTRUCT,
+                          quo_destruct,
+                          quo_destruct_,
+                          quo_destruct__,
+                          quo_destruct_f,
+                          (QUO_f_t *q, int *ierr),
+                          (q, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_initialized_f(QUO_f_t *q,
+                  int *initialized,
+                  int *ierr)
+{
+    int cerr = QUO_initialized((QUO_t *)*q, initialized);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_INITIALIZED,
+                          quo_initialized,
+                          quo_initialized_,
+                          quo_initialized__,
+                          quo_initialized_f,
+                          (QUO_f_t *q, int *initialized, int *ierr),
+                          (q, initialized, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_nsockets_f(QUO_f_t *q,
+               int *n,
+               int *ierr)
+{
+    int cerr = QUO_nsockets((QUO_t *)*q, n);
     if (ierr) *ierr = cerr;
 }
 
@@ -96,5 +131,41 @@ QUO_GENERATE_F77_BINDINGS(QUO_NSOCKETS,
                           quo_nsockets_,
                           quo_nsockets__,
                           quo_nsockets_f,
-                          (QUO_f_t *q, int *nsockets, int *ierr),
-                          (q, nsockets, ierr))
+                          (QUO_f_t *q, int *n, int *ierr),
+                          (q, n, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_ncores_f(QUO_f_t *q,
+               int *n,
+               int *ierr)
+{
+    int cerr = QUO_ncores((QUO_t *)*q, n);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NCORES,
+                          quo_ncores,
+                          quo_ncores_,
+                          quo_ncores__,
+                          quo_ncores_f,
+                          (QUO_f_t *q, int *n, int *ierr),
+                          (q, n, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_npus_f(QUO_f_t *q,
+           int *n,
+           int *ierr)
+{
+    int cerr = QUO_npus((QUO_t *)*q, n);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NPUS,
+                          quo_npus,
+                          quo_npus_,
+                          quo_npus__,
+                          quo_ncores_f,
+                          (QUO_f_t *q, int *n, int *ierr),
+                          (q, n, ierr))
