@@ -19,7 +19,7 @@ program QUOFortF90
     ! libquo uses standard ints. these sizes must be the same as the system's
     ! C int type.
     integer*4 :: quovmaj, quovmin
-    integer*4 :: initialized, nsockets, ncores, npus
+    integer*4 :: initialized, nnodes, nsockets, ncores, npus, bound, noderank
 
     ! init mpi because quo needs it
     call MPI_INIT
@@ -28,7 +28,6 @@ program QUOFortF90
     if (QUO_SUCCESS .NE. qerr) then
         stop
     end if
-    print *, '### quoversion', quovmaj, quovmin
     ! construct the quo context.
     call QUO_CONSTRUCT(quo, qerr)
     if (QUO_SUCCESS .NE. qerr) then
@@ -53,6 +52,18 @@ program QUOFortF90
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! libquo is initialized, so we can get to work
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! what is my node rank
+    call QUO_NODERANK(quo, noderank, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NODERANK failure: err = ', qerr
+        stop
+    end if
+    ! how many nodes are in our job
+    call QUO_NNODES(quo, nnodes, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NNODES failure: err = ', qerr
+        stop
+    end if
     ! how many sockets are on this system
     call QUO_NSOCKETS(quo, nsockets, qerr)
     if (QUO_SUCCESS .NE. qerr) then
@@ -62,26 +73,41 @@ program QUOFortF90
     ! how many cores are on this system
     call QUO_NCORES(quo, ncores, qerr)
     if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NSOCKETS failure: err = ', qerr
+        print *, 'QUO_NCORES failure: err = ', qerr
         stop
     end if
     ! how many processing units (PUs) are on this system
     call QUO_NPUS(quo, npus, qerr)
     if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NSOCKETS failure: err = ', qerr
+        print *, 'QUO_NPUS failure: err = ', qerr
         stop
     end if
-
-    print *, '### nsockets: ', nsockets
-    print *, '### ncores  : ', ncores
-    print *, '### npus    : ', npus
-
+    ! one rank per node will emit this info
+    if (0 .EQ. noderank) then
+        print *, '### quoversion: ', quovmaj, quovmin
+        print *, '### nnodes    : ', nnodes
+        print *, '### nsockets  : ', nsockets
+        print *, '### ncores    : ', ncores
+        print *, '### npus      : ', npus
+    end if
+    ! is the process bound (cpu binding)
+    call QUO_BOUND(quo, bound, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_BOUND failure: err = ', qerr
+        stop
+    end if
+    if (1 .EQ. bound) then
+        print *, '### process bound'
+    else
+        print *, '### process not bound'
+    end if
+    ! finalize the quo context (always before MPI_FINALIZE)
     call QUO_FINALIZE(quo, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_FINALIZE failure: err = ', qerr
         stop
     end if
-
+    ! finalize mpi (always after QUO_FINALIZE)
     call MPI_FINALIZE(ierr)
 
 end program QUOFortF90

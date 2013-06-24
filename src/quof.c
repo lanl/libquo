@@ -137,8 +137,8 @@ QUO_GENERATE_F77_BINDINGS(QUO_NSOCKETS,
 /* ////////////////////////////////////////////////////////////////////////// */
 void
 quo_ncores_f(QUO_f_t *q,
-               int *n,
-               int *ierr)
+             int *n,
+             int *ierr)
 {
     int cerr = QUO_ncores((QUO_t *)*q, n);
     if (ierr) *ierr = cerr;
@@ -166,6 +166,78 @@ QUO_GENERATE_F77_BINDINGS(QUO_NPUS,
                           quo_npus,
                           quo_npus_,
                           quo_npus__,
-                          quo_ncores_f,
+                          quo_npus_f,
                           (QUO_f_t *q, int *n, int *ierr),
                           (q, n, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_nnodes_f(QUO_f_t *q,
+             int *n,
+             int *ierr)
+{
+    int cerr = QUO_nnodes((QUO_t *)*q, n);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NNODES,
+                          quo_nnodes,
+                          quo_nnodes_,
+                          quo_nnodes__,
+                          quo_nnodes_f,
+                          (QUO_f_t *q, int *n, int *ierr),
+                          (q, n, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_nnoderanks_f(QUO_f_t *q,
+                 int *n,
+                 int *ierr)
+{
+    int cerr = QUO_nnoderanks((QUO_t *)*q, n);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NNODERANKS,
+                          quo_nnoderanks,
+                          quo_nnoderanks_,
+                          quo_nnoderanks__,
+                          quo_nnoderanks_f,
+                          (QUO_f_t *q, int *n, int *ierr),
+                          (q, n, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_noderank_f(QUO_f_t *q,
+               int *n,
+               int *ierr)
+{
+    int cerr = QUO_noderank((QUO_t *)*q, n);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NODERANK,
+                          quo_noderank,
+                          quo_noderank_,
+                          quo_noderank__,
+                          quo_noderank_f,
+                          (QUO_f_t *q, int *n, int *ierr),
+                          (q, n, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_bound_f(QUO_f_t *q,
+            int *bound,
+            int *ierr)
+{
+    int cerr = QUO_bound((QUO_t *)*q, bound);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_BOUND,
+                          quo_bound,
+                          quo_bound_,
+                          quo_bound__,
+                          quo_bound_f,
+                          (QUO_f_t *q, int *bound, int *ierr),
+                          (q, bound, ierr))

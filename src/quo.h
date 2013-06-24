@@ -127,14 +127,6 @@ QUO_npus(const QUO_t *q,
          int *out_npus);
 
 int
-QUO_bound(const QUO_t *q,
-          int *bound);
-
-int
-QUO_stringify_cbind(const QUO_t *q,
-                    char **cbind_str);
-
-int
 QUO_nnodes(const QUO_t *q,
            int *out_nodes);
 
@@ -147,10 +139,20 @@ QUO_noderank(const QUO_t *q,
              int *out_noderank);
 
 int
+QUO_bound(const QUO_t *q,
+          int *bound);
+
+int
+QUO_stringify_cbind(const QUO_t *q,
+                    char **cbind_str);
+
+
+int
 QUO_bind_push(QUO_t *q,
               QUO_bind_push_policy_t policy,
               QUO_obj_type_t type,
               int obj_index);
+
 int
 QUO_bind_pop(QUO_t *q);
 
