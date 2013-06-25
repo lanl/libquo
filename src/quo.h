@@ -155,9 +155,6 @@ QUO_bind_push(QUO_t *q,
 int
 QUO_bind_pop(QUO_t *q);
 
-void
-QUO_free(void *target);
-
 #ifdef __cplusplus
 }
 #endif

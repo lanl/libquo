@@ -130,7 +130,7 @@ smpcomm_dup(context_t *c)
         goto out;
     }
 out:
-    QUO_free(ranks);
+    if (ranks) free(ranks);
     if (MPI_SUCCESS != MPI_Group_free(&world_group)) {
         return 1;
     }
@@ -334,7 +334,7 @@ get_p1pes(context_t *c,
 out:
     /* the resources returned by QUO_smpranks_in_type must be freed by us */
     for (int i = 0; i < c->nsockets; ++i) {
-        QUO_free(rank_ids_bound_to_socket[i]);
+        if (rank_ids_bound_to_socket[i]) free(rank_ids_bound_to_socket[i]);
     }
     if (rank_ids_bound_to_socket) free(rank_ids_bound_to_socket);
     if (nranks_bound_to_socket) free(nranks_bound_to_socket);
