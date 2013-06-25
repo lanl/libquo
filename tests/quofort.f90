@@ -163,7 +163,8 @@ program QUOFortF90
         stop
     end if
     !call QM_EMITBIND(quo)
-    call QUO_RANKS_ON_NODE(quo, nnoderanks, ranks, qerr)
+    ! note that the ranks array must be at least large enough to hold the res
+    call QUO_RANKS_ON_NODE(quo, ranks, qerr)
     do vindex=0, nnoderanks
         print *, ranks(vindex)
     end do

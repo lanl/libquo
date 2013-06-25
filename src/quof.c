@@ -119,14 +119,13 @@ QUO_GENERATE_F77_BINDINGS(QUO_INITIALIZED,
 /* ////////////////////////////////////////////////////////////////////////// */
 void
 quo_ranks_on_node_f(QUO_f_t *q,
-                    int *nranks,
                     int *ranks,
                     int *ierr)
 {
-    int *tmpranks = NULL;
-    int cerr = QUO_ranks_on_node((QUO_t *)*q, nranks, &tmpranks);
+    int *tmpranks = NULL, tmpnranks = 0;
+    int cerr = QUO_ranks_on_node((QUO_t *)*q, &tmpnranks, &tmpranks);
     /* copy the data into the given ranks array */
-    for (int rank = 0; rank < *nranks; ++rank) {
+    for (int rank = 0; rank < tmpnranks; ++rank) {
         ranks[rank] = tmpranks[rank];
     }
     if (ierr) *ierr = cerr;
@@ -138,8 +137,8 @@ QUO_GENERATE_F77_BINDINGS(QUO_RANKS_ON_NODE,
                           quo_ranks_on_node_,
                           quo_ranks_on_node__,
                           quo_ranks_on_node_f,
-                          (QUO_f_t *q, int *nranks, int *ranks, int *ierr),
-                          (q, nranks, ranks, ierr))
+                          (QUO_f_t *q, int *ranks, int *ierr),
+                          (q, ranks, ierr))
 /* ////////////////////////////////////////////////////////////////////////// */
 void
 quo_nsockets_f(QUO_f_t *q,
