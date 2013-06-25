@@ -136,7 +136,7 @@ program QUOFortF90
     integer*4 qerr, ierr
     ! libquo uses standard ints. these sizes must be the same as the system's
     ! C int type.
-    integer*4 :: quovmaj, quovmin, vindex
+    integer*4 :: quovmaj, quovmin, vindex, ncoresinfsock
     integer*4 :: nnodes, nnoderanks, nsockets, ncores, npus, bound, noderank
     integer*4, allocatable, dimension(1) :: ranks(:)
 
@@ -161,12 +161,12 @@ program QUOFortF90
 
     ! one rank per node will emit this info
     if (0 .EQ. noderank) then
-        print *, '### quoversion: ', quovmaj, quovmin
-        print *, '### nnodes    : ', nnodes
-        print *, '### nnoderanks: ', nnoderanks
-        print *, '### nsockets  : ', nsockets
-        print *, '### ncores    : ', ncores
-        print *, '### npus      : ', npus
+        print *, '### quoversion:         ', quovmaj, quovmin
+        print *, '### nnodes:             ', nnodes
+        print *, '### nnoderanks:         ', nnoderanks
+        print *, '### nsockets:           ', nsockets
+        print *, '### ncores:             ', ncores
+        print *, '### npus:               ', npus
     end if
 
     call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
@@ -179,9 +179,29 @@ program QUOFortF90
     ! result. also note that the ranks retured by this routine are
     ! MPI_COMM_WORLD ranks.
     call QUO_RANKS_ON_NODE(quo, ranks, qerr)
-    do vindex=0, nnoderanks
-        print *, ranks(vindex)
-    end do
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_RANKS_ON_NODE failure: err = ', qerr
+        stop
+    end if
+    ! print node ranks
+    if (0 .EQ. noderank) then
+        print *, '### MPI_COMM_WORLD node ranks'
+        do vindex=1, nnoderanks
+            print *, ranks(vindex)
+        end do
+        print *, '### end MPI_COMM_WORLD node ranks'
+    end if
+    ! returns the number of objects in a particular type. for example: give me
+    ! the number of cores in socket 0.
+    call QUO_GET_NOBJS_IN_TYPE_BY_TYPE(quo, QUO_OBJ_SOCKET, 0, &
+                                       QUO_OBJ_CORE, ncoresinfsock, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_GET_NOBJS_IN_TYPE_BY_TYPE failure: err = ', qerr
+        stop
+    end if
+    if (0 .EQ. noderank) then
+        print *, '### ncores in socket 0: ', ncoresinfsock
+    end if
     ! finalize the quo context (always before MPI_FINALIZE)
     call QUO_FINALIZE(quo, qerr)
     if (QUO_SUCCESS .NE. qerr) then

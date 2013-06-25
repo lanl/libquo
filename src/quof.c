@@ -180,6 +180,33 @@ QUO_GENERATE_F77_BINDINGS(QUO_GET_NOBJS_BY_TYPE,
                           quo_get_nobjs_by_type_f,
                           (QUO_f_t *q, int *target_type, int *nobjs, int *ierr),
                           (q, target_type, nobjs, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_get_nobjs_in_type_by_type_f(const QUO_f_t *q,
+                                int *in_type,
+                                int *in_type_index,
+                                int *type,
+                                int *result,
+                                int *ierr)
+{
+    int cerr = QUO_get_nobjs_in_type_by_type((QUO_t *)*q,
+                                             (QUO_obj_type_t)*in_type,
+                                             *in_type_index,
+                                             (QUO_obj_type_t)*type,
+                                             result);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_GET_NOBJS_IN_TYPE_BY_TYPE,
+                          quo_get_nobjs_in_type_by_type,
+                          quo_get_nobjs_in_type_by_type_,
+                          quo_get_nobjs_in_type_by_type__,
+                          quo_get_nobjs_in_type_by_type_f,
+                          (QUO_f_t *q, int *in_type, int *in_type_index,
+                           int *type, int *result, int *ierr),
+                          (q, in_type, in_type_index, type, result, ierr))
+
 /* ////////////////////////////////////////////////////////////////////////// */
 void
 quo_nsockets_f(QUO_f_t *q,
