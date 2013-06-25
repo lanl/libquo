@@ -124,11 +124,12 @@ quo_ranks_on_node_f(QUO_f_t *q,
 {
     int *tmpranks = NULL, tmpnranks = 0;
     int cerr = QUO_ranks_on_node((QUO_t *)*q, &tmpnranks, &tmpranks);
+    if (ierr) *ierr = cerr;
+    if (QUO_SUCCESS != cerr) return;
     /* copy the data into the given ranks array */
     for (int rank = 0; rank < tmpnranks; ++rank) {
         ranks[rank] = tmpranks[rank];
     }
-    if (ierr) *ierr = cerr;
     free(tmpranks); tmpranks = NULL;
 }
 
@@ -139,6 +140,46 @@ QUO_GENERATE_F77_BINDINGS(QUO_RANKS_ON_NODE,
                           quo_ranks_on_node_f,
                           (QUO_f_t *q, int *ranks, int *ierr),
                           (q, ranks, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+/* XXX TODO */
+void
+quo_node_topo_stringify_f(const QUO_f_t *q,
+                          char *str,
+                          int *ierr)
+{
+    int cerr = QUO_node_topo_stringify((QUO_t *)*q, &str);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NODE_TOPO_STRINGIFY,
+                          quo_node_topo_stringify,
+                          quo_node_topo_stringify_,
+                          quo_node_topo_stringify__,
+                          quo_node_topo_stringify_f,
+                          (QUO_f_t *q, char *str, int *ierr),
+                          (q, str, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_get_nobjs_by_type_f(const QUO_f_t *q,
+                        int *target_type,
+                        int *nobjs,
+                        int *ierr)
+{
+    int cerr = QUO_get_nobjs_by_type((QUO_t *)*q,
+                                     (QUO_obj_type_t)*target_type,
+                                     nobjs);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_GET_NOBJS_BY_TYPE,
+                          quo_get_nobjs_by_type,
+                          quo_get_nobjs_by_type_,
+                          quo_get_nobjs_by_type__,
+                          quo_get_nobjs_by_type_f,
+                          (QUO_f_t *q, int *target_type, int *nobjs, int *ierr),
+                          (q, target_type, nobjs, ierr))
 /* ////////////////////////////////////////////////////////////////////////// */
 void
 quo_nsockets_f(QUO_f_t *q,

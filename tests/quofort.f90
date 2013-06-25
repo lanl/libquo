@@ -49,14 +49,14 @@ end subroutine QM_INIT
 subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, nsocks, ncores, npus)
     integer*8, intent(in) :: quoc
     integer*4, intent(out) :: nnodes, nnoderanks, noderank, nsocks, ncores, npus
-    integer*4 :: qerr
+    integer*4 :: qerr, tmpnsocks
     ! how many nodes are in our job
     call QUO_NNODES(quoc, nnodes, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_NNODES failure: err = ', qerr
         stop
     end if
-    ! what is my node rank
+    ! what is my node rank (starts from 0)
     call QUO_NODERANK(quoc, noderank, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_NODERANK failure: err = ', qerr
@@ -84,6 +84,18 @@ subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, nsocks, ncores, npus)
     call QUO_NPUS(quoc, npus, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_NPUS failure: err = ', qerr
+        stop
+    end if
+    ! exercise the interface by checking if this routine works
+    call QUO_GET_NOBJS_BY_TYPE(quoc, QUO_OBJ_SOCKET, tmpnsocks)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_GET_NOBJS_BY_TYPE failure: err = ', qerr
+        stop
+    end if
+    ! make sure that this is consistent across the two calls
+    if (tmpnsocks .NE. nsocks) then
+        print *, 'QUO_GET_NOBJS_BY_TYPE broken. please report bug.'
+        print *, 'nsocks = ', nsocks, 'tmpnsocks = ', tmpnsocks
         stop
     end if
     return
@@ -144,7 +156,7 @@ program QUOFortF90
 
     ! gather basic system info
     call QM_SYSGROK(quo, nnodes, nnoderanks, noderank, nsockets, ncores, npus)
-    ! allocate array for node ranks
+    ! allocate array large enough for node ranks
     allocate(ranks(nnoderanks))
 
     ! one rank per node will emit this info
@@ -163,7 +175,9 @@ program QUOFortF90
         stop
     end if
     !call QM_EMITBIND(quo)
-    ! note that the ranks array must be at least large enough to hold the res
+    ! note that the ranks array must be at least large enough to hold the
+    ! result. also note that the ranks retured by this routine are
+    ! MPI_COMM_WORLD ranks.
     call QUO_RANKS_ON_NODE(quo, ranks, qerr)
     do vindex=0, nnoderanks
         print *, ranks(vindex)
