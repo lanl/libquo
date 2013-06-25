@@ -46,10 +46,10 @@ end subroutine QM_INIT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! gathers basic system info
-subroutine QM_SYSGROK(quoc, nnodes, noderank, nsockets, ncores, npus)
+subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, nsocks, ncores, npus)
     integer*8, intent(in) :: quoc
-    integer*4, intent(out) :: nnodes, noderank, nsockets, ncores, npus
-    integer*4 :: qerr 
+    integer*4, intent(out) :: nnodes, nnoderanks, noderank, nsocks, ncores, npus
+    integer*4 :: qerr
     ! how many nodes are in our job
     call QUO_NNODES(quoc, nnodes, qerr)
     if (QUO_SUCCESS .NE. qerr) then
@@ -62,8 +62,14 @@ subroutine QM_SYSGROK(quoc, nnodes, noderank, nsockets, ncores, npus)
         print *, 'QUO_NODERANK failure: err = ', qerr
         stop
     end if
+    ! how many ranks are on my node (includes myself)
+    call QUO_NNODERANKS(quoc, nnoderanks, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NNODERANKS failure: err = ', qerr
+        stop
+    end if
     ! how many sockets are on this system
-    call QUO_NSOCKETS(quoc, nsockets, qerr)
+    call QUO_NSOCKETS(quoc, nsocks, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_NSOCKETS failure: err = ', qerr
         stop
@@ -118,8 +124,9 @@ program QUOFortF90
     integer*4 qerr, ierr
     ! libquo uses standard ints. these sizes must be the same as the system's
     ! C int type.
-    integer*4 :: quovmaj, quovmin
-    integer*4 :: nnodes, nsockets, ncores, npus, bound, noderank
+    integer*4 :: quovmaj, quovmin, vindex
+    integer*4 :: nnodes, nnoderanks, nsockets, ncores, npus, bound, noderank
+    integer*4, allocatable, dimension(1) :: ranks(:)
 
     ! init mpi because quo needs it
     call MPI_INIT
@@ -136,12 +143,15 @@ program QUOFortF90
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! gather basic system info
-    call QM_SYSGROK(quo, nnodes, noderank, nsockets, ncores, npus)
+    call QM_SYSGROK(quo, nnodes, nnoderanks, noderank, nsockets, ncores, npus)
+    ! allocate array for node ranks
+    allocate(ranks(nnoderanks))
 
     ! one rank per node will emit this info
     if (0 .EQ. noderank) then
         print *, '### quoversion: ', quovmaj, quovmin
         print *, '### nnodes    : ', nnodes
+        print *, '### nnoderanks: ', nnoderanks
         print *, '### nsockets  : ', nsockets
         print *, '### ncores    : ', ncores
         print *, '### npus      : ', npus
@@ -152,13 +162,18 @@ program QUOFortF90
         print *, 'QUO_BIND_PUSH failure: err = ', qerr
         stop
     end if
-    call QM_EMITBIND(quo)
+    !call QM_EMITBIND(quo)
+    call QUO_RANKS_ON_NODE(quo, nnoderanks, ranks, qerr)
+    do vindex=0, nnoderanks
+        print *, ranks(vindex)
+    end do
     ! finalize the quo context (always before MPI_FINALIZE)
     call QUO_FINALIZE(quo, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_FINALIZE failure: err = ', qerr
         stop
     end if
+    deallocate(ranks)
     ! finalize mpi (always after QUO_FINALIZE)
     call MPI_FINALIZE(ierr)
 end program QUOFortF90

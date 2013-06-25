@@ -14,7 +14,6 @@ extern "C" {
 
 struct QUO_t;
 typedef struct QUO_t QUO_t;
-
 /** quo return codes */
 enum {
     QUO_SUCCESS = 0,
