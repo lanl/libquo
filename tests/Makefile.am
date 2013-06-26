@@ -7,20 +7,21 @@ bin_PROGRAMS = \
 quoinfo \
 quodemo \
 quodemo-multilib \
-rebind
+rebind \
+quofort
 
 noinst_LTLIBRARIES = \
 libdemop1.la
 
 ### demo 0
 quoinfo_SOURCES = quoinfo.c
-quoinfo_CFLAGS  = -I$(top_srcdir)/src
+quoinfo_CPPFLAGS  = -I$(top_srcdir)/src
 quoinfo_LDFLAGS = -L$(top_srcdir)/src
 quoinfo_LDADD   = -lquo
 
 ### demo 1
 quodemo_SOURCES = quodemo.c
-quodemo_CFLAGS  = -I$(top_srcdir)/src
+quodemo_CPPFLAGS  = -I$(top_srcdir)/src
 quodemo_LDFLAGS = -L$(top_srcdir)/src
 quodemo_LDADD   = -lquo
 
@@ -37,8 +38,13 @@ libdemop1_la_LIBADD = -lquo
 
 ### test 0
 rebind_SOURCES = rebind.c
-rebind_CFLAGS  = -I$(top_srcdir)/src
+rebind_CPPFLAGS  = -I$(top_srcdir)/src
 rebind_LDFLAGS = -L$(top_srcdir)/src
 rebind_LDADD   = -lquo
 
+### fortran demo
+quofort_SOURCES = quofort.f90
+quofort_FCFLAGS  = -I$(top_srcdir)/src
+quofort_LDFLAGS = -L$(top_srcdir)/src
+quofort_LDADD   = -lquo
 

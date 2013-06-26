@@ -5,7 +5,7 @@
 
 AC_PREREQ([2.60])
 
-AC_INIT([libquo], [0.1], [samuel@lanl.gov])
+AC_INIT([libquo], [0.1-rc0], [samuel@lanl.gov])
 
 # Check If AM_SILENT_RULES Rule Are Supported
 # If So, Build Using AM_SILENT_RULES
@@ -27,6 +27,7 @@ AM_PROG_CC_C_O
 AC_PROG_CC_C99
 AC_GNU_SOURCE
 CFLAGS="$CFLAGS_SAVE"
+AC_PROG_FC
 
 LT_INIT
 
@@ -75,5 +76,6 @@ libquo configuration
 | LIBS    : $LIBS
 | CPPFLAGS: $CPPFLAGS
 | CPP     : $CPP
+| FC      : $FC
 
 EOF
