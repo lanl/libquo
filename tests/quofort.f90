@@ -136,12 +136,31 @@ program QUOFortF90
     integer*4 qerr, ierr
     ! libquo uses standard ints. these sizes must be the same as the system's
     ! C int type.
+    integer*4 :: rank, nranks, coverflag
     integer*4 :: quovmaj, quovmin, vindex, ncoresinfsock, nsmpranksonfsock
     integer*4 :: nnodes, nnoderanks, nsockets, ncores, npus, bound, noderank
     integer*4, allocatable, dimension(1) :: ranks(:), smpranksonfsock(:)
 
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! mpi stuff
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! init mpi because quo needs it
-    call MPI_INIT
+    call MPI_INIT(ierr)
+    if (MPI_SUCCESS .NE. ierr) then
+        print *, 'MPI_INIT failure: err = ', qerr
+        stop
+    end if
+    call MPI_COMM_SIZE(MPI_COMM_WORLD, nranks, ierr)
+    if (MPI_SUCCESS .NE. ierr) then
+        print *, 'MPI_COMM_SIZE failure: err = ', qerr
+        stop
+    end if
+    call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierr)
+    if (MPI_SUCCESS .NE. ierr) then
+        print *, 'MPI_COMM_RANK failure: err = ', qerr
+        stop
+    end if
+
     ! get libquo's version info
     call QUO_VERSION(quovmaj, quovmin, qerr)
     if (QUO_SUCCESS .NE. qerr) then
@@ -169,11 +188,11 @@ program QUOFortF90
         print *, '### npus:               ', npus
     end if
 
-    call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_BIND_PUSH failure: err = ', qerr
-        stop
-    end if
+    !call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
+    !if (QUO_SUCCESS .NE. qerr) then
+    !    print *, 'QUO_BIND_PUSH failure: err = ', qerr
+    !    stop
+    !end if
     !call QM_EMITBIND(quo)
     ! note that the ranks array must be at least large enough to hold the
     ! result. also note that the ranks retured by this routine are
@@ -186,7 +205,7 @@ program QUOFortF90
     ! print node ranks
     if (0 .EQ. noderank) then
         print *, '### MPI_COMM_WORLD node ranks'
-        do vindex=1, nnoderanks
+        do vindex = 1, nnoderanks
             print *, ranks(vindex)
         end do
         print *, '### end MPI_COMM_WORLD node ranks'
@@ -216,15 +235,24 @@ program QUOFortF90
         print *, 'QUO_SMPRANKS_IN_TYPE failure: err = ', qerr
         stop
     end if
+    call QUO_CUR_CPUSET_IN_TYPE(quo, QUO_OBJ_CORE, 0, coverflag)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_CUR_CPUSET_IN_TYPE failure: err = ', qerr
+        stop
+    end if
     ! echo some more info
     if (0 .EQ. noderank) then
         print *, '### ncores in socket 0: ', ncoresinfsock
-        print *, '### nsmpranks on socket 0: ', nsmpranksonfsock
+        print *, '### nsmpranks covering socket 0: ', nsmpranksonfsock
         print *, '### MPI_COMM_WORLD node ranks covering socket 0'
-        do vindex=1, nsmpranksonfsock
+        do vindex = 1, nsmpranksonfsock
             print *, smpranksonfsock(vindex)
         end do
         print *, '### end MPI_COMM_WORLD node ranks covering socket 0'
+    end if
+    ! now everyone that covers core 0 be happy and print stuff
+    if (1 .EQ. coverflag) then
+        print *, '### rank covers core 0: ', rank
     end if
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

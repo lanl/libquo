@@ -209,6 +209,30 @@ QUO_GENERATE_F77_BINDINGS(QUO_GET_NOBJS_IN_TYPE_BY_TYPE,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
+quo_cur_cpuset_in_type_f(QUO_f_t *q,
+                         int *type,
+                         int *in_type_index,
+                         int *out_result,
+                         int *ierr)
+{
+    int cerr = QUO_cur_cpuset_in_type((QUO_t *)*q,
+                                      (QUO_obj_type_t)*type,
+                                      *in_type_index,
+                                      out_result);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_CUR_CPUSET_IN_TYPE,
+                          quo_cur_cpuset_in_type,
+                          quo_cur_cpuset_in_type_,
+                          quo_cur_cpuset_in_type__,
+                          quo_cur_cpuset_in_type_f,
+                          (QUO_f_t *q, int *type, int *in_type_index,
+                           int *out_result, int *ierr),
+                          (q, type, in_type_index, out_result, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
 quo_nsmpranks_in_type_f(const QUO_f_t *q,
                         int *type,
                         int *in_type_index,
