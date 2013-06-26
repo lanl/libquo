@@ -90,7 +90,7 @@ subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, nsocks, ncores, npus)
         stop
     end if
     ! exercise the interface by checking if this routine works
-    call QUO_GET_NOBJS_BY_TYPE(quoc, QUO_OBJ_SOCKET, tmpnsocks)
+    call QUO_GET_NOBJS_BY_TYPE(quoc, QUO_OBJ_SOCKET, tmpnsocks, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_GET_NOBJS_BY_TYPE failure: err = ', qerr
         stop
