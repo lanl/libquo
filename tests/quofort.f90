@@ -243,7 +243,7 @@ program QUOFortF90
         print *, 'QUO_SMPRANKS_IN_TYPE failure: err = ', qerr
         stop
     end if
-    call QUO_CUR_CPUSET_IN_TYPE(quo, QUO_OBJ_CORE, 0, coverflag)
+    call QUO_CUR_CPUSET_IN_TYPE(quo, QUO_OBJ_CORE, 0, coverflag, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_CUR_CPUSET_IN_TYPE failure: err = ', qerr
         stop
