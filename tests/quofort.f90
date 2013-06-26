@@ -323,6 +323,11 @@ program QUOFortF90
         print *, 'QUO_FINALIZE failure: err = ', qerr
         stop
     end if
+    call QUO_DESTRUCT(quo, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_DESTRUCT failure: err = ', qerr
+        stop
+    end if
     deallocate(ranks)
     deallocate(smpranksonfsock)
     ! finalize mpi (always after QUO_FINALIZE)
