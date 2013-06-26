@@ -209,6 +209,62 @@ QUO_GENERATE_F77_BINDINGS(QUO_GET_NOBJS_IN_TYPE_BY_TYPE,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
+quo_nsmpranks_in_type_f(const QUO_f_t *q,
+                        int *type,
+                        int *in_type_index,
+                        int *n_out_smpranks,
+                        int *ierr)
+{
+    int cerr = QUO_nsmpranks_in_type((QUO_t *)*q,
+                                     (QUO_obj_type_t)*type,
+                                     *in_type_index,
+                                     n_out_smpranks);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NSMPRANKS_IN_TYPE,
+                          quo_nsmpranks_in_type,
+                          quo_nsmpranks_in_type_,
+                          quo_nsmpranks_in_type__,
+                          quo_nsmpranks_in_type_f,
+                          (QUO_f_t *q, int *type, int *in_type_index,
+                           int *n_out_smpranks, int *ierr),
+                          (q, type, in_type_index, n_out_smpranks, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_smpranks_in_type_f(const QUO_f_t *q,
+                        int *type,
+                        int *in_type_index,
+                        int *out_smpranks,
+                        int *ierr)
+{
+    int *tmpranks = NULL, nranks = 0;
+    int cerr = QUO_smpranks_in_type((QUO_t *)*q,
+                                    (QUO_obj_type_t)*type,
+                                    *in_type_index,
+                                    &nranks,
+                                    &tmpranks);
+    if (ierr) *ierr = cerr;
+    /* just bail */
+    if (QUO_SUCCESS != cerr) return;
+    for (int rank = 0; rank < nranks ; ++rank) {
+        out_smpranks[rank] = tmpranks[rank];
+    }
+    free(tmpranks); tmpranks = NULL;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_SMPRANKS_IN_TYPE,
+                          quo_smpranks_in_type,
+                          quo_smpranks_in_type_,
+                          quo_smpranks_in_type__,
+                          quo_smpranks_in_type_f,
+                          (QUO_f_t *q, int *type, int *in_type_index,
+                           int *out_smpranks, int *ierr),
+                          (q, type, in_type_index, out_smpranks, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
 quo_nsockets_f(QUO_f_t *q,
                int *n,
                int *ierr)

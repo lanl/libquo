@@ -136,9 +136,9 @@ program QUOFortF90
     integer*4 qerr, ierr
     ! libquo uses standard ints. these sizes must be the same as the system's
     ! C int type.
-    integer*4 :: quovmaj, quovmin, vindex, ncoresinfsock
+    integer*4 :: quovmaj, quovmin, vindex, ncoresinfsock, nsmpranksonfsock
     integer*4 :: nnodes, nnoderanks, nsockets, ncores, npus, bound, noderank
-    integer*4, allocatable, dimension(1) :: ranks(:)
+    integer*4, allocatable, dimension(1) :: ranks(:), smpranksonfsock(:)
 
     ! init mpi because quo needs it
     call MPI_INIT
@@ -199,9 +199,37 @@ program QUOFortF90
         print *, 'QUO_GET_NOBJS_IN_TYPE_BY_TYPE failure: err = ', qerr
         stop
     end if
+    ! returns the number of node ranks whose current cpu binding policy covers a
+    ! particular hardware resource. for example: the number of node ranks that
+    ! are currently bound to socket 0.
+    call QUO_NSMPRANKS_IN_TYPE(quo, QUO_OBJ_SOCKET, 0, nsmpranksonfsock, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NSMPRANKS_IN_TYPE failure: err = ', qerr
+        stop
+    end if
+    ! now allocate the array so we can get the ranks
+    allocate(smpranksonfsock(nsmpranksonfsock))
+    ! now that the storage for the ranks array has been allocated, now populate
+    ! it with the MPI_COMM_WORLD ranks that are currently bound to socket 0
+    call QUO_SMPRANKS_IN_TYPE(quo, QUO_OBJ_SOCKET, 0, smpranksonfsock, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_SMPRANKS_IN_TYPE failure: err = ', qerr
+        stop
+    end if
+    ! echo some more info
     if (0 .EQ. noderank) then
         print *, '### ncores in socket 0: ', ncoresinfsock
+        print *, '### nsmpranks on socket 0: ', nsmpranksonfsock
+        print *, '### MPI_COMM_WORLD node ranks covering socket 0'
+        do vindex=1, nsmpranksonfsock
+            print *, smpranksonfsock(vindex)
+        end do
+        print *, '### end MPI_COMM_WORLD node ranks covering socket 0'
     end if
+
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ! cleanup
+    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! finalize the quo context (always before MPI_FINALIZE)
     call QUO_FINALIZE(quo, qerr)
     if (QUO_SUCCESS .NE. qerr) then
@@ -209,6 +237,7 @@ program QUOFortF90
         stop
     end if
     deallocate(ranks)
+    deallocate(smpranksonfsock)
     ! finalize mpi (always after QUO_FINALIZE)
     call MPI_FINALIZE(ierr)
 end program QUOFortF90

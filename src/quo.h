@@ -106,6 +106,21 @@ QUO_cur_cpuset_in_type(const QUO_t *q,
                        int in_type_index,
                        int *out_result);
 
+/**
+ * returns the number of smp ranks (node ranks) whose current cpu binding policy
+ * covers the given type and type index.
+ */
+int
+QUO_nsmpranks_in_type(const QUO_t *q,
+                      QUO_obj_type_t type,
+                      int in_type_index,
+                      int *n_out_smpranks);
+
+/**
+ * returns the number of smp ranks (node ranks) and an allocated array of the
+ * MPI_COMM_WORLD rank ids whose current cpu binding policy covers the given
+ * type and type index.
+ */
 int
 QUO_smpranks_in_type(const QUO_t *q,
                      QUO_obj_type_t type,

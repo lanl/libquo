@@ -199,6 +199,42 @@ QUO_cur_cpuset_in_type(const QUO_t *q,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_nsmpranks_in_type(const QUO_t *q,
+                      QUO_obj_type_t type,
+                      int in_type_index,
+                      int *n_out_smpranks)
+{
+    int rc = QUO_ERR;
+    int tot_smpranks = 0;
+    int nsmpranks = 0;
+
+    if (!q || !n_out_smpranks) return QUO_ERR_INVLD_ARG;
+    *n_out_smpranks = 0;
+    /* figure out how many node ranks on the node */
+    if (QUO_SUCCESS != (rc = QUO_nnoderanks(q, &tot_smpranks))) return rc;
+    /* smp ranks are always monotonically increasing starting at 0 */
+    for (int rank = 0; rank < tot_smpranks; ++rank) {
+        /* whether or not the particular pid is in the given obj type */
+        int in_cpuset = 0;
+        /* the smp rank's pid */
+        pid_t rpid = 0;
+        if (QUO_SUCCESS != (rc = quo_mpi_smprank2pid(q->mpi, rank, &rpid))) {
+            /* rc set in failure path */
+            goto out;
+        }
+        rc = quo_hwloc_is_in_cpuset_by_type_id(q->hwloc, type, rpid,
+                                               in_type_index, &in_cpuset);
+        if (QUO_SUCCESS != rc) goto out;
+        /* if the rank's cpuset falls within the given obj, then increment */
+        if (in_cpuset) nsmpranks++;
+    }
+    *n_out_smpranks = nsmpranks;
+out:
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 /**
  * caller is responsible for freeing *out_smpranks.
  */
