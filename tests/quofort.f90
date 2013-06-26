@@ -5,6 +5,9 @@
 
 ! my very first fortran app -- don't laugh too hard...
 
+! does nothing useful. just used to exercise the fortran interface.
+! for a better example, please see: quodemo-p0.c and quodemo-p1.c
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 module QUO_MOD
@@ -180,20 +183,19 @@ program QUOFortF90
 
     ! one rank per node will emit this info
     if (0 .EQ. noderank) then
+        print *
+        print *, '#############################################################'
+        print *, '### nranks:             ', nranks
         print *, '### quoversion:         ', quovmaj, quovmin
         print *, '### nnodes:             ', nnodes
         print *, '### nnoderanks:         ', nnoderanks
         print *, '### nsockets:           ', nsockets
         print *, '### ncores:             ', ncores
         print *, '### npus:               ', npus
+        print *, '#############################################################'
+        print *
     end if
 
-    !call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
-    !if (QUO_SUCCESS .NE. qerr) then
-    !    print *, 'QUO_BIND_PUSH failure: err = ', qerr
-    !    stop
-    !end if
-    !call QM_EMITBIND(quo)
     ! note that the ranks array must be at least large enough to hold the
     ! result. also note that the ranks retured by this routine are
     ! MPI_COMM_WORLD ranks.
@@ -253,6 +255,24 @@ program QUOFortF90
     ! now everyone that covers core 0 be happy and print stuff
     if (1 .EQ. coverflag) then
         print *, '### rank covers core 0: ', rank
+    end if
+    !call QM_EMITBIND(quo)
+
+    call MPI_BARRIER(MPI_COMM_WORLD)
+
+    if (0 .EQ. noderank) then
+        print *
+        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        print *, '!!! pushing new bind policy !!!'
+        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        print *
+    end if
+
+    ! bind everyone to socket 0
+    call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_BIND_PUSH failure: err = ', qerr
+        stop
     end if
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
