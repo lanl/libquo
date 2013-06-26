@@ -6,6 +6,8 @@
 #include "quo.h"
 #include "quof-private.h"
 
+#include <stdio.h>
+
 /* ////////////////////////////////////////////////////////////////////////// */
 /* fortran public api routines */
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -140,25 +142,6 @@ QUO_GENERATE_F77_BINDINGS(QUO_RANKS_ON_NODE,
                           quo_ranks_on_node_f,
                           (QUO_f_t *q, int *ranks, int *ierr),
                           (q, ranks, ierr))
-
-/* ////////////////////////////////////////////////////////////////////////// */
-/* XXX TODO */
-void
-quo_node_topo_stringify_f(const QUO_f_t *q,
-                          char *str,
-                          int *ierr)
-{
-    int cerr = QUO_node_topo_stringify((QUO_t *)*q, &str);
-    if (ierr) *ierr = cerr;
-}
-
-QUO_GENERATE_F77_BINDINGS(QUO_NODE_TOPO_STRINGIFY,
-                          quo_node_topo_stringify,
-                          quo_node_topo_stringify_,
-                          quo_node_topo_stringify__,
-                          quo_node_topo_stringify_f,
-                          (QUO_f_t *q, char *str, int *ierr),
-                          (q, str, ierr))
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
@@ -415,6 +398,28 @@ QUO_GENERATE_F77_BINDINGS(QUO_BOUND,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
+quo_emit_cbind_string_f(QUO_f_t *q,
+                        char *prefix,
+                        int *ierr)
+{
+    char *cbind = NULL;
+    int cerr = QUO_stringify_cbind((QUO_t *)*q, &cbind);
+    if (ierr) *ierr = cerr;
+    if (QUO_SUCCESS != cerr) return;
+    printf("%s%s\n", prefix, cbind); fflush(stdout);
+    free(cbind); cbind = NULL;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_EMIT_CBIND_STRING,
+                          quo_emit_cbind_string,
+                          quo_emit_cbind_string_,
+                          quo_emit_cbind_string__,
+                          quo_emit_cbind_string_f,
+                          (QUO_f_t *q, char *prefix, int *ierr),
+                          (q, prefix, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
 quo_bind_push_f(QUO_f_t *q,
                 int *policy,
                 int *type,
@@ -436,3 +441,20 @@ QUO_GENERATE_F77_BINDINGS(QUO_BIND_PUSH,
                           (QUO_f_t *q, int *policy, int *type,
                            int *obj_index, int *ierr),
                           (q, policy, type, obj_index, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_bind_pop_f(QUO_f_t *q,
+               int *ierr)
+{
+    int cerr = QUO_bind_pop((QUO_t *)*q);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_BIND_POP,
+                          quo_bind_pop,
+                          quo_bind_pop_,
+                          quo_bind_pop__,
+                          quo_bind_pop_f,
+                          (QUO_f_t *q, int *ierr),
+                          (q, ierr))

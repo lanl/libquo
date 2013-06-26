@@ -143,6 +143,8 @@ program QUOFortF90
     integer*4 :: quovmaj, quovmin, vindex, ncoresinfsock, nsmpranksonfsock
     integer*4 :: nnodes, nnoderanks, nsockets, ncores, npus, bound, noderank
     integer*4, allocatable, dimension(1) :: ranks(:), smpranksonfsock(:)
+    character(LEN=32) :: strbindprefix
+    character(:), allocatable :: cstrbindprefix
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! mpi stuff
@@ -196,6 +198,10 @@ program QUOFortF90
         print *
     end if
 
+    ! setup bind emit prefix
+    write(strbindprefix, '(I8)') rank
+    ! play nice with C strings
+    cstrbindprefix = '### rank: ' // adjustl(strbindprefix) // CHAR(0)
     ! note that the ranks array must be at least large enough to hold the
     ! result. also note that the ranks retured by this routine are
     ! MPI_COMM_WORLD ranks.
@@ -258,7 +264,20 @@ program QUOFortF90
     end if
     !call QM_EMITBIND(quo)
 
-    call MPI_BARRIER(MPI_COMM_WORLD)
+    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+    call SLEEP(1)
+
+    if (0 .EQ. noderank) then
+        print *
+        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        print *, '!!! state of the bind !!!'
+        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        print *
+    end if
+    call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
+
+    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+    call SLEEP(1)
 
     if (0 .EQ. noderank) then
         print *
@@ -267,13 +286,33 @@ program QUOFortF90
         print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         print *
     end if
-
     ! bind everyone to socket 0
     call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_BIND_PUSH failure: err = ', qerr
         stop
     end if
+    call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
+
+    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+    call SLEEP(1)
+
+    if (0 .EQ. noderank) then
+        print *
+        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        print *, '!!! reverting bind policy !!!'
+        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        print *
+    end if
+    ! revert binding policy
+    call QUO_BIND_POP(quo, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_BIND_POP failure: err = ', qerr
+        stop
+    end if
+    call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
+    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+    call SLEEP(1)
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! cleanup
