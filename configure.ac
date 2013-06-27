@@ -58,7 +58,8 @@ AS_IF([test "x$AX_PKG_MPI_HAVE_MPI" != "x1"],dnl
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-                 tests/Makefile])
+                 tests/Makefile
+                 demos/Makefile])
 
 AC_OUTPUT
 

@@ -1,4 +1,5 @@
 libquo TODO
+o add internal hwloc
 o add fort types
 o add better error messages
 o global placement api
@@ -13,4 +14,3 @@ o Use hwloc_get_proc_membind_nodeset for mem stuff?
 o hwloc_cpuset_to_nodeset may be useful for NUMA things.
 o maybe use hwloc_distribute to distribute processes over the machine.
 o auto magic.
-o use pfree in demo code.

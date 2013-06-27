@@ -5,7 +5,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src tests
+SUBDIRS = src tests demos
 
 EXTRA_DIST = \
 AUTHORS README THANKS COPYRIGHT autogen
