@@ -1,7 +1,7 @@
 #
 # SYNOPSIS
 #
-#   AX_PKG_MPI()
+#   AX_PROG_MPICC()
 #
 # DESCRIPTION
 # checks for MPI compiler support.
@@ -11,17 +11,20 @@
 #                         All rights reserved.
 #
 
-AC_DEFUN([AX_PKG_MPI], [dnl
-    AX_PKG_MPI_HAVE_MPI=0
-    AC_CHECK_PROGS(MPICC, mpicc mpxlc, $CC)
+AC_DEFUN([AX_PROG_MPICC], [dnl
+    AX_PROG_MPICC_HAVE_MPICC=0
+    AC_PROG_CC
+    AM_PROG_CC_C_O
+    AC_CHECK_PROGS([MPICC], [mpicc mpxlc], [$CC])
     CC="$MPICC"
-    AC_MSG_CHECKING([if CC can compile MPI applications])
+    AC_PROG_CC_C99
     AC_CHECK_FUNC([MPI_Init],
-                  [AC_MSG_RESULT([yes])
-                   AX_PKG_MPI_HAVE_MPI=1],
-                  [AC_MSG_RESULT([no])])
+                  [AX_PROG_MPICC_HAVE_MPICC=1], [])
+])
+
+AC_DEFUN([AX_PROG_MPIFORT], [dnl
+    AC_PROG_FC
     dnl FIXME - add proper checks here
-    AS_IF([test "x$AX_PKG_MPI_HAVE_MPI" = "x1"],
-          [AC_CHECK_PROGS(MPIFORT, mpifort mpif90 mpif77, $FC)], [])
-          FC="$MPIFORT"
+    AC_CHECK_PROGS([MPIFORT], [mpifort mpif90 mpif77], [$FC])
+    FC="$MPIFORT"
 ])
