@@ -8,6 +8,6 @@ rebind
 
 ### test 0
 rebind_SOURCES = rebind.c
-rebind_CPPFLAGS  = -I$(top_srcdir)/src
-rebind_LDFLAGS = -L$(top_srcdir)/src
-rebind_LDADD   = -lquo
+rebind_CPPFLAGS  =
+rebind_LDFLAGS =
+rebind_LDADD   = $(HWLOC_EMBEDDED_LDADD) $(HWLOC_EMBEDDED_LIBS)

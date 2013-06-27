@@ -3,6 +3,8 @@
 #                         All rights reserved.
 ################################################################################
 
+SUBDIRS = hwloc
+
 lib_LTLIBRARIES = \
 libquo.la
 
@@ -70,3 +72,4 @@ libquo_la_CFLAGS =
 # compatibility with the previous interface, so you release it as -version-info
 # 2:0:0. This release has a new, but backwards incompatible interface.
 libquo_la_LDFLAGS = -version-info 1:0:0
+libquo_la_LIBADD   = $(HWLOC_EMBEDDED_LDADD) $(HWLOC_EMBEDDED_LIBS)

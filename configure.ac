@@ -15,10 +15,13 @@ AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER([config.h])
 
-# note: -Wall -Werror are automake options.  they are NOT compiler flags
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+# for hwloc - must be in between AC_INIT and AM_INIT_AUTOMAKE
+AC_CANONICAL_TARGET
 
 AC_USE_SYSTEM_EXTENSIONS
+
+# note: -Wall -Werror are automake options.  they are NOT compiler flags
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 CFLAGS_SAVE="$CFLAGS"
 AC_PROG_CC
@@ -47,14 +50,24 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
-AX_PKG_HWLOC
-AS_IF([test "x$AX_PKG_HWLOC_HAVE_HWLOC" != "x1"],dnl
-      [AC_MSG_ERROR([*** hwloc package required but not found. ***])])
+#AX_PKG_HWLOC
+#AS_IF([test "x$AX_PKG_HWLOC_HAVE_HWLOC" != "x1"],dnl
+#      [AC_MSG_ERROR([*** hwloc package required but not found. ***])])
 
 AX_PKG_MPI
 AS_IF([test "x$AX_PKG_MPI_HAVE_MPI" != "x1"],dnl
       [AC_MSG_ERROR(
        [*** CC cannot compile MPI apps. set CC to something that can. ***])])
+
+# hwloc stuff
+HWLOC_SET_SYMBOL_PREFIX(quo_)
+HWLOC_SETUP_CORE([src/hwloc],
+                 [],
+                 [AC_MSG_ERROR([*** hwloc configure failure. ***])],
+                 [1])
+CPPFLAGS="$HWLOC_EMBEDDED_CPPFLAGS $CPPFLAGS"
+LIBS="$HWLOC_EMBEDDED_LIBS $LIBS"
+HWLOC_DO_AM_CONDITIONALS
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

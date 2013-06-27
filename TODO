@@ -1,5 +1,4 @@
 libquo TODO
-o add internal hwloc
 o add fort types
 o add better error messages
 o global placement api

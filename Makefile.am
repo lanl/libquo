@@ -3,10 +3,16 @@
 #                         All rights reserved.
 ################################################################################
 
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -Im4 -Isrc/hwloc/config
 
-SUBDIRS = src tests demos
+SUBDIRS = \
+src \
+tests \
+demos
 
 EXTRA_DIST = \
 AUTHORS README THANKS COPYRIGHT autogen
 
+AM_CFLAGS = $(HWLOC_EMBEDDED_CFLAGS)
+
+AM_CPPFLAGS = $(HWLOC_EMBEDDED_CPPFLAGS)
