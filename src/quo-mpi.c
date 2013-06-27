@@ -178,7 +178,7 @@ smprank_setup(quo_mpi_t *mpi)
     /* calculate how many nodes are in our allocation */
     nnode_contrib = (0 == mpi->smprank) ? 1 : 0;
     if (MPI_SUCCESS != MPI_Allreduce(&nnode_contrib, &mpi->nnodes, 1, MPI_INT,
-                                     MPI_SUM, MPI_COMM_WORLD)) {
+                                     MPI_SUM, mpi->commchan)) {
         rc = QUO_ERR_MPI;
         goto out;
     }
@@ -269,10 +269,10 @@ pid_smprank_xchange(quo_mpi_t *mpi)
         rc = QUO_ERR_MPI;
         goto out;
     }
-    /* now exchange the data */
+    /* now exchange the data between all ranks on the node (via smpcomm) */
     if (MPI_SUCCESS != MPI_Allgather(&my_info, 1, pid_smprank_type,
                                      mpi->pid_smprank_map, 1, pid_smprank_type,
-                                     mpi->commchan)) {
+                                     mpi->smpcomm)) {
         return QUO_ERR_MPI;
     }
 out:
