@@ -144,7 +144,8 @@ program QUOFortF90
     integer*4 :: nnodes, nnoderanks, nsockets, ncores, npus, bound, noderank
     integer*4, allocatable, dimension(1) :: ranks(:), smpranksonfsock(:)
     character(LEN=32) :: strbindprefix
-    character(:), allocatable :: cstrbindprefix
+    ! play nice with C strings
+    character(len=5) :: cstrbindprefix = '### ' // CHAR(0)
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! mpi stuff
@@ -198,10 +199,6 @@ program QUOFortF90
         print *
     end if
 
-    ! setup bind emit prefix
-    write(strbindprefix, '(I8)') rank
-    ! play nice with C strings
-    cstrbindprefix = '### rank: ' // adjustl(strbindprefix) // CHAR(0)
     ! note that the ranks array must be at least large enough to hold the
     ! result. also note that the ranks retured by this routine are
     ! MPI_COMM_WORLD ranks.
