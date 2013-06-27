@@ -1,4 +1,5 @@
 libquo TODO
+o fix || builds
 o add fort types
 o add better error messages
 o global placement api
