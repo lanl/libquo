@@ -24,15 +24,12 @@ AC_USE_SYSTEM_EXTENSIONS
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 CFLAGS_SAVE="$CFLAGS"
-AX_PROG_MPICC
+AC_PROG_CC
+AM_PROG_CC_C_O
+AC_PROG_CC_C99
 AC_GNU_SOURCE
 CFLAGS="$CFLAGS_SAVE"
-AX_PROG_MPIFORT
-
-AS_IF([test "x$AX_PROG_MPICC_HAVE_MPICC" != "x1"],dnl
-      [AC_MSG_ERROR(
-       [*** CC cannot compile MPI apps. set CC to something that can. ***])])
-
+AC_PROG_FC
 
 LT_INIT
 
@@ -52,6 +49,15 @@ AC_TYPE_SIZE_T
 # checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
+
+#AX_PKG_HWLOC
+#AS_IF([test "x$AX_PKG_HWLOC_HAVE_HWLOC" != "x1"],dnl
+#      [AC_MSG_ERROR([*** hwloc package required but not found. ***])])
+
+AX_PKG_MPI
+AS_IF([test "x$AX_PKG_MPI_HAVE_MPI" != "x1"],dnl
+      [AC_MSG_ERROR(
+       [*** CC cannot compile MPI apps. set CC to something that can. ***])])
 
 # hwloc stuff
 HWLOC_SET_SYMBOL_PREFIX(quo_)
