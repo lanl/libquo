@@ -49,9 +49,11 @@ end subroutine QM_INIT
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! gathers basic system info
-subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, nsocks, ncores, npus)
+subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, &
+                      nnumanodes, nsocks, ncores, npus)
     integer*8, intent(in) :: quoc
-    integer*4, intent(out) :: nnodes, nnoderanks, noderank, nsocks, ncores, npus
+    integer*4, intent(out) :: nnodes, nnoderanks, noderank, &
+                              nnumanodes, nsocks, ncores, npus
     integer*4 :: qerr, tmpnsocks
     ! how many nodes are in our job
     call QUO_NNODES(quoc, nnodes, qerr)
@@ -69,6 +71,12 @@ subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, nsocks, ncores, npus)
     call QUO_NNODERANKS(quoc, nnoderanks, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_NNODERANKS failure: err = ', qerr
+        stop
+    end if
+    ! how many NUMA nodes are on this system
+    call QUO_NNUMANODES(quoc, nnumanodes, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NNUMANODES failure: err = ', qerr
         stop
     end if
     ! how many sockets are on this system
@@ -141,7 +149,8 @@ program QUOFortF90
     ! C int type.
     integer*4 :: rank, nranks, coverflag
     integer*4 :: quovmaj, quovmin, vindex, ncoresinfsock, nsmpranksonfsock
-    integer*4 :: nnodes, nnoderanks, nsockets, ncores, npus, bound, noderank
+    integer*4 :: nnodes, nnoderanks, nsockets, &
+                 nnumanodes, ncores, npus, bound, noderank
     integer*4, allocatable, dimension(1) :: ranks(:), smpranksonfsock(:)
     character(LEN=32) :: strbindprefix
     ! play nice with C strings
@@ -180,7 +189,8 @@ program QUOFortF90
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     ! gather basic system info
-    call QM_SYSGROK(quo, nnodes, nnoderanks, noderank, nsockets, ncores, npus)
+    call QM_SYSGROK(quo, nnodes, nnoderanks, noderank, &
+                    nnumanodes, nsockets, ncores, npus)
     ! allocate array large enough for node ranks
     allocate(ranks(nnoderanks))
 
@@ -192,6 +202,7 @@ program QUOFortF90
         print *, '### quoversion:         ', quovmaj, quovmin
         print *, '### nnodes:             ', nnodes
         print *, '### nnoderanks:         ', nnoderanks
+        print *, '### nnumanodes          ', nnumanodes
         print *, '### nsockets:           ', nsockets
         print *, '### ncores:             ', ncores
         print *, '### npus:               ', npus
