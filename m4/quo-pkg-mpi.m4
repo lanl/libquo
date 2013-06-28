@@ -20,9 +20,9 @@ AC_DEFUN([AX_PROGS_MPICOMPS], [dnl
     AC_LANG_PUSH([Fortran])
     AX_PROGS_MPICOMPS_HAVE_MPIFC=0
     AC_MSG_CHECKING([if FC can compile MPI applications])
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[      include 'mpif.h'])],dnl
-                      [AX_PROGS_MPICOMPS_HAVE_MPIFC=1
-                       AC_MSG_RESULT([yes])],dnl
-                      [AC_MSG_RESULT([no])])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([],[      call MPI_INIT])],dnl
+                    [AX_PROGS_MPICOMPS_HAVE_MPIFC=1
+                     AC_MSG_RESULT([yes])],dnl
+                    [AC_MSG_RESULT([no])])
     AC_LANG_POP([Fortran])
 ])

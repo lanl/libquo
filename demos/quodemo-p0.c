@@ -237,6 +237,10 @@ get_p1pes(context_t *c,
      * matrix where [i][j] is the ith socket that smp rank j covers. */
     int **rank_ids_bound_to_socket = NULL;
     int rc = QUO_ERR;
+    int work_contrib = 0;
+    /* array that hold whether or not a particular rank is going to do work */
+    int *work_contribs = NULL;
+    int *worker_ranks = NULL;
 
     *nworkers = 0; *workers = NULL; *working = false;
     /* allocate some memory for our arrays */
@@ -303,9 +307,9 @@ get_p1pes(context_t *c,
             }
         }
     }
-    int work_contrib = res_assigned ? 1 : 0;
+    work_contrib = res_assigned ? 1 : 0;
     /* array that hold whether or not a particular rank is going to do work */
-    int *work_contribs = calloc(c->nranks, sizeof(*work_contribs));
+    work_contribs = calloc(c->nranks, sizeof(*work_contribs));
     if (!work_contribs) {
         rc = QUO_ERR_OOR;
         goto out;
@@ -320,7 +324,7 @@ get_p1pes(context_t *c,
     for (int i = 0; i < c->nranks; ++i) {
         if (1 == work_contribs[i]) ++tot_workers;
     }
-    int *worker_ranks = calloc(tot_workers, sizeof(*worker_ranks));
+    worker_ranks = calloc(tot_workers, sizeof(*worker_ranks));
     if (!worker_ranks) {
         rc = QUO_ERR_OOR;
         goto out;
