@@ -4,7 +4,8 @@
 ################################################################################
 
 noinst_PROGRAMS = \
-rebind
+rebind \
+trivial
 
 if QUO_WITH_MPIFC
 noinst_PROGRAMS += \
@@ -16,6 +17,12 @@ rebind_SOURCES = rebind.c
 rebind_CPPFLAGS  =
 rebind_LDFLAGS =
 rebind_LDADD   = $(HWLOC_EMBEDDED_LDADD) $(HWLOC_EMBEDDED_LIBS)
+
+### test 1
+trivial_SOURCES = trivial.c
+trivial_CFLAGS  = -I$(top_srcdir)/src
+trivial_LDFLAGS = -L$(top_srcdir)/src
+trivial_LDADD   = -lquo
 
 ### fortran interface test
 if QUO_WITH_MPIFC
