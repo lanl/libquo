@@ -5,12 +5,124 @@
 #                         All rights reserved.
 ################################################################################
 
-echo "starting autoreconf..."
+# flag that indicates whether or not version checks will be bypassed
+# default: disabled
+force=0
 
-if [[ ! -d m4 ]]; then
-    mkdir m4
+# MINIMUM version requirements
+# gnu m4
+m4_min_version_req="1.4.14"
+# gnu autoconf
+ac_min_version_req="2.65"
+# gnu automake
+am_min_version_reg="1.11.1"
+# gnu libtool
+lt_min_version_req="2.2.6b"
+
+min_requirements=(  \
+$m4_min_version_req \
+$ac_min_version_req \
+$am_min_version_reg \
+$lt_min_version_req \
+)
+
+# list of tools that will be checked
+tools=(m4 autoconf automake libtool)
+
+################################################################################
+# prints tool usage
+# args: none
+################################################################################
+autogen_usage()
+{
+    echo "usage: autogen.sh [-h | --help] [-f | --force]"
+}
+
+################################################################################
+# prints tool prerequisites and requirements
+# args: none
+################################################################################
+echo_tool_reqs()
+{
+cat << EOF
+
+autogen minimum requirements
+****************************
+m4: $m4_min_version_req
+autoconf: $ac_min_version_req
+automake: $am_min_version_reg
+libtool: $lt_min_version_req
+
+EOF
+}
+
+################################################################################
+# prints tool prerequisites
+# args:
+# $1: tool name
+# $2: minimum tool version
+################################################################################
+check_tool_version()
+{
+    v_output=`$1 --version`
+    if [[ $? != 0 ]]; then
+        echo "!!! could not determine $1's version. cannot continue !!!"
+        echo_tool_reqs
+        exit 1
+    fi
+    version_str=`echo -e "$v_output" | grep -i $1`
+    version_str=`echo -e "$version_str" | \
+    grep -oe '[0-9]\+[.][0-9]\+[.]\?[0-9]*[A-Za-z]\?'`
+
+    # at this point we should have a version number. something like: 1.4.16
+
+    # save the newest version
+    newest_v=`echo "$version_str $2" | tr ' ' '\n' | sort -nr | head -n 1`
+
+    # does this tool meet our minimum requirements?
+    if [[ $version_str != $newest_v ]]; then
+        echo "$1 version requirement not met - detected $1 $version_str"
+        echo_tool_reqs
+        exit 1
+    fi
+}
+
+while [[ $# -gt 0 ]]
+do
+    case "$1" in
+        -h)
+            autogen_usage
+            exit 0;;
+       --help)
+            autogen_usage
+            exit 0;;
+       -f)
+            force=1
+            shift;;
+       --force)
+            force=1
+            shift;;
+       *)
+            autogen_usage
+            exit 1;;
+    esac
+    shift
+done
+
+echo "thinking ..."
+
+if [[ $force == 1 ]]; then
+    # you are on your own :-)
+    echo "##############################################"
+    echo "WARNING ***BYPASSING VERSION CHECKS*** WARNING"
+    echo "##############################################"
+else
+    for i in ${!tools[*]}; do
+        check_tool_version ${tools[$i]} ${min_requirements[$i]}
+    done
 fi
 
+# if we are here, all is good. let the real work begin...
 autoreconf --force --install
 
 exit $?
