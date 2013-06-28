@@ -55,6 +55,12 @@ AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPICC" != "x1"],dnl
       [AC_MSG_ERROR(
        [*** CC cannot compile MPI apps. set CC to something that can. ***])])
 
+# note that a mpi wrapper compiler for fortran is only needed for tests
+AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" != "x1"],dnl
+      [AC_MSG_WARN(
+       [*** FC cannot compile MPI apps. set FC to something that can. ***])])
+AM_CONDITIONAL(QUO_WITH_MPIFC, test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" = "x1")
+
 ################################################################################
 # hwloc stuff
 ################################################################################
