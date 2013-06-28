@@ -23,12 +23,10 @@ AC_USE_SYSTEM_EXTENSIONS
 # note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
-CFLAGS_SAVE="$CFLAGS"
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CC_C99
 AC_GNU_SOURCE
-CFLAGS="$CFLAGS_SAVE"
 AC_PROG_FC
 
 LT_INIT
