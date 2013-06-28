@@ -33,9 +33,6 @@ AC_PROG_FC
 
 LT_INIT
 
-# checks for libraries.
-# none at this point
-
 # checks for header files.
 AC_CHECK_HEADERS([\
 inttypes.h limits.h stdint.h stdlib.h string.h unistd.h stdbool.h time.h \
@@ -50,16 +47,17 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
-#AX_PKG_HWLOC
-#AS_IF([test "x$AX_PKG_HWLOC_HAVE_HWLOC" != "x1"],dnl
-#      [AC_MSG_ERROR([*** hwloc package required but not found. ***])])
-
-AX_PKG_MPI
-AS_IF([test "x$AX_PKG_MPI_HAVE_MPI" != "x1"],dnl
+################################################################################
+# mpi stuff
+################################################################################
+AX_PROGS_MPICOMPS
+AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPICC" != "x1"],dnl
       [AC_MSG_ERROR(
        [*** CC cannot compile MPI apps. set CC to something that can. ***])])
 
+################################################################################
 # hwloc stuff
+################################################################################
 HWLOC_SET_SYMBOL_PREFIX(quo_)
 HWLOC_SETUP_CORE([src/hwloc],
                  [],
