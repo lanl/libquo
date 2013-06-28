@@ -147,7 +147,7 @@ QUO_init(QUO_t *q);
  * call QUO_finalize to "finalize" all services that were started with QUO_init.
  * once a call to this routine is made, it is an error to use any libquo
  * services associated with the finalized libquo context from any other
- * participating process.
+ * process with the same active quo context.
  *
  * EXAMPLE (c):
  * // ... //
@@ -199,9 +199,9 @@ QUO_initialized(const QUO_t *q,
                 int *out_initialized);
 
 /**
- * libquo context handle query routine that returns the number of ranks that
- * are on the caller's node and their corresponding MPI_COMM_WORLD ranks. the
- * number and returned array also include the calling rank's information.
+ * libquo context query routine that returns the number of ranks that are on the
+ * caller's node and their corresponding MPI_COMM_WORLD ranks. the number and
+ * returned array also include the calling rank's information.
  *
  * @param q - constructed and initialized QUO_t context pointer. (IN)
  *
@@ -252,7 +252,7 @@ QUO_node_topo_stringify(const QUO_t *q,
                         char **out_str);
 
 /**
- * libquo context handle query routine that returns the total number of hardware
+ * libquo context query routine that returns the total number of hardware
  * resource objects that are on the caller's system.
  *
  * @param q - constructed and initialized QUO_t context pointer. (IN)
@@ -277,7 +277,7 @@ QUO_get_nobjs_by_type(const QUO_t *q,
                       int *out_nobjs);
 
 /**
- * libquo context handle query routine that returns the total number of hardware
+ * libquo context query routine that returns the total number of hardware
  * resource objects that are in another hardware resource.
  *
  * @param q - constructed and initialized QUO_t context pointer. (IN)
@@ -288,9 +288,6 @@ QUO_get_nobjs_by_type(const QUO_t *q,
  *
  * @param type - total number of hardware objects found in
  *               in_type[in_type_index]. (IN)
- *
- * @param out_nranks - total number of hardware object types found on the
- *                     system. (OUT)
  *
  * @param out_result- total number of hardware object types found by the query.
  *                    (OUT)
@@ -346,9 +343,8 @@ QUO_cur_cpuset_in_type(const QUO_t *q,
                        int *out_result);
 
 /**
- * libquo context handle query routine that returns the number of node ranks
- * whose current binding policy fall within a particular system hardware
- * resource.
+ * libquo context query routine that returns the number of node ranks whose
+ * current binding policy fall within a particular system hardware resource.
  *
  * @param q - constructed and initialized QUO_t context pointer. (IN)
  *
@@ -533,6 +529,7 @@ QUO_noderank(const QUO_t *q,
  *     // take action //
  * }
  */
+
 int
 QUO_bound(const QUO_t *q,
           int *bound);
