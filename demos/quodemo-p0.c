@@ -189,6 +189,15 @@ sys_grok(context_t *c)
         bad_func = "QUO_noderank";
         goto out;
     }
+    /* for NUMA nodes */
+    if (QUO_SUCCESS != QUO_get_nobjs_in_type_by_type(c->quo,
+                                                     QUO_OBJ_MACHINE,
+                                                     0,
+                                                     QUO_OBJ_NODE,
+                                                     &c->nnumanodes)) {
+        bad_func = "QUO_get_nobjs_in_type_by_type";
+        goto out;
+    }
 out:
     if (bad_func) {
         fprintf(stderr, "%s: %s failure :-(\n", __func__, bad_func);
@@ -207,6 +216,7 @@ emit_node_basics(const context_t *c)
                 c->rank, c->qv, c->qsv);
         printf("### [rank %d] nnodes: %d\n", c->rank, c->nnodes);
         printf("### [rank %d] nnoderanks: %d\n", c->rank, c->nnoderanks);
+        printf("### [rank %d] nnumanodes: %d\n", c->rank, c->nnumanodes);
         printf("### [rank %d] nsockets: %d\n", c->rank, c->nsockets);
         printf("### [rank %d] ncores: %d\n", c->rank, c->ncores);
         printf("### [rank %d] npus: %d\n", c->rank, c->npus);
@@ -221,7 +231,8 @@ emit_node_basics(const context_t *c)
  * do work. the others will sit in a barrier an wait for the workers to finish.
  *
  * this particular example distributes the workers among all the sockets on the
- * system, but you can imagine doing the same for NUMA nodes, for example.
+ * system, but you can imagine doing the same for NUMA nodes, for example. if
+ * there are no NUMA nodes on the system, then fall back to something else.
  */
 static int
 get_p1pes(context_t *c,

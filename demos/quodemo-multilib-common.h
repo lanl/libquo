@@ -38,6 +38,8 @@ typedef struct context_t {
     int noderank;
     /* whether or not mpi is initialized */
     bool mpi_inited;
+    /* number of NUMA nodes on the node */
+    int nnumanodes;
     /* number of sockets on the node */
     int nsockets;
     /* number of cores on the node */
