@@ -1,3 +1,32 @@
 ################################################################################
-                                     libquo
+
+This distribution contains the source code for libquo, a library that exposes an
+interface that helps facilitate run-time binding tuning of MPI rank processes
+that may benefit from evolving binding policies.
+
 ################################################################################
+
+########################################
+## Building
+########################################
+
+# Prerequisites
+# libquo requires an implementation of the message passing interface (MPI) and
+# hwloc (http://www.open-mpi.org/projects/hwloc). hwloc is included within
+# libquo, so the only external dependency is an MPI library.
+
+# Configure libquo
+./configure CC=[MPICC] FC=[MPIFC] [--prefix=INSTALL-PATH]
+# For available configure options, ./configure --help
+
+# Build libquo
+make
+make install
+
+# Where: MPICC is your system's MPI CC wrapper compiler.
+#        MPIFC is your system's MPI Fortran wrapper compiler.
+
+########################################
+# Example Configure and Build
+########################################
+./configure CC=mpicc FC=mpif90
