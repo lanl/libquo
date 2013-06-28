@@ -11,4 +11,6 @@ o maybe use hwloc_distribute to distribute processes over the machine.
 ################################################################################
 # create tag
 git tag -a v0.1-rc0 -m '0.1 RC0'
+# push tags
+git push --tags
 # checkout tag
