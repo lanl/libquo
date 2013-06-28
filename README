@@ -26,34 +26,41 @@ make install
 # Where: MPICC is your system's MPI CC wrapper compiler.
 #        MPIFC is your system's MPI Fortran wrapper compiler.
 
-########################################
 # Example Configure and Build
-########################################
 ./configure CC=mpicc FC=mpif90 && make && make install
 
 # NOTE: a Fortran wrapper compiler is needed only if you wish to build the
 # Fortran test programs within this distribution.
 
 ################################################################################
+################################################################################
 libquo API
 ################################################################################
+################################################################################
 
-########################################
 # C Interface Users
-########################################
 See src/quo.h for more information.
 
-########################################
 # Fortran Interface Users
-########################################
 See src/quof.h and src/quo.h for more information.
 
 *** NOTE ***
 o The QUO_t * equivalent type for the Fortran interface must be an integer of
   width sizeof(void *) bytes.
+
 o Some Fortran interfaces differ slightly from their C equivalent.
 
-########################################
 # Interface Examples
-########################################
 o In tests and demos.
+
+########################################
+# Building Against QUO
+########################################
+
+# Example 0
+mpicc myquoapp.c -I[QUO-PREFIX]/include -L[QUO-PREFIX]/lib -o myquoapp -lquo
+export LD_LIBRARY_PATH=[QUO-PREFIX]/lib:$LD_LIBRARY_PATH
+
+# Example 1
+mpicc myquoapp.c -o myquoapp -I[QUO-PREFIX]/include \
+-L[QUO-PREFIX]/lib -lquo -Wl,-rpath=[QUO-PREFIX]/lib
