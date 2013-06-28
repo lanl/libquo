@@ -16,7 +16,7 @@ that may benefit from evolving binding policies.
 # libquo, so the only external dependency is an MPI library.
 
 # Configure libquo
-./configure CC=[MPICC] FC=[MPIFC] [--prefix=INSTALL-PATH]
+./configure CC=[MPICC] [FC=[MPIFC]] [--prefix=INSTALL-PATH]
 # For available configure options, ./configure --help
 
 # Build libquo
@@ -30,3 +30,6 @@ make install
 # Example Configure and Build
 ########################################
 ./configure CC=mpicc FC=mpif90
+
+# NOTE: a Fortran wrapper compiler is needed only if you wish to build the
+# Fortran test programs within this distribution.

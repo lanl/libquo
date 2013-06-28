@@ -47,7 +47,7 @@ static int
 push_bind(const context_t *c)
 {
     /* p1 wants each pe to expand their bindings to the socket in which they are
-     * current bound. the idea here is that p0 will call us with a particular
+     * currently bound. the idea here is that p0 will call us with a particular
      * binding policy, but we need a different one. we'll "bind up" to the
      * closest socket. notice that with QUO_BIND_PUSH_OBJ, the last argument
      * (the obj index [e.g socket 1]) is ignored. this is NOT the case when
