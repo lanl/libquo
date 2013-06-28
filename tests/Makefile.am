@@ -3,7 +3,7 @@
 #                         All rights reserved.
 ################################################################################
 
-bin_PROGRAMS = \
+noinst_PROGRAMS = \
 rebind \
 quofort
 
