@@ -29,7 +29,31 @@ make install
 ########################################
 # Example Configure and Build
 ########################################
-./configure CC=mpicc FC=mpif90
+./configure CC=mpicc FC=mpif90 && make && make install
 
 # NOTE: a Fortran wrapper compiler is needed only if you wish to build the
 # Fortran test programs within this distribution.
+
+################################################################################
+libquo API
+################################################################################
+
+########################################
+# C Interface Users
+########################################
+See src/quo.h for more information.
+
+########################################
+# Fortran Interface Users
+########################################
+See src/quof.h and src/quo.h for more information.
+
+*** NOTE ***
+o The QUO_t * equivalent type for the Fortran interface must be an integer of
+  width sizeof(void *) bytes.
+o Some Fortran interfaces differ slightly from their C equivalent.
+
+########################################
+# Interface Examples
+########################################
+o In tests and demos.
