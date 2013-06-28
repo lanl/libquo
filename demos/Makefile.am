@@ -28,7 +28,7 @@ quodemo_LDADD   = -lquo
 quodemo_multilib_SOURCES = quodemo-multilib-common.h quodemo-p0.c
 quodemo_multilib_CPPFLAGS  = -I$(top_srcdir)/src
 quodemo_multilib_LDFLAGS = -L$(top_srcdir)/src
-quodemo_multilib_LDADD   = -lquo -ldemop1
+quodemo_multilib_LDADD   = -lquo libdemop1.la
 
 libdemop1_la_SOURCES = quodemo-multilib-common.h quodemo-p1.h quodemo-p1.c
 libdemop1_la_CPPFLAGS = -I$(top_srcdir)/src
