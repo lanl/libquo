@@ -256,7 +256,11 @@ get_p1pes(context_t *c,
                                   socket,
                                   &(nranks_bound_to_socket[socket]),
                                   &(rank_ids_bound_to_socket[socket]));
-        if (QUO_SUCCESS != rc) goto out;
+        if (QUO_SUCCESS != rc) {
+            if (rank_ids_bound_to_socket) free(rank_ids_bound_to_socket);
+            if (nranks_bound_to_socket) free(nranks_bound_to_socket);
+            return 1;
+        }
     }
     /* everyone has the same info on the node, so just have node rank 0 display
      * the list of smp ranks that cover each socket on the system. */
