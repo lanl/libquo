@@ -147,8 +147,8 @@ QUO_destruct(QUO_t *q)
 int
 QUO_finalize(QUO_t *q)
 {
-    if (!q) return QUO_ERR_INVLD_ARG;
     noinit_action(q);
+    if (!q) return QUO_ERR_INVLD_ARG;
     /* nothing really to do here at this point, but we may need this routine at
      * some point so keep it around. */
     return QUO_SUCCESS;
