@@ -359,6 +359,12 @@ main(void)
     int erc = EXIT_SUCCESS;
     char *bad_func = NULL;
     context_t *context = NULL;
+    /* flag indicating whether or not i'm a p1pe (calling into p1) */
+    bool p1pe = false;
+    /* total number of p1pes */
+    int tot_p1pes = 0;
+    /* the MPI_COMM_WORLD ranks of the p1pes */
+    int *p1pes = NULL;
 
     /* ////////////////////////////////////////////////////////////////////// */
     /* init code -- note that the top-level package must do this */
@@ -399,12 +405,6 @@ main(void)
     /* ////////////////////////////////////////////////////////////////////// */
     /* setup needed before we can init p1 */
     /* ////////////////////////////////////////////////////////////////////// */
-    /* flag indicating whether or not i'm a p1pe (calling into p1) */
-    bool p1pe = false;
-    /* total number of p1pes */
-    int tot_p1pes = 0;
-    /* the MPI_COMM_WORLD ranks of the p1pes */
-    int *p1pes = NULL;
     if (get_p1pes(context, &p1pe, &tot_p1pes, &p1pes)) {
         bad_func = "get_p1pes";
         goto out;
