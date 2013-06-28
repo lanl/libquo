@@ -463,10 +463,8 @@ quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
     if (QUO_SUCCESS != (rc = ext2intobj(target_type, &real_type))) return rc;
     depth = hwloc_get_type_depth(hwloc->topo, real_type);
     if (HWLOC_TYPE_DEPTH_UNKNOWN == depth) {
-        /* hwloc can't determine the number of x, so just return 0 and not
-         * supported. */
+        /* hwloc can't determine the number of x, so just return 0 */
         *out_nobjs = 0;
-        return QUO_ERR_NOT_SUPPORTED;
     }
     else {
         *out_nobjs = hwloc_get_nbobjs_by_depth(hwloc->topo, depth);

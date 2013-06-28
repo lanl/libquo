@@ -190,12 +190,9 @@ sys_grok(context_t *c)
         goto out;
     }
     /* for NUMA nodes */
-    if (QUO_SUCCESS != QUO_get_nobjs_in_type_by_type(c->quo,
-                                                     QUO_OBJ_MACHINE,
-                                                     0,
-                                                     QUO_OBJ_NODE,
-                                                     &c->nnumanodes)) {
-        bad_func = "QUO_get_nobjs_in_type_by_type";
+    if (QUO_SUCCESS != QUO_nnumanodes(c->quo, &c->nnumanodes)) {
+        bad_func = "QUO_nnumanodes";
+        printf("XXXXXX %d\n", QUO_nnumanodes(c->quo, &c->nnumanodes));
         goto out;
     }
 out:

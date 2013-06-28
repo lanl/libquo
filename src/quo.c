@@ -303,6 +303,17 @@ QUO_get_nobjs_by_type(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+QUO_nnumanodes(const QUO_t *q,
+               int *out_nnumanodes)
+{
+    /* make sure we are initialized before we continue */
+    noinit_action(q);
+    if (!q || !out_nnumanodes) return QUO_ERR_INVLD_ARG;
+    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_NODE, out_nnumanodes);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 QUO_nsockets(const QUO_t *q,
              int *out_nsockets)
 {

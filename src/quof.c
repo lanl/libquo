@@ -272,6 +272,24 @@ QUO_GENERATE_F77_BINDINGS(QUO_SMPRANKS_IN_TYPE,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
+quo_nnumanodes_f(QUO_f_t *q,
+                 int *n,
+                 int *ierr)
+{
+    int cerr = QUO_nnumanodes((QUO_t *)*q, n);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NNUMANODES,
+                          quo_nnumanodes,
+                          quo_nnumanodes_,
+                          quo_nnumanodes__,
+                          quo_nnumanodes_f,
+                          (QUO_f_t *q, int *n, int *ierr),
+                          (q, n, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
 quo_nsockets_f(QUO_f_t *q,
                int *n,
                int *ierr)

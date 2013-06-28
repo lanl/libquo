@@ -129,6 +129,10 @@ QUO_smpranks_in_type(const QUO_t *q,
                      int **out_smpranks);
 
 int
+QUO_nnumanodes(const QUO_t *q,
+               int *out_nnumanodes);
+
+int
 QUO_nsockets(const QUO_t *q,
              int *out_nsockets);
 
