@@ -6,8 +6,7 @@
 bin_PROGRAMS = \
 quoinfo \
 quodemo \
-quodemo-multilib \
-quofort
+quodemo-multilib
 
 noinst_LTLIBRARIES = \
 libdemop1.la
@@ -35,8 +34,3 @@ libdemop1_la_CPPFLAGS = -I$(top_srcdir)/src
 libdemop1_la_LDFLAGS = -L$(top_srcdir)/src
 libdemop1_la_LIBADD = -lquo
 
-### fortran demo
-quofort_SOURCES = quofort.f90
-quofort_FCFLAGS  = -I$(top_srcdir)/src
-quofort_LDFLAGS = -L$(top_srcdir)/src
-quofort_LDADD   = -lquo

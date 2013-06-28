@@ -6,7 +6,7 @@
 ! my very first fortran app -- don't laugh too hard...
 
 ! does nothing useful. just used to exercise the fortran interface.
-! for a better example, please see: quodemo-p0.c and quodemo-p1.c
+! better examples can be found in demos
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -145,7 +145,7 @@ program QUOFortF90
     integer*4, allocatable, dimension(1) :: ranks(:), smpranksonfsock(:)
     character(LEN=32) :: strbindprefix
     ! play nice with C strings
-    character(len=5) :: cstrbindprefix = '### ' // CHAR(0)
+    character(len=6) :: cstrbindprefix = ' ### ' // CHAR(0)
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! mpi stuff
