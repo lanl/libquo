@@ -192,7 +192,6 @@ sys_grok(context_t *c)
     /* for NUMA nodes */
     if (QUO_SUCCESS != QUO_nnumanodes(c->quo, &c->nnumanodes)) {
         bad_func = "QUO_nnumanodes";
-        printf("XXXXXX %d\n", QUO_nnumanodes(c->quo, &c->nnumanodes));
         goto out;
     }
 out:
