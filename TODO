@@ -1,5 +1,4 @@
 libquo TODO
-o add fort types
 o add better error messages
 o implement global placement api
 - hwloc_obj_type_snprintf

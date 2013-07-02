@@ -26,10 +26,6 @@
 #include "mpi.h"
 
 /**
- * TODO change flag things into MPI_BYTE instead of INT
- */
-
-/**
  * libquo demo code that illustrates how two libraries interact.
  */
 

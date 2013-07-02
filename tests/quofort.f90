@@ -20,7 +20,7 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! constructs and inits libquo context, quoc
 subroutine QM_INIT(quoc)
-    integer*8, intent(inout) :: quoc
+    integer(QUO_IKIND), intent(inout) :: quoc
     integer*4 :: qerr, initialized
     ! construct the quo context.
     call QUO_CONSTRUCT(quoc, qerr)
@@ -51,7 +51,7 @@ end subroutine QM_INIT
 ! gathers basic system info
 subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, &
                       nnumanodes, nsocks, ncores, npus)
-    integer*8, intent(in) :: quoc
+    integer(QUO_IKIND), intent(in) :: quoc
     integer*4, intent(out) :: nnodes, nnoderanks, noderank, &
                               nnumanodes, nsocks, ncores, npus
     integer*4 :: qerr, tmpnsocks
@@ -114,7 +114,7 @@ end subroutine QM_SYSGROK
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine QM_EMITBIND(quoc)
-    integer*8, intent(in) :: quoc
+    integer(QUO_IKIND), intent(in) :: quoc
     integer*4 :: bound, qerr
     ! is the process bound (cpu binding)
     call QUO_BOUND(quoc, bound, qerr)
@@ -142,7 +142,7 @@ program QUOFortF90
 
     ! holds the "quo context" that is passed around (must be the same size as
     ! the system's C pointer type.
-    integer*8 :: quo
+    integer(QUO_IKIND) :: quo
     ! holds libquo return codes, holds mpi return codes
     integer*4 qerr, ierr
     ! libquo uses standard ints. these sizes must be the same as the system's
