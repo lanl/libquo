@@ -45,6 +45,12 @@ AC_TYPE_SIZE_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul])
 
+# check for sizeof(uintptr_t) for the Fortran interface.
+# This sets the size of QUO_IKIND in the quof.h header that is generated.
+AC_CHECK_SIZEOF(uintptr_t)
+QUO_IKIND_VAL="8"
+AC_SUBST(QUO_IKIND_VAL)
+
 ################################################################################
 # mpi stuff
 ################################################################################
@@ -73,6 +79,7 @@ HWLOC_DO_AM_CONDITIONALS
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+                 src/quof.h
                  tests/Makefile
                  demos/Makefile])
 

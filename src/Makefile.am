@@ -16,7 +16,10 @@ quo-private.h \
 quo-hwloc.h quo-hwloc.c \
 quo-mpi.h quo-mpi.c \
 quo.h quo.c \
-quof-private.h quof.h quof.c
+quof-private.h quof.c
+
+# this header is generated
+CLEANFILES = quof.h
 
 libquo_la_CFLAGS =
 # From: http://www.sourceware.org/autobook/autobook/autobook_91.html

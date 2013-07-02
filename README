@@ -46,8 +46,8 @@ See src/quof.h and src/quo.h for more information.
 
 *** NOTE ***
 o The QUO_t * equivalent type for the Fortran interface must be an integer of
-  width sizeof(void *) bytes. For convenience, we provide a QUO_IKIND type that
-  meets this requirement.
+  width sizeof(uintptr_t) bytes. For convenience, we provide a QUO_IKIND type
+  that meets this requirement.
 
 o Some Fortran interfaces differ slightly from their C equivalent.
 
