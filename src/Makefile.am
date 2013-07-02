@@ -8,8 +8,12 @@ SUBDIRS = hwloc
 lib_LTLIBRARIES = \
 libquo.la
 
+# this is generated and we don't want the generated header in the distribution
+nodist_include_HEADERS = \
+quof.h
+
 include_HEADERS = \
-quo.h quof.h
+quo.h
 
 libquo_la_SOURCES = \
 quo-private.h \
