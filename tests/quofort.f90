@@ -331,6 +331,7 @@ program QUOFortF90
         print *, 'QUO_FINALIZE failure: err = ', qerr
         stop
     end if
+    ! release allocated resources (always before MPI_FINALIZE)
     call QUO_DESTRUCT(quo, qerr)
     if (QUO_SUCCESS .NE. qerr) then
         print *, 'QUO_DESTRUCT failure: err = ', qerr
@@ -338,6 +339,6 @@ program QUOFortF90
     end if
     deallocate(ranks)
     deallocate(smpranksonfsock)
-    ! finalize mpi (always after QUO_FINALIZE)
+    ! finalize mpi (always after QUO_FINALIZE and QUO_DESTRUCT)
     call MPI_FINALIZE(ierr)
 end program QUOFortF90
