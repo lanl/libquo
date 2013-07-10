@@ -88,7 +88,6 @@ p1_init(context_t *c,
     /* ////////////////////////////////////////////////////////////////////// */
     MPI_Group world_group;
     MPI_Group p1_group;
-    /* figure out what MPI_COMM_WORLD ranks share a node with me */
     if (MPI_SUCCESS != MPI_Comm_group(MPI_COMM_WORLD, &world_group)) {
         rc = QUO_ERR_MPI;
         goto out;
