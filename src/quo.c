@@ -438,13 +438,12 @@ QUO_ranks_on_node(const QUO_t *q,
     return quo_mpi_ranks_on_node(q->mpi, out_nranks, out_ranks);
 }
 
-#if 0
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 QUO_dist_work_member(const QUO_t *q,
-                     QUO_obj_type_t distrib_over_type,
+                     QUO_obj_type_t distrib_over_this,
                      int max_members_per_res_type,
-                     int *out_am)
+                     int *out_am_member)
 {
     /* total number of target resources. */
     int nres = 0;
@@ -456,15 +455,20 @@ QUO_dist_work_member(const QUO_t *q,
      * matrix where [i][j] is the ith hardware resource that smp rank j covers. */
     int **rank_ids_bound_to_res = NULL;
     int work_contrib = 0, rc = QUO_ERR;
-    /* array that hold whether or not a particular rank is going to do work */
-    int *work_contribs = NULL;
-    /* array holding worker ranks (MPI_COMM_WORLD). */
-    int *worker_ranks = NULL;
+    /* my node (smp) rank */
+    int my_smp_rank = 0;
 
-    if (!q || !out_am || max_members_per_res_type < 0) return QUO_ERR_INVLD_ARG;
+    if (!q || !out_am_member || max_members_per_res_type <= 0) {
+        return QUO_ERR_INVLD_ARG;
+    }
     noinit_action(q);
-    /* first figure out how many things are on the system. */
-    if (QUO_SUCCESS != (rc = QUO_get_nobjs_by_type(q, distrib_over_type,
+    *out_am_member = 0; /* set default */
+    /* what is my node rank? */
+    if (QUO_SUCCESS != (rc = QUO_noderank(q, &my_smp_rank))) {
+        return rc;
+    }
+    /* figure out how many target things are on the system. */
+    if (QUO_SUCCESS != (rc = QUO_get_nobjs_by_type(q, distrib_over_this,
                                                    &nres))) {
         return rc; 
     }
@@ -483,7 +487,7 @@ QUO_dist_work_member(const QUO_t *q,
     }
     /* grab the smp ranks (node ranks) that cover each resource. */
     for (int rid = 0; rid < nres; ++rid) {
-        rc = QUO_smpranks_in_type(q, distrib_over_type, rid,
+        rc = QUO_smpranks_in_type(q, distrib_over_this, rid,
                                   &(nranks_bound_to_res[rid]),
                                   &(rank_ids_bound_to_res[rid]));
         if (QUO_SUCCESS != rc) {
@@ -497,56 +501,25 @@ QUO_dist_work_member(const QUO_t *q,
     /* distribute workers over target resources. */
     /* ////////////////////////////////////////////////////////////////////// */
 
-    int tot_workers = 0;
-    int max_workers_per_res = 2;
-    /* whether or not we are already assigned to a particular resource */
-    bool res_assigned = false;
-    for (int rid = 0; rid < ; ++nres) {
-        for (int rank = 0; rank < nranks_bound_to_res[socket]; ++rank) {
+    for (int rid = 0; rid < nres; ++rid) {
+        /* if already a member, stop search */
+        if (1 == *out_am_member) break;
+        for (int rank = 0; rank < nranks_bound_to_res[rid]; ++rank) {
             /* if i'm not already assigned to a particular resource and
              * my current cpuset covers the resource in question and
              * someone else won't be assigned to that resource
              */
-            if (!res_assigned &&
-                c->noderank == rank_ids_bound_to_socket[socket][rank] &&
-                rank < max_workers_per_res) {
-                res_assigned = true;
-                printf("### [rank %d] smp rank %d assigned to socket %d\n",
-                        c->rank, c->noderank, socket);
+            if (my_smp_rank == rank_ids_bound_to_res[rid][rank] &&
+                rank < max_members_per_res_type) {
+                *out_am_member = 1;
             }
         }
     }
-    work_contrib = res_assigned ? 1 : 0;
-    /* array that hold whether or not a particular rank is going to do work */
-    work_contribs = calloc(c->nranks, sizeof(*work_contribs));
-    if (!work_contribs) {
-        rc = QUO_ERR_OOR;
-        goto out;
+    /* the resources returned by QUO_smpranks_in_type must be freed by us */
+    for (int i = 0; i < nres; ++i) {
+        if (rank_ids_bound_to_res[i]) free(rank_ids_bound_to_res[i]);
     }
-    if (MPI_SUCCESS != (rc = MPI_Allgather(&work_contrib, 1, MPI_INT,
-                                           work_contribs, 1, MPI_INT,
-                                           MPI_COMM_WORLD))) {
-        rc = QUO_ERR_MPI;
-        goto out;
-    }
-    /* now iterate over the array and count the total number of workers */
-    for (int i = 0; i < c->nranks; ++i) {
-        if (1 == work_contribs[i]) ++tot_workers;
-    }
-    worker_ranks = calloc(tot_workers, sizeof(*worker_ranks));
-    if (!worker_ranks) {
-        rc = QUO_ERR_OOR;
-        goto out;
-    }
-    /* populate the array with the worker comm world ranks */
-    for (int i = 0, j = 0; i < c->nranks; ++i) {
-        if (1 == work_contribs[i]) {
-            worker_ranks[j++] = i;
-        }
-    }
-    *working = (bool)work_contrib;
-    *nworkers = tot_workers;
-    *workers = worker_ranks;
-    demo_emit_sync(c);
+    if (rank_ids_bound_to_res) free(rank_ids_bound_to_res);
+    if (nranks_bound_to_res) free(nranks_bound_to_res);
+    return rc;
 }
-#endif
