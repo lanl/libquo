@@ -68,6 +68,13 @@ AM_CONDITIONAL(QUO_WITH_MPIFC, test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" = "x1")
 ################################################################################
 # hwloc stuff
 ################################################################################
+# set some hwloc configure options
+enable_libxml2=no
+enable_xml=yes
+# TODO - allow for this someday (busted on the Crays -- no static lib)
+enable_pci=no
+enable_libpci=no
+
 HWLOC_SET_SYMBOL_PREFIX(quo_)
 HWLOC_SETUP_CORE([src/hwloc],
                  [],
