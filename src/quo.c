@@ -448,12 +448,12 @@ QUO_dist_work_member(const QUO_t *q,
     /* total number of target resources. */
     int nres = 0;
     /* points to an array that stores the number of elements in the
-     * rank_ids_bound_to_socket array at a particular resource index. */
-    int *nranks_bound_to_res = NULL;
+     * rank_ids_in_res array at a particular resource index. */
+    int *nranks_in_res = NULL;
     /* array of pointers that point to the smp ranks that cover a particular
      * hardware resource at a particular index. you can think of this as a 2D
      * matrix where [i][j] is the ith hardware resource that smp rank j covers. */
-    int **rank_ids_bound_to_res = NULL;
+    int **rank_ids_in_res = NULL;
     int work_contrib = 0, rc = QUO_ERR;
     /* my node (smp) rank */
     int my_smp_rank = 0;
@@ -473,26 +473,26 @@ QUO_dist_work_member(const QUO_t *q,
         return rc; 
     }
     /* allocate some memory for our arrays */
-    nranks_bound_to_res = calloc(nres, sizeof(*nranks_bound_to_res));
-    if (!nranks_bound_to_res) {
+    nranks_in_res = calloc(nres, sizeof(*nranks_in_res));
+    if (!nranks_in_res) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
     /* allocate pointer array */
-    rank_ids_bound_to_res = calloc(nres, sizeof(*rank_ids_bound_to_res));
-    if (!rank_ids_bound_to_res) {
-        free(nranks_bound_to_res); nranks_bound_to_res = NULL;
+    rank_ids_in_res = calloc(nres, sizeof(*rank_ids_in_res));
+    if (!rank_ids_in_res) {
+        free(nranks_in_res); nranks_in_res = NULL;
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
     /* grab the smp ranks (node ranks) that cover each resource. */
     for (int rid = 0; rid < nres; ++rid) {
         rc = QUO_smpranks_in_type(q, distrib_over_this, rid,
-                                  &(nranks_bound_to_res[rid]),
-                                  &(rank_ids_bound_to_res[rid]));
+                                  &(nranks_in_res[rid]),
+                                  &(rank_ids_in_res[rid]));
         if (QUO_SUCCESS != rc) {
-            if (rank_ids_bound_to_res) free(rank_ids_bound_to_res);
-            if (nranks_bound_to_res) free(nranks_bound_to_res);
+            if (rank_ids_in_res) free(rank_ids_in_res);
+            if (nranks_in_res) free(nranks_in_res);
             return rc;
         }
     }
@@ -504,12 +504,12 @@ QUO_dist_work_member(const QUO_t *q,
     for (int rid = 0; rid < nres; ++rid) {
         /* if already a member, stop search */
         if (1 == *out_am_member) break;
-        for (int rank = 0; rank < nranks_bound_to_res[rid]; ++rank) {
+        for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
             /* if i'm not already assigned to a particular resource and
              * my current cpuset covers the resource in question and
              * someone else won't be assigned to that resource
              */
-            if (my_smp_rank == rank_ids_bound_to_res[rid][rank] &&
+            if (my_smp_rank == rank_ids_in_res[rid][rank] &&
                 rank < max_members_per_res_type) {
                 *out_am_member = 1;
             }
@@ -517,9 +517,9 @@ QUO_dist_work_member(const QUO_t *q,
     }
     /* the resources returned by QUO_smpranks_in_type must be freed by us */
     for (int i = 0; i < nres; ++i) {
-        if (rank_ids_bound_to_res[i]) free(rank_ids_bound_to_res[i]);
+        if (rank_ids_in_res[i]) free(rank_ids_in_res[i]);
     }
-    if (rank_ids_bound_to_res) free(rank_ids_bound_to_res);
-    if (nranks_bound_to_res) free(nranks_bound_to_res);
+    if (rank_ids_in_res) free(rank_ids_in_res);
+    if (nranks_in_res) free(nranks_in_res);
     return rc;
 }
