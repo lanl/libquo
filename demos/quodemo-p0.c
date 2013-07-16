@@ -219,6 +219,7 @@ emit_node_basics(const context_t *c)
     return 0;
 }
 
+#if 0 /* old way */
 /**
  * this is where we set our policy regarding who will actually call into p1 and
  * do work. the others will sit in a barrier an wait for the workers to finish.
@@ -356,6 +357,72 @@ out:
     }
     return (QUO_SUCCESS == rc) ? 0 : 1;
 }
+#else /* new way */
+/**
+ * this is where we set our policy regarding who will actually call into p1 and
+ * do work. the others will sit in a barrier an wait for the workers to finish.
+ *
+ * this particular example distributes the workers among all the sockets on the
+ * system, but you can imagine doing the same for NUMA nodes, for example. if
+ * there are no NUMA nodes on the system, then fall back to something else.
+ */
+static int
+get_p1pes(context_t *c,
+                 bool *working,
+                 int *nworkers,
+                 int **workers)
+{
+    int res_assigned = 0, tot_workers = 0;
+    int rc = QUO_ERR;
+    /* array that hold whether or not a particular rank is going to do work */
+    int *work_contribs = NULL;
+    int *worker_ranks = NULL;
+
+    /* let quo distribute workers over the sockets. if p1pe_worker is 1 after
+     * this call, then i have been chosen. */
+    if (QUO_SUCCESS != QUO_dist_work_member(c->quo, QUO_OBJ_SOCKET,
+                                            2, &res_assigned)) {
+        return 1;
+    }
+    /* array that hold whether or not a particular rank is going to do work */
+    work_contribs = calloc(c->nranks, sizeof(*work_contribs));
+    if (!work_contribs) {
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+    if (MPI_SUCCESS != (rc = MPI_Allgather(&res_assigned, 1, MPI_INT,
+                                           work_contribs, 1, MPI_INT,
+                                           MPI_COMM_WORLD))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* now iterate over the array and count the total number of workers */
+    for (int i = 0; i < c->nranks; ++i) {
+        if (1 == work_contribs[i]) ++tot_workers;
+    }
+    worker_ranks = calloc(tot_workers, sizeof(*worker_ranks));
+    if (!worker_ranks) {
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+    /* populate the array with the worker comm world ranks */
+    for (int i = 0, j = 0; i < c->nranks; ++i) {
+        if (1 == work_contribs[i]) {
+            worker_ranks[j++] = i;
+        }
+    }
+    *working = (bool)res_assigned;
+    *nworkers = tot_workers;
+    *workers = worker_ranks;
+    demo_emit_sync(c);
+out:
+    if (work_contribs) free(work_contribs);
+    if (QUO_SUCCESS != rc) {
+        if (worker_ranks) free(worker_ranks);
+    }
+    return (QUO_SUCCESS == rc) ? 0 : 1;
+}
+#endif
 
 int
 main(void)
