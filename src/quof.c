@@ -476,3 +476,31 @@ QUO_GENERATE_F77_BINDINGS(QUO_BIND_POP,
                           quo_bind_pop_f,
                           (QUO_f_t *q, int *ierr),
                           (q, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
+quo_dist_work_member_f(QUO_f_t *q,
+                     int *distrib_over_this_type,
+                     int *max_members_per_res_type,
+                     int *out_am_member,
+                     int *ierr)
+{
+    int cerr = QUO_dist_work_member((QUO_t *)*q,
+                                    (QUO_obj_type_t)*distrib_over_this_type,
+                                    *max_members_per_res_type,
+                                    out_am_member);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_DIST_WORK_MEMBER,
+                          quo_dist_work_member,
+                          quo_dist_work_member_,
+                          quo_dist_work_member__,
+                          quo_dist_work_member_f,
+                          (QUO_f_t *q,
+                           int *distrib_over_this_type,
+                           int *max_members_per_res_type,
+                           int *out_am_member,
+                           int *ierr),
+                          (q, distrib_over_this_type, max_members_per_res_type,
+                           out_am_member, ierr))

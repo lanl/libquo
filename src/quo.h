@@ -635,6 +635,12 @@ QUO_bind_push(QUO_t *q,
 int
 QUO_bind_pop(QUO_t *q);
 
+int
+QUO_dist_work_member(const QUO_t *q,
+                     QUO_obj_type_t distrib_over_this,
+                     int max_members_per_res_type,
+                     int *out_am_member);
+
 #ifdef __cplusplus
 }
 #endif
