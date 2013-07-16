@@ -152,6 +152,7 @@ program QUOFortF90
     integer*4 :: nnodes, nnoderanks, nsockets, &
                  nnumanodes, ncores, npus, bound, noderank
     integer*4, allocatable, dimension(1) :: ranks(:), smpranksonfsock(:)
+    integer*4 :: res_allocated = 0
     character(LEN=32) :: strbindprefix
     ! play nice with C strings
     character(len=6) :: cstrbindprefix = ' ### ' // CHAR(0)
@@ -321,6 +322,14 @@ program QUOFortF90
     call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
     call MPI_BARRIER(MPI_COMM_WORLD, ierr)
     call SLEEP(1)
+
+    call QUO_DIST_WORK_MEMBER(quo, QUO_OBJ_SOCKET, 2, res_allocated, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_DIST_WORK_MEMBER failure: err = ', qerr
+        stop
+    end if
+
+    print *, 'work member (rank, is_member) = ', rank, res_allocated
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ! cleanup
