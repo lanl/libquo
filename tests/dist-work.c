@@ -80,7 +80,7 @@ tightbind(info_t *i)
 static void
 insanity(info_t *i)
 {
-    if (0 == i->noderank || 4 == i->noderank) {
+    if (0 == i->noderank || 4 == i->noderank || 5 == i->noderank || 6 == i->noderank) {
         assert(QUO_SUCCESS == QUO_bind_push(i->q, QUO_BIND_PUSH_OBJ,
                                             QUO_OBJ_MACHINE, -1));
     }
@@ -102,7 +102,7 @@ int
 main(int argc, char **argv)
 {
     info_t info;
-    int work_member = 0, max_members_per_res = 2;
+    int work_member = 0, max_members_per_res = 10;
     int nres = 0, rc = EXIT_SUCCESS;
     info.tres = QUO_OBJ_NODE;
 

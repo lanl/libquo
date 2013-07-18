@@ -538,7 +538,7 @@ QUO_dist_work_member(const QUO_t *q,
          * values up to nnoderanks - 1. note: these arrays are typically small, so
          * who cares. if this ever changes, then update the code to use a proper
          * hash table. */
-        int *big_htab = NULL;
+        int *big_htab = NULL, rmapped = 0;
         size_t bhts = nsmp_ranks * sizeof(*big_htab);
         if (NULL == (big_htab = malloc(bhts))) {
             QUO_OOR_COMPLAIN();
@@ -551,19 +551,20 @@ QUO_dist_work_member(const QUO_t *q,
         for (int i = 0; i < k_set_intersection_len; ++i) {
             big_htab[k_set_intersection[i]] = k_set_intersection[i];
         }
-        /* now only consider ranks that aren't sharing resources */
+        /* first only consider ranks that aren't sharing resources */
         for (int rid = 0; rid < nres; ++rid) {
+            rmapped = 0;
             /* if already a member, stop search */
             if (1 == *out_am_member) break;
-            for (int rank = 0, r = 0; rank < nranks_in_res[rid]; ++rank) {
+            for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
                 /* this thing is shared - skip */
                 if (-1 != big_htab[rank_ids_in_res[rid][rank]]) continue;
                 /* if my current cpuset covers the resource in question */
                 if (my_smp_rank == rank_ids_in_res[rid][rank] &&
-                    r < max_members_per_res_type) {
+                    rmapped < max_members_per_res_type) {
                         *out_am_member = 1;
                 }
-                ++r;
+                ++rmapped;
             }
         }
         if (big_htab) free(big_htab);
