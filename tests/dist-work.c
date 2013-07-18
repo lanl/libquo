@@ -80,7 +80,7 @@ tightbind(info_t *i)
 static void
 insanity(info_t *i)
 {
-    if (0 == i->noderank || 1 == i->noderank) {
+    if (0 == i->noderank || 4 == i->noderank) {
         assert(QUO_SUCCESS == QUO_bind_push(i->q, QUO_BIND_PUSH_OBJ,
                                             QUO_OBJ_MACHINE, -1));
     }
