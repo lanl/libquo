@@ -556,16 +556,14 @@ QUO_dist_work_member(const QUO_t *q,
             /* if already a member, stop search */
             if (1 == *out_am_member) break;
             for (int rank = 0, r = 0; rank < nranks_in_res[rid]; ++rank) {
+                /* this thing is shared - skip */
                 if (-1 != big_htab[rank_ids_in_res[rid][rank]]) continue;
                 /* if my current cpuset covers the resource in question */
                 if (my_smp_rank == rank_ids_in_res[rid][rank] &&
                     r < max_members_per_res_type) {
                         *out_am_member = 1;
                 }
-                else {
-                    /* someone else will take it */
-                    ++r;
-                }
+                ++r;
             }
         }
         if (big_htab) free(big_htab);
