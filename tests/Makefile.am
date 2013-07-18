@@ -5,7 +5,8 @@
 
 noinst_PROGRAMS = \
 rebind \
-trivial
+trivial \
+dist-work
 
 if QUO_WITH_MPIFC
 noinst_PROGRAMS += \
@@ -23,6 +24,12 @@ trivial_SOURCES = trivial.c
 trivial_CFLAGS  = -I$(top_srcdir)/src
 trivial_LDFLAGS = -L$(top_srcdir)/src
 trivial_LDADD   = -lquo
+
+### test 2
+dist_work_SOURCES = dist-work.c
+dist_work_CFLAGS  = -I$(top_srcdir)/src
+dist_work_LDFLAGS = -L$(top_srcdir)/src
+dist_work_LDADD   = -lquo
 
 ### fortran interface test
 if QUO_WITH_MPIFC

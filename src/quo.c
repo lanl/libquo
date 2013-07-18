@@ -516,8 +516,8 @@ QUO_dist_work_member(const QUO_t *q,
             /* if already a member, stop search */
             if (1 == *out_am_member) break;
             for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
-                /* if i'm not already assigned to a particular resource and
-                 * my current cpuset covers the resource in question. */
+                /* if my current cpuset covers the resource in question and
+                 * someone won't be assigned to that particular resource */
                 if (my_smp_rank == rank_ids_in_res[rid][rank] &&
                     rank < max_members_per_res_type) {
                     *out_am_member = 1;
@@ -534,14 +534,12 @@ QUO_dist_work_member(const QUO_t *q,
      * happen in practice, but i've seen stranger things... in the case, first
      * favor unshared resources */
     else {
-        /* since the k set intersection array is always guaranteed to be sorted,
-         * then grab the largest value and construct a "hash table" large enough
-         * to accommodate all possible values up to that point. note: these
-         * arrays are typically small, so who cares. if this ever changes, then
-         * update the code to use a proper hash table. */
+        /* construct a "hash table" large enough to accommodate all possible
+         * values up to nnoderanks - 1. note: these arrays are typically small, so
+         * who cares. if this ever changes, then update the code to use a proper
+         * hash table. */
         int *big_htab = NULL;
-        size_t bhts = (k_set_intersection[k_set_intersection_len - 1] + 1) *
-                      sizeof(*big_htab);
+        size_t bhts = nsmp_ranks * sizeof(*big_htab);
         if (NULL == (big_htab = malloc(bhts))) {
             QUO_OOR_COMPLAIN();
             rc = QUO_ERR_OOR;
@@ -553,21 +551,26 @@ QUO_dist_work_member(const QUO_t *q,
         for (int i = 0; i < k_set_intersection_len; ++i) {
             big_htab[k_set_intersection[i]] = k_set_intersection[i];
         }
-#if 0
-        /*
+        /* now only consider ranks that aren't sharing resources */
         for (int rid = 0; rid < nres; ++rid) {
             /* if already a member, stop search */
             if (1 == *out_am_member) break;
-            for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
-                /* if i'm not already assigned to a particular resource and
-                 * my current cpuset covers the resource in question. */
-                if (my_smp_rank == rank_ids_in_res[rid][rank] &&
-                    rank < max_members_per_res_type) {
-                    *out_am_member = 1;
+            for (int rank = 0, r = 0; rank < nranks_in_res[rid]; ++rank) {
+                /* skip shared resource */
+                if (-1 != big_htab[rank]) continue;
+                /* if my current cpuset covers the resource in question */
+                if (my_smp_rank == rank_ids_in_res[rid][rank]) {
+                    /* and no one else has taken the thing */
+                    if (r < max_members_per_res_type) {
+                        *out_am_member = 1;
+                    }
+                }
+                else {
+                    /* someone else will take it */
+                    r++;
                 }
             }
         }
-#endif
         if (big_htab) free(big_htab);
     }
 out:
