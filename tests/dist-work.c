@@ -102,7 +102,7 @@ int
 main(int argc, char **argv)
 {
     info_t info;
-    int work_member = 0, max_members_per_res = 10;
+    int work_member = 0, max_members_per_res = 2;
     int nres = 0, rc = EXIT_SUCCESS;
     info.tres = QUO_OBJ_NODE;
 
