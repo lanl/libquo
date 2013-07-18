@@ -77,6 +77,7 @@ p1_init(context_t *c,
     if (0 == c->noderank) {
         printf("ooo [rank %d] %d p1pes initializing p1\n", c->rank, np1s);
         printf("ooo [rank %d] and they are: ", c->rank);
+        if (0 == np1s) printf("\n");
         fflush(stdout);
         for (int i = 0; i < np1s; ++i) {
             printf("%d ", p1who[i]); fflush(stdout);

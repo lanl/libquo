@@ -9,6 +9,7 @@
 
 #include "quo.h"
 #include "quo-private.h"
+#include "quo-set.h"
 #include "quo-hwloc.h"
 #include "quo-mpi.h"
 
@@ -454,72 +455,130 @@ QUO_dist_work_member(const QUO_t *q,
      * hardware resource at a particular index. you can think of this as a 2D
      * matrix where [i][j] is the ith hardware resource that smp rank j covers. */
     int **rank_ids_in_res = NULL;
-    int work_contrib = 0, rc = QUO_ERR;
+    int rc = QUO_ERR;
     /* my node (smp) rank */
-    int my_smp_rank = 0;
+    int my_smp_rank = 0, nsmp_ranks = 0;
+    /* holds k set intersection info */
+    int *k_set_intersection = NULL, k_set_intersection_len = 0;
 
     if (!q || !out_am_member || max_members_per_res_type <= 0) {
         return QUO_ERR_INVLD_ARG;
     }
     noinit_action(q);
     *out_am_member = 0; /* set default */
+    if (QUO_SUCCESS != (rc = QUO_nnoderanks(q, &nsmp_ranks))) return rc;
     /* what is my node rank? */
-    if (QUO_SUCCESS != (rc = QUO_noderank(q, &my_smp_rank))) {
-        return rc;
-    }
+    if (QUO_SUCCESS != (rc = QUO_noderank(q, &my_smp_rank))) return rc;
     /* figure out how many target things are on the system. */
     if (QUO_SUCCESS != (rc = QUO_get_nobjs_by_type(q, distrib_over_this,
                                                    &nres))) {
-        return rc; 
+        return rc;
     }
+    /* if there are no resources, then return not found */
+    if (0 == nres) return QUO_ERR_NOT_FOUND;
     /* allocate some memory for our arrays */
     nranks_in_res = calloc(nres, sizeof(*nranks_in_res));
     if (!nranks_in_res) {
         QUO_OOR_COMPLAIN();
-        return QUO_ERR_OOR;
+        rc = QUO_ERR_OOR;
+        goto out;
     }
     /* allocate pointer array */
     rank_ids_in_res = calloc(nres, sizeof(*rank_ids_in_res));
     if (!rank_ids_in_res) {
-        free(nranks_in_res); nranks_in_res = NULL;
         QUO_OOR_COMPLAIN();
-        return QUO_ERR_OOR;
+        rc = QUO_ERR_OOR;
+        goto out;
     }
     /* grab the smp ranks (node ranks) that cover each resource. */
     for (int rid = 0; rid < nres; ++rid) {
         rc = QUO_smpranks_in_type(q, distrib_over_this, rid,
                                   &(nranks_in_res[rid]),
                                   &(rank_ids_in_res[rid]));
-        if (QUO_SUCCESS != rc) {
-            if (rank_ids_in_res) free(rank_ids_in_res);
-            if (nranks_in_res) free(nranks_in_res);
-            return rc;
-        }
+        if (QUO_SUCCESS != rc) goto out;
     }
-
+    /* calculate the k set intersection of ranks on resources. the returned
+     * array will be the set of ranks that currently share a particular
+     * resource. */
+    rc = quo_set_get_k_set_intersection(nres, nranks_in_res, rank_ids_in_res,
+                                        &k_set_intersection,
+                                        &k_set_intersection_len);
+    if (QUO_SUCCESS != rc) goto out;
     /* ////////////////////////////////////////////////////////////////////// */
     /* distribute workers over target resources. */
     /* ////////////////////////////////////////////////////////////////////// */
 
-    for (int rid = 0; rid < nres; ++rid) {
-        /* if already a member, stop search */
-        if (1 == *out_am_member) break;
-        for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
-            /* if i'm not already assigned to a particular resource and
-             * my current cpuset covers the resource in question and
-             * someone else won't be assigned to that resource
-             */
-            if (my_smp_rank == rank_ids_in_res[rid][rank] &&
-                rank < max_members_per_res_type) {
-                *out_am_member = 1;
+    /* !!! remember maintain "max workers per resource" !!! */
+
+    /* completely disjoint sets, so making a local decision is easy */
+    if (0 == k_set_intersection_len) {
+        for (int rid = 0; rid < nres; ++rid) {
+            /* if already a member, stop search */
+            if (1 == *out_am_member) break;
+            for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
+                /* if i'm not already assigned to a particular resource and
+                 * my current cpuset covers the resource in question. */
+                if (my_smp_rank == rank_ids_in_res[rid][rank] &&
+                    rank < max_members_per_res_type) {
+                    *out_am_member = 1;
+                }
             }
         }
     }
-    /* the resources returned by QUO_smpranks_in_type must be freed by us */
-    for (int i = 0; i < nres; ++i) {
-        if (rank_ids_in_res[i]) free(rank_ids_in_res[i]);
+    /* all processes overlap - really no hope of doing anything sane. we
+     * typically see this in the "no one is bound case." */
+    else if (nsmp_ranks == k_set_intersection_len) {
+        if (my_smp_rank < max_members_per_res_type * nres) *out_am_member = 1;
     }
-    if (rank_ids_in_res) free(rank_ids_in_res);
+    /* only a few ranks share a resource. i don't know if this case will ever
+     * happen in practice, but i've seen stranger things... in the case, first
+     * favor unshared resources */
+    else {
+        /* since the k set intersection array is always guaranteed to be sorted,
+         * then grab the largest value and construct a "hash table" large enough
+         * to accommodate all possible values up to that point. note: these
+         * arrays are typically small, so who cares. if this ever changes, then
+         * update the code to use a proper hash table. */
+        int *big_htab = NULL;
+        size_t bhts = (k_set_intersection[k_set_intersection_len - 1] + 1) *
+                      sizeof(*big_htab);
+        if (NULL == (big_htab = malloc(bhts))) {
+            QUO_OOR_COMPLAIN();
+            rc = QUO_ERR_OOR;
+            goto out;
+        }
+        /* -1 = spot not taken */
+        (void)memset(big_htab, -1, bhts);
+        /* populate the hash table */
+        for (int i = 0; i < k_set_intersection_len; ++i) {
+            big_htab[k_set_intersection[i]] = k_set_intersection[i];
+        }
+#if 0
+        /*
+        for (int rid = 0; rid < nres; ++rid) {
+            /* if already a member, stop search */
+            if (1 == *out_am_member) break;
+            for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
+                /* if i'm not already assigned to a particular resource and
+                 * my current cpuset covers the resource in question. */
+                if (my_smp_rank == rank_ids_in_res[rid][rank] &&
+                    rank < max_members_per_res_type) {
+                    *out_am_member = 1;
+                }
+            }
+        }
+#endif
+        if (big_htab) free(big_htab);
+    }
+out:
+    /* the resources returned by QUO_smpranks_in_type must be freed by us */
+    if (rank_ids_in_res) {
+        for (int i = 0; i < nres; ++i) {
+            if (rank_ids_in_res[i]) free(rank_ids_in_res[i]);
+        }
+        free(rank_ids_in_res);
+    }
     if (nranks_in_res) free(nranks_in_res);
+    if (k_set_intersection) free(k_set_intersection);
     return rc;
 }
