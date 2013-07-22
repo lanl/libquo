@@ -28,7 +28,7 @@
  */
 int
 quo_set_get_k_set_intersection(int nsets,
-                               int *set_lens,
+                               const int *set_lens,
                                int **sets,
                                int **res,
                                int *res_len)
@@ -80,7 +80,7 @@ quo_set_get_k_set_intersection(int nsets,
         for (int setb = 0; setb < nsets; ++setb) {
             int i = 0, j = 0;
             if (seta == setb) continue;
-            while (true) {
+            while (i < set_lens[seta] && j < set_lens[setb]) {
                 /* no possible intersection */
                 if (0 == set_lens[seta] || 0 == set_lens[setb]) break;
                 while (i < set_lens[seta] && sets[seta][i] < sets[setb][j]) ++i;

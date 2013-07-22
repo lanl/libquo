@@ -20,3 +20,9 @@ git co [tag name]
 # Cray XE/XK 6
 ################################################################################
 LDFLAGS="-dynamic -Wl,-rpath=/usr/lib/alps"
+
+################################################################################
+# valgrind
+################################################################################
+valgrind --leak-check=full --trace-children=yes --track-origins=yes \
+--log-file=OUT.valgrind

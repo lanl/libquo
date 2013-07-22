@@ -15,7 +15,7 @@
 
 int
 quo_set_get_k_set_intersection(int nsets,
-                               int *set_lens,
+                               const int *set_lens,
                                int **sets,
                                int **res,
                                int *res_len);

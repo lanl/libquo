@@ -274,15 +274,14 @@ QUO_smpranks_in_type(const QUO_t *q,
         if (QUO_SUCCESS != rc) goto out;
         /* if the rank's cpuset falls within the given obj, then add it */
         if (in_cpuset) {
-            int *newsmpranks = NULL;
-            newsmpranks = realloc(smpranks, (nsmpranks + 1) * sizeof(int));
+            int *newsmpranks = realloc(smpranks, (nsmpranks + 1) * sizeof(int));
             if (!newsmpranks) {
                 rc = QUO_ERR_OOR;
                 goto out;
             }
-            smpranks = newsmpranks;
             /* add the newly found rank to the list and increment num found */
-            smpranks[nsmpranks++] = rank;
+            newsmpranks[nsmpranks++] = rank;
+            smpranks = newsmpranks;
         }
     }
     *n_out_smpranks = nsmpranks;
@@ -497,10 +496,12 @@ QUO_dist_work_member(const QUO_t *q,
                                   &(rank_ids_in_res[rid]));
         if (QUO_SUCCESS != rc) goto out;
     }
+
     /* calculate the k set intersection of ranks on resources. the returned
      * array will be the set of ranks that currently share a particular
      * resource. */
-    rc = quo_set_get_k_set_intersection(nres, nranks_in_res, rank_ids_in_res,
+    rc = quo_set_get_k_set_intersection(nres, nranks_in_res,
+                                        rank_ids_in_res,
                                         &k_set_intersection,
                                         &k_set_intersection_len);
     if (QUO_SUCCESS != rc) goto out;
