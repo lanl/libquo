@@ -531,8 +531,8 @@ QUO_dist_work_member(const QUO_t *q,
         if (my_smp_rank < max_members_per_res_type * nres) *out_am_member = 1;
     }
     /* only a few ranks share a resource. i don't know if this case will ever
-     * happen in practice, but i've seen stranger things... in the case, first
-     * favor unshared resources */
+     * happen in practice, but i've seen stranger things... in the case, favor
+     * unshared resources. */
     else {
         /* construct a "hash table" large enough to accommodate all possible
          * values up to nnoderanks - 1. note: these arrays are typically small, so
@@ -553,9 +553,9 @@ QUO_dist_work_member(const QUO_t *q,
         }
         /* first only consider ranks that aren't sharing resources */
         for (int rid = 0; rid < nres; ++rid) {
-            rmapped = 0;
             /* if already a member, stop search */
             if (1 == *out_am_member) break;
+            rmapped = 0;
             for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
                 /* this thing is shared - skip */
                 if (-1 != big_htab[rank_ids_in_res[rid][rank]]) continue;
@@ -563,6 +563,7 @@ QUO_dist_work_member(const QUO_t *q,
                 if (my_smp_rank == rank_ids_in_res[rid][rank] &&
                     rmapped < max_members_per_res_type) {
                         *out_am_member = 1;
+                        break;
                 }
                 ++rmapped;
             }

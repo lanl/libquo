@@ -11,8 +11,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_ASSERT_H
 #include <assert.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
 
 #include "mpi.h"
 
@@ -80,7 +87,7 @@ tightbind(info_t *i)
 static void
 insanity(info_t *i)
 {
-    if (0 == i->noderank || 4 == i->noderank || 5 == i->noderank || 6 == i->noderank) {
+    if (0 == (i->noderank % 2)) {
         assert(QUO_SUCCESS == QUO_bind_push(i->q, QUO_BIND_PUSH_OBJ,
                                             QUO_OBJ_MACHINE, -1));
     }

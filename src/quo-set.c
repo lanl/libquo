@@ -112,7 +112,7 @@ quo_set_get_k_set_intersection(int nsets,
     }
     /* return result array length */
     *res_len = ilen;
-#if 1 /* debug */
+#if 0 /* debug */
     for (int i = 0; i < ilen; ++i) {
         printf("%d%s", (*res)[i], i + 1 == ilen ? "\n" : " ");
     }
