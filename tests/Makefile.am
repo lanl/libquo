@@ -6,7 +6,8 @@
 noinst_PROGRAMS = \
 rebind \
 trivial \
-dist-work
+dist-work \
+barrier-subset
 
 if QUO_WITH_MPIFC
 noinst_PROGRAMS += \
@@ -30,6 +31,12 @@ dist_work_SOURCES = dist-work.c
 dist_work_CFLAGS  = -I$(top_srcdir)/src
 dist_work_LDFLAGS = -L$(top_srcdir)/src
 dist_work_LDADD   = -lquo
+
+### test 3
+barrier_subset_SOURCES = barrier-subset.c
+barrier_subset_CFLAGS  =
+barrier_subset_LDFLAGS =
+barrier_subset_LDADD   =
 
 ### fortran interface test
 if QUO_WITH_MPIFC
