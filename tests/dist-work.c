@@ -102,7 +102,7 @@ static bind_t binds[] =
     {"complete set overlap", nobind, popbind},
     {"no set overlap", tightbind, popbind},
     {"some set overlap", insanity, popbind},
-    {NULL, NULL}
+    {NULL, NULL, NULL}
 };
 
 int
