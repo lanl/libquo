@@ -302,9 +302,12 @@ program QUOFortF90
         stop
     end if
     call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
-
+    call QUO_NODE_BARRIER(quo, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NODE_BARRIER failure: err = ', qerr
+        stop
+    end if
     call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-    call SLEEP(1)
 
     if (0 .EQ. noderank) then
         print *
@@ -320,8 +323,12 @@ program QUOFortF90
         stop
     end if
     call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
+    call QUO_NODE_BARRIER(quo, qerr)
+    if (QUO_SUCCESS .NE. qerr) then
+        print *, 'QUO_NODE_BARRIER failure: err = ', qerr
+        stop
+    end if
     call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-    call SLEEP(1)
 
     call QUO_DIST_WORK_MEMBER(quo, QUO_OBJ_SOCKET, 2, res_allocated, qerr)
     if (QUO_SUCCESS .NE. qerr) then
