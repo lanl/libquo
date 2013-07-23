@@ -635,6 +635,10 @@ QUO_bind_push(QUO_t *q,
 int
 QUO_bind_pop(QUO_t *q);
 
+
+int
+QUO_node_barrier(QUO_t *q);
+
 /**
  * TODO
  * don't forget to mention that this routine, as with others (identify), assume

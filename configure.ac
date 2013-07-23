@@ -35,7 +35,7 @@ LT_INIT
 AC_CHECK_HEADERS([\
 inttypes.h limits.h stdint.h stdlib.h string.h unistd.h stdbool.h time.h \
 getopt.h ctype.h netdb.h sys/socket.h netinet/in.h arpa/inet.h sys/types.h \
-stddef.h assert.h
+stddef.h assert.h pthread.h sys/mman.h sys/stat.h fcntl.h
 ])
 
 # checks for typedefs, structures, and compiler characteristics.
@@ -44,7 +44,7 @@ AC_TYPE_SIZE_T
 
 # checks for library functions.
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([memset strerror strtoul])
+AC_CHECK_FUNCS([memset strerror strtoul mmap])
 
 # check for sizeof(uintptr_t) for the Fortran interface.
 # This sets the size of QUO_IKIND in the quof.h header that is generated.
@@ -83,6 +83,14 @@ HWLOC_SETUP_CORE([src/hwloc],
 CPPFLAGS="$HWLOC_EMBEDDED_CPPFLAGS $CPPFLAGS"
 LIBS="$HWLOC_EMBEDDED_LIBS $LIBS"
 HWLOC_DO_AM_CONDITIONALS
+
+################################################################################
+# pthreads stuff
+################################################################################
+AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
+# TODO
+#AC_SUBST(QUO_PTHREAD_CFLAGS, $PTHREAD_CFLAGS)
+#AC_SUBST(QUO_PTHREAD_LIBS, $PTHREAD_LIBS)
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

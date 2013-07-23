@@ -499,15 +499,15 @@ main(void)
             goto out;
         }
         /* signals completion within p1 */
-        if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) {
-            bad_func = "MPI_Barrier";
+        if (QUO_SUCCESS != QUO_node_barrier(context->quo)) {
+            bad_func = "QUO_node_barrier";
             goto out;
         }
     }
     else {
         /* non p1pes wait in a barrier */
-        if (MPI_SUCCESS != MPI_Barrier(MPI_COMM_WORLD)) {
-            bad_func = "MPI_Barrier";
+        if (QUO_SUCCESS != QUO_node_barrier(context->quo)) {
+            bad_func = "QUO_node_barrier";
             goto out;
         }
     }

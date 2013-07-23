@@ -479,6 +479,24 @@ QUO_GENERATE_F77_BINDINGS(QUO_BIND_POP,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
+quo_node_barrier_f(QUO_f_t *q,
+                   int *ierr)
+{
+    int cerr = QUO_node_barrier((QUO_t *)*q);
+    if (ierr) *ierr = cerr;
+}
+
+QUO_GENERATE_F77_BINDINGS(QUO_NODE_BARRIER,
+                          quo_node_barrier,
+                          quo_node_barrier_,
+                          quo_node_barrier__,
+                          quo_node_barrier_f,
+                          (QUO_f_t *q,
+                           int *ierr),
+                          (q, ierr))
+
+/* ////////////////////////////////////////////////////////////////////////// */
+void
 quo_dist_work_member_f(QUO_f_t *q,
                      int *distrib_over_this_type,
                      int *max_members_per_res_type,

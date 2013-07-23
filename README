@@ -65,3 +65,11 @@ export LD_LIBRARY_PATH=[QUO-PREFIX]/lib:$LD_LIBRARY_PATH
 # Example 1
 mpicc myquoapp.c -o myquoapp -I[QUO-PREFIX]/include \
 -L[QUO-PREFIX]/lib -lquo -Wl,-rpath=[QUO-PREFIX]/lib
+
+################################################################################
+################################################################################
+libquo Environment Variables
+################################################################################
+################################################################################
+QUO_TMPDIR - specifies the base directory where temporary QUO files will be
+             written.

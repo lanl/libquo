@@ -17,6 +17,7 @@ quo.h
 
 libquo_la_SOURCES = \
 quo-private.h \
+quo-utils.h quo-utils.c \
 quo-set.h quo-set.c \
 quo-hwloc.h quo-hwloc.c \
 quo-mpi.h quo-mpi.c \

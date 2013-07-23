@@ -46,4 +46,7 @@ int
 quo_mpi_ranks_on_node(const quo_mpi_t *mpi,
                       int *out_nranks,
                       int **out_ranks);
+
+int
+quo_mpi_sm_barrier(const quo_mpi_t *mpi);
 #endif

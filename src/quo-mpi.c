@@ -8,6 +8,7 @@
 #endif
 
 #include "quo-mpi.h"
+#include "quo-utils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -39,6 +40,18 @@
 #ifdef HAVE_STDDEF_H
 #include <stddef.h>
 #endif
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 
 #include "mpi.h"
 
@@ -46,6 +59,10 @@
  * will be called in the right order, so we don't have to be so careful
  * about checking if everything has been setup before continuing with the
  * operation. */
+
+typedef struct quo_shmem_barrier_segment_t {
+    pthread_barrier_t barrier;
+} quo_shmem_barrier_segment_t;
 
 /**
  * maintains pid to smprank mapping.
@@ -80,6 +97,10 @@ struct quo_mpi_t {
     pid_smprank_map_t *pid_smprank_map;
     /* array of comm world ranks that share a node with me (includes me) */
     int *node_ranks;
+    /* sm barrier segment path */
+    char *bseg_path;
+    /* base address of the shared memory segment used for our barrier */
+    quo_shmem_barrier_segment_t *bsegp;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -317,6 +338,222 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+static int
+get_barrier_segment_name(quo_mpi_t *mpi,
+                         char **segname)
+{
+    int rc = QUO_SUCCESS, err = 0;
+    bool tmpdir_usable = false;
+    char *usern = NULL, *tmpdir = NULL;
+
+    if (!mpi || !segname) return QUO_ERR_INVLD_ARG;
+    /* get base dir */
+    if (QUO_SUCCESS != (rc = quo_utils_tmpdir(&tmpdir))) goto out;
+    /* get user name */
+    if (QUO_SUCCESS != (rc = quo_utils_whoami(&usern))) goto out;
+    /* make sure that the provided base is usable */
+    if (QUO_SUCCESS != (rc = quo_utils_path_usable(tmpdir, &tmpdir_usable,
+                                                   &err))) goto out;
+    if (!tmpdir_usable) {
+        fprintf(stderr, QUO_ERR_PREFIX"cannot use: %s (errno: %d (%s.))\n",
+                tmpdir, err, strerror(err));
+        rc = QUO_ERR_INVLD_ARG;
+        goto out;
+    }
+    /* all is well, so build the file name - caller must free this */
+    if (-1 == asprintf(segname, "%s/%s-%s-%s-%d.%s", tmpdir, PACKAGE,
+                      mpi->hostname, usern, (int)getpid(), "bseg")) {
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+out:
+    if (tmpdir) free(tmpdir);
+    if (usern) free(usern);
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+ptmc_init(quo_mpi_t *mpi)
+{
+    int rc = QUO_ERR_SYS;
+    pthread_barrierattr_t battr;
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    if (0 != pthread_barrierattr_init(&battr)) goto out;
+    if (0 != pthread_barrierattr_setpshared(&battr, PTHREAD_PROCESS_SHARED)) {
+        goto out;
+    }
+    if (0 != pthread_barrier_init(&(mpi->bsegp->barrier), &battr,
+                                  (unsigned)mpi->nsmpranks)) {
+        goto out;
+    }
+    if (0 != pthread_barrierattr_destroy(&battr)) goto out;
+    /* all is well */
+    rc = QUO_SUCCESS;
+out:
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+bseg_create(quo_mpi_t *mpi)
+{
+    int rc = QUO_SUCCESS, fd = -1, errc = 0;
+    char *badfunc = NULL;
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    /* open */
+    if (-1 == (fd = open(mpi->bseg_path, O_CREAT | O_RDWR, 0600))) {
+        errc = errno;
+        badfunc = "open";
+        goto out;
+    }
+    /* size the file */
+    if (0 != ftruncate(fd, sizeof(quo_shmem_barrier_segment_t))) {
+        errc = errno;
+        badfunc = "ftruncate";
+        goto out;
+    }
+    /* map the thing */
+    mpi->bsegp = mmap(NULL, sizeof(quo_shmem_barrier_segment_t),
+                      PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (MAP_FAILED == mpi->bsegp) {
+        errc = errno;
+        badfunc = "mmap";
+        goto out;
+    }
+    /*setup mutex, condition, and barrier counter */
+    if (QUO_SUCCESS != (rc = ptmc_init(mpi))) goto out;
+out:
+    if (badfunc) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure. errno: %d (%s.)\n",
+                badfunc, errc, strerror(errc));
+        rc = QUO_ERR_SYS;
+    }
+    if (-1 != fd) {
+        close(fd);
+    }
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+bseg_attach(quo_mpi_t *mpi)
+{
+    int rc = QUO_SUCCESS, fd = -1, errc = 0;
+    char *badfunc = NULL;
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    /* open */
+    if (-1 == (fd = open(mpi->bseg_path, O_RDWR, 0600))) {
+        errc = errno;
+        badfunc = "open";
+        goto out;
+    }
+    /* map the thing */
+    mpi->bsegp = mmap(NULL, sizeof(quo_shmem_barrier_segment_t),
+                      PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (MAP_FAILED == mpi->bsegp) {
+        errc = errno;
+        badfunc = "mmap";
+        goto out;
+    }
+out:
+    if (badfunc) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure. errno: %d (%s.)\n",
+                badfunc, errc, strerror(errc));
+        rc = QUO_ERR_SYS;
+    }
+    if (-1 != fd) close(fd);
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+bseg_name_xchange(quo_mpi_t *mpi)
+{
+    int rc = QUO_SUCCESS, plen = 0;
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    if (0 == mpi->smprank) {
+        rc = get_barrier_segment_name(mpi, &mpi->bseg_path);
+        if (QUO_SUCCESS != rc) plen = -rc; /* indicates an error occurred */
+        else plen = strlen(mpi->bseg_path) + 1;
+        if (MPI_SUCCESS != MPI_Bcast(&plen, 1, MPI_INT, 0, mpi->commchan)) {
+            rc = QUO_ERR_MPI;
+            goto out;
+        }
+        /* an error occurred, so just bail */
+        if (QUO_SUCCESS != rc) goto out;
+        if (MPI_SUCCESS != MPI_Bcast(mpi->bseg_path, plen,
+                                     MPI_CHAR, 0, mpi->commchan)) {
+            rc = QUO_ERR_MPI;
+            goto out;
+        }
+    }
+    else {
+        if (MPI_SUCCESS != MPI_Bcast(&plen, 1, MPI_INT, 0, mpi->commchan)) {
+            rc = QUO_ERR_MPI;
+            goto out;
+        }
+        /* something bad happened during setup, so just bail */
+        if (plen < 0) {
+            rc = -plen;
+            goto out;
+        }
+        /* we are good, recv the path */
+        if (NULL == (mpi->bseg_path = calloc(plen, sizeof(char)))) {
+            QUO_OOR_COMPLAIN();
+            rc = QUO_ERR_OOR;
+            goto out;
+        }
+        if (MPI_SUCCESS != MPI_Bcast(mpi->bseg_path, plen,
+                                     MPI_CHAR, 0, mpi->commchan)) {
+            rc = QUO_ERR_MPI;
+            goto out;
+        }
+    }
+out:
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+sm_setup(quo_mpi_t *mpi)
+{
+    int rc = QUO_SUCCESS;
+
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    /* first exchange segment path information */
+    if (QUO_SUCCESS != (rc = bseg_name_xchange(mpi))) goto out;
+    /* node rank 0 sets up the segment */
+    if (0 == mpi->smprank) {
+        if (QUO_SUCCESS != (rc = bseg_create(mpi))) goto out;
+    }
+    /* sync */
+    if (MPI_SUCCESS != MPI_Barrier(mpi->commchan)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* everyone else attach to the shared memory segment */
+    if (0 != mpi->smprank) {
+        if (QUO_SUCCESS != (rc = bseg_attach(mpi))) goto out;
+    }
+    /* sync */
+    if (MPI_SUCCESS != MPI_Barrier(mpi->commchan)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* cleanup */
+    if (0 == mpi->smprank) {
+        unlink(mpi->bseg_path);
+    }
+out:
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_mpi_smprank2pid(quo_mpi_t *mpi,
                     int smprank,
@@ -375,6 +612,8 @@ quo_mpi_init(quo_mpi_t *mpi)
     if (QUO_SUCCESS != (rc = pid_smprank_xchange(mpi))) goto err;
     /* now cache the MPI_COMM_WORLD ranks that are the node with me */
     if (QUO_SUCCESS != (rc = node_rank_xchange(mpi))) goto err;
+    /* now setup shared memory stuff for our barrier */
+    if (QUO_SUCCESS != (rc = sm_setup(mpi))) goto err;
     return QUO_SUCCESS;
 err:
     quo_mpi_destruct(mpi);
@@ -400,6 +639,11 @@ quo_mpi_destruct(quo_mpi_t *mpi)
         free(mpi->node_ranks);
         mpi->node_ranks = NULL;
     }
+    if (mpi->bseg_path) {
+        free(mpi->bseg_path);
+        mpi->bseg_path = NULL;
+    }
+    if (0 != munmap(mpi->bsegp, sizeof(quo_shmem_barrier_segment_t))) ++nerrs;
     free(mpi); mpi = NULL;
     return nerrs == 0 ? QUO_SUCCESS : QUO_ERR_MPI;
 }
@@ -450,5 +694,14 @@ quo_mpi_ranks_on_node(const quo_mpi_t *mpi,
     (void)memmove(ta, mpi->node_ranks, mpi->nsmpranks * sizeof(int));
     *out_nranks = mpi->nsmpranks;
     *out_ranks = ta;
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_sm_barrier(const quo_mpi_t *mpi)
+{
+    if (!mpi) return QUO_ERR_INVLD_ARG;
+    pthread_barrier_wait(&(mpi->bsegp->barrier));
     return QUO_SUCCESS;
 }

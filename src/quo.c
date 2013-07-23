@@ -440,6 +440,15 @@ QUO_ranks_on_node(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+QUO_node_barrier(QUO_t *q)
+{
+    if (!q) return QUO_ERR_INVLD_ARG;
+    noinit_action(q);
+    return quo_mpi_sm_barrier(q->mpi);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 QUO_dist_work_member(const QUO_t *q,
                      QUO_obj_type_t distrib_over_this,
                      int max_members_per_res_type,
