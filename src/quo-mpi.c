@@ -52,6 +52,9 @@
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
 
 #include "mpi.h"
 
@@ -345,6 +348,10 @@ get_barrier_segment_name(quo_mpi_t *mpi,
     int rc = QUO_SUCCESS, err = 0;
     bool tmpdir_usable = false;
     char *usern = NULL, *tmpdir = NULL;
+    int randn = 0;
+
+    srand((unsigned int)time(NULL));
+    randn = rand();
 
     if (!mpi || !segname) return QUO_ERR_INVLD_ARG;
     /* get base dir */
@@ -361,8 +368,8 @@ get_barrier_segment_name(quo_mpi_t *mpi,
         goto out;
     }
     /* all is well, so build the file name - caller must free this */
-    if (-1 == asprintf(segname, "%s/%s-%s-%s-%d.%s", tmpdir, PACKAGE,
-                      mpi->hostname, usern, (int)getpid(), "bseg")) {
+    if (-1 == asprintf(segname, "%s/%s-%s-%s-%d-%d.%s", tmpdir, PACKAGE,
+                       mpi->hostname, usern, (int)getpid(), randn, "bseg")) {
         rc = QUO_ERR_OOR;
         goto out;
     }
