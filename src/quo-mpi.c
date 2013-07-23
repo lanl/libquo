@@ -701,7 +701,9 @@ quo_mpi_ranks_on_node(const quo_mpi_t *mpi,
 int
 quo_mpi_sm_barrier(const quo_mpi_t *mpi)
 {
+    int rc = 0;
     if (!mpi) return QUO_ERR_INVLD_ARG;
-    pthread_barrier_wait(&(mpi->bsegp->barrier));
+    rc = pthread_barrier_wait(&(mpi->bsegp->barrier));
+    if (PTHREAD_BARRIER_SERIAL_THREAD != rc && 0 != rc) return QUO_ERR_SYS;
     return QUO_SUCCESS;
 }
