@@ -539,7 +539,7 @@ sm_setup(quo_mpi_t *mpi)
         if (QUO_SUCCESS != (rc = bseg_create(mpi))) goto out;
     }
     /* sync */
-    if (MPI_SUCCESS != MPI_Barrier(mpi->commchan)) {
+    if (MPI_SUCCESS != MPI_Barrier(mpi->smpcomm)) {
         rc = QUO_ERR_MPI;
         goto out;
     }
@@ -548,7 +548,7 @@ sm_setup(quo_mpi_t *mpi)
         if (QUO_SUCCESS != (rc = bseg_attach(mpi))) goto out;
     }
     /* sync */
-    if (MPI_SUCCESS != MPI_Barrier(mpi->commchan)) {
+    if (MPI_SUCCESS != MPI_Barrier(mpi->smpcomm)) {
         rc = QUO_ERR_MPI;
         goto out;
     }
