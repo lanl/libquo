@@ -1,0 +1,84 @@
+#%Module
+# vi:set filetype=tcl:
+
+# local variables
+set name        [moduleName]
+set version     [moduleVersion]
+set machine     [machineName]
+
+# module whatis
+module-whatis   "QUO $version"
+
+conflict openmpi openmpi-intel openmpi-pgi openmpi-gcc
+
+# Determine what compiler we're using
+if { [info exists ::env(LCOMPILER) ] } {
+    set compiler    $::env(LCOMPILER)
+    set compilermajver $::env(LCOMPILERMAJVER)
+} else {
+    set compiler    gcc
+    set compilerver [ exec gcc --version | grep GCC | awk {{print $3}} ]
+    set compilermajver [ lindex [ split "$compilerver" "." ] 0 ].[ lindex [ split "$compilerver" "." ] 1 ]
+}
+
+set prefix /$machine/$name/$version-$compiler-$compilermajver
+
+if { ![file exists $prefix] } {
+    puts stderr "\n[module-info name]: $prefix: No such file or directory.\n"
+    break
+    exit 1
+}
+
+set bindir    $prefix/bin
+set incdir    $prefix/include
+set libdir    $prefix/lib
+set mandir    $prefix/share/man
+
+# module help
+proc ModulesHelp {  } {
+    global version compiler prefix incdir
+    puts stderr "\tQUO $version"
+}
+
+setenv         LMPI             $name
+setenv         LMPIVER          $version
+
+setenv         MPIHOME          $prefix
+setenv         MPI_NAME         $name
+setenv         MPI_VERSION      $version
+setenv         MPI_ROOT         $prefix
+
+prepend-path   PATH             $bindir
+
+# Do this for non-SLURM systems
+#  prepend-path   LD_LIBRARY_PATH   /opt/PBS/lib64
+prepend-path   LD_LIBRARY_PATH  $libdir
+prepend-path   CPATH            $incdir
+
+# Make sure we set things up so that mpicc, mpicxx, work
+# properly.
+if { [info exists ::env(CC) ] } {
+setenv      OMPI_CC             $env(CC)
+setenv      ORTE_CC             $env(CC)
+setenv      OPAL_CC             $env(CC)
+}
+if { [info exists ::env(CXX) ] } {
+setenv      OMPI_CXX            $env(CXX)
+setenv      ORTE_CXX            $env(CXX)
+setenv      OPAL_CXX            $env(CXX)
+}
+if { [info exists ::env(F77) ] } {
+setenv      OMPI_F77            $env(F77)
+}
+if { [info exists ::env(FC) ] } {
+setenv      OMPI_FC             $env(FC)
+}
+
+# Setting MANPATH is trickier - not every system sets it, nor
+# do a lot of users.  So we set it if it doesn't exist
+catch {set cur_manpath $env(MANPATH)}
+if { ![info exists cur_manpath] || ($cur_manpath == "") } {
+    setenv          MANPATH     $mandir:
+} else {
+    prepend-path    MANPATH     $mandir
+}

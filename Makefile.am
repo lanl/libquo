@@ -8,7 +8,8 @@ ACLOCAL_AMFLAGS = -Im4 -Isrc/hwloc/config
 SUBDIRS = \
 src \
 tests \
-demos
+demos \
+contrib
 
 EXTRA_DIST = \
 AUTHORS README THANKS COPYRIGHT autogen
