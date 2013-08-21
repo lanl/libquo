@@ -13,11 +13,11 @@ force=0
 # gnu m4
 m4_min_version_req="1.4.14"
 # gnu autoconf
-ac_min_version_req="2.65"
+ac_min_version_req="2.69"
 # gnu automake
-am_min_version_reg="1.11.1"
+am_min_version_reg="1.14"
 # gnu libtool
-lt_min_version_req="2.2.6b"
+lt_min_version_req="2.4.2"
 
 min_requirements=(  \
 $m4_min_version_req \
