@@ -5,7 +5,7 @@
 
 AC_PREREQ([2.60])
 
-AC_INIT([libquo], [1.0], [samuel@lanl.gov])
+AC_INIT([libquo], [1.1], [samuel@lanl.gov])
 
 # Check If AM_SILENT_RULES Rule Are Supported
 # If So, Build Using AM_SILENT_RULES
