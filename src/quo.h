@@ -160,23 +160,6 @@ int
 QUO_free(QUO_context q);
 
 /**
- * libquo context handle query routine.
- *
- * @param q - QUO_t context pointer. (IN)
- *
- * @param out_initialized - flag indicating whether or not the provided context
- *                          has been initialized.
- *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
- *
- * NOTES: can only be safely called if the provided context has been
- * constructed.
- */
-int
-QUO_initialized(const QUO_t *q,
-                int *out_initialized);
-
-/**
  * libquo context query routine that returns the number of ranks that are on the
  * caller's node and their corresponding MPI_COMM_WORLD ranks. the number and
  * returned array also include the calling rank's information.

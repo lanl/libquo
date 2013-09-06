@@ -124,16 +124,6 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_initialized(const QUO_t *q,
-                int *out_initialized)
-{
-    if (!out_initialized || !q) return QUO_ERR_INVLD_ARG;
-    *out_initialized = (int)q->initialized;
-    return QUO_SUCCESS;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
 QUO_free(QUO_t *q)
 {
     int nerrs = 0;

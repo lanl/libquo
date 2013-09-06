@@ -104,24 +104,6 @@ QUO_GENERATE_F77_BINDINGS(QUO_DESTRUCT,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
-quo_initialized_f(QUO_f_t *q,
-                  int *initialized,
-                  int *ierr)
-{
-    int cerr = QUO_initialized((QUO_t *)*q, initialized);
-    if (ierr) *ierr = cerr;
-}
-
-QUO_GENERATE_F77_BINDINGS(QUO_INITIALIZED,
-                          quo_initialized,
-                          quo_initialized_,
-                          quo_initialized__,
-                          quo_initialized_f,
-                          (QUO_f_t *q, int *initialized, int *ierr),
-                          (q, initialized, ierr))
-
-/* ////////////////////////////////////////////////////////////////////////// */
-void
 quo_ranks_on_node_f(QUO_f_t *q,
                     int *ranks,
                     int *ierr)
