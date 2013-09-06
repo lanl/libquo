@@ -414,13 +414,13 @@ QUO_bind_pop(QUO_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_ranks_on_node(const QUO_t *q,
-                  int *out_nranks,
-                  int **out_ranks)
+QUO_procs_on_machine(QUO_t *q,
+                     int *out_nprocs,
+                     int **out_qids)
 {
-    if (!q || !out_nranks || !out_ranks) return QUO_ERR_INVLD_ARG;
+    if (!q || !out_nprocs || !out_qids) return QUO_ERR_INVLD_ARG;
     noinit_action(q);
-    return quo_mpi_ranks_on_node(q->mpi, out_nranks, out_ranks);
+    return quo_mpi_ranks_on_node(q->mpi, out_nprocs, out_qids);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

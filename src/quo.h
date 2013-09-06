@@ -177,16 +177,16 @@ QUO_free(QUO_context q);
  * // ... //
  * int nnoderanks = 0;
  * int *noderanks = NULL;
- * if (QUO_SUCCESS != QUO_ranks_on_node(quo, &nnoderanks, &noderanks))
+ * if (QUO_SUCCESS != QUO_procs_on_machine(quo, &nnoderanks, &noderanks))
  *     // error handling //
  * }
  * // ... //
  * free(noderanks);
  */
 int
-QUO_ranks_on_node(const QUO_t *q,
-                  int *out_nranks,
-                  int **out_ranks);
+QUO_procs_on_machine(QUO_context q,
+                     int *out_nprocs,
+                     int **out_qids);
 
 /**
  * libquo query routine that returns a string that represents the system's

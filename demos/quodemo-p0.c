@@ -104,7 +104,7 @@ smpcomm_dup(context_t *c)
     MPI_Group world_group;
     MPI_Group smp_group;
     /* figure out what MPI_COMM_WORLD ranks share a node with me */
-    if (QUO_SUCCESS != QUO_ranks_on_node(c->quo, &nnoderanks, &ranks)) return 1;
+    if (QUO_SUCCESS != QUO_procs_on_machine(c->quo, &nnoderanks, &ranks)) return 1;
     if (MPI_SUCCESS != MPI_Comm_group(MPI_COMM_WORLD, &world_group)) {
         rc = QUO_ERR_MPI;
         goto out;

@@ -109,7 +109,7 @@ quo_ranks_on_node_f(QUO_f_t *q,
                     int *ierr)
 {
     int *tmpranks = NULL, tmpnranks = 0;
-    int cerr = QUO_ranks_on_node((QUO_t *)*q, &tmpnranks, &tmpranks);
+    int cerr = QUO_procs_on_machine((QUO_t *)*q, &tmpnranks, &tmpranks);
     if (ierr) *ierr = cerr;
     if (QUO_SUCCESS != cerr) return;
     /* copy the data into the given ranks array */
