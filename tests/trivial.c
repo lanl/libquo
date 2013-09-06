@@ -22,8 +22,7 @@ main(int argc, char **argv)
 
     assert(MPI_SUCCESS == MPI_Init(&argc, &argv));
     assert(QUO_SUCCESS == QUO_create(&q));
-    assert(QUO_SUCCESS == QUO_finalize(q));
-    assert(QUO_SUCCESS == QUO_destruct(q));
+    assert(QUO_SUCCESS == QUO_free(q));
     assert(MPI_SUCCESS == MPI_Finalize());
     return EXIT_SUCCESS;
 }

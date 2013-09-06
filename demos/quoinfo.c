@@ -135,12 +135,8 @@ main(void)
         bad_func = "QUO_bound";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = QUO_finalize(quo))) {
-        bad_func = "QUO_finalize";
-        goto out;
-    }
-    if (QUO_SUCCESS != (qrc = QUO_destruct(quo))) {
-        bad_func = "QUO_destruct";
+    if (QUO_SUCCESS != (qrc = QUO_free(quo))) {
+        bad_func = "QUO_free";
         goto out;
     }
     printf("### quo version: %d.%d ###\n", qv, qsv);

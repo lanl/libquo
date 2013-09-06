@@ -132,31 +132,9 @@ QUO_version(int *version,
  *     // error handling //
  * }
  */
+/* XXX Add MPI Comm */
 int
 QUO_create(QUO_context *q);
-
-/**
- * libquo context handle finalization routine.
- *
- * @param q - constructed QUO_t context pointer. (IN)
- *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
- *
- * NOTES: this is typically the second to the last "real" call into the library.
- * a relatively inexpensive routine that must be called BEFORE MPI_Finalize.
- * call QUO_finalize to "finalize" all services that were started with QUO_init.
- * once a call to this routine is made, it is an error to use any libquo
- * services associated with the finalized libquo context from any other
- * process with the same active quo context.
- *
- * EXAMPLE (c):
- * // ... //
- * if (QUO_SUCCESS != QUO_finalize(quo)) {
- *     // error handling //
- * }
- */
-int
-QUO_finalize(QUO_t *q);
 
 /**
  * libquo context handle destruction routine.
@@ -179,7 +157,7 @@ QUO_finalize(QUO_t *q);
  * }
  */
 int
-QUO_destruct(QUO_t *q);
+QUO_free(QUO_context q);
 
 /**
  * libquo context handle query routine.

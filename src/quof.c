@@ -73,7 +73,7 @@ void
 quo_finalize_f(QUO_f_t *q,
                int *ierr)
 {
-    int cerr = QUO_finalize((QUO_t *)*q);
+    int cerr = 0; 
     if (ierr) *ierr = cerr;
 }
 
@@ -90,7 +90,7 @@ void
 quo_destruct_f(QUO_f_t *q,
                int *ierr)
 {
-    int cerr = QUO_destruct((QUO_t *)*q);
+    int cerr = 0; 
     if (ierr) *ierr = cerr;
 }
 

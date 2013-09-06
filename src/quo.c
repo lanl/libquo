@@ -92,7 +92,7 @@ construct_quoc(QUO_t **q)
     newq->pid = getpid();
 out:
     if (QUO_SUCCESS != qrc) {
-        QUO_destruct(newq);
+        QUO_free(newq);
         *q = NULL;
     }
     *q = newq;
@@ -134,11 +134,12 @@ QUO_initialized(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_destruct(QUO_t *q)
+QUO_free(QUO_t *q)
 {
     int nerrs = 0;
-    if (!q) return QUO_ERR_INVLD_ARG;
-    /* we can call destruct before init. useful in error paths. */
+    /* okay to pass NULL here. just return success */
+    if (!q) return QUO_SUCCESS;
+    /* we can call free before init. useful in error paths. */
     if (q->hwloc) {
         if (QUO_SUCCESS != quo_hwloc_destruct(q->hwloc)) nerrs++;
     }
@@ -147,17 +148,6 @@ QUO_destruct(QUO_t *q)
     }
     free(q);
     return nerrs == 0 ? QUO_SUCCESS : QUO_ERR;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-QUO_finalize(QUO_t *q)
-{
-    if (!q) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
-    /* nothing really to do here at this point, but we may need this routine at
-     * some point so keep it around. */
-    return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

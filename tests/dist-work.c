@@ -158,8 +158,7 @@ main(int argc, char **argv)
         tsync(&info);
     }
 done:
-    assert(QUO_SUCCESS == QUO_finalize(info.q));
-    assert(QUO_SUCCESS == QUO_destruct(info.q));
+    assert(QUO_SUCCESS == QUO_free(info.q));
     assert(MPI_SUCCESS == MPI_Finalize());
     return rc;
 }
