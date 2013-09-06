@@ -13,7 +13,7 @@
 #endif
 
 /* library version */
-#define QUO_VER    1
+#define QUO_VER    2
 #define QUO_SUBVER 0
 
 /* ////////////////////////////////////////////////////////////////////////// */
