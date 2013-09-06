@@ -68,36 +68,8 @@ QUO_version(int *version,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-int
-QUO_init(QUO_t *q)
-{
-    int rc = QUO_ERR;
-    if (!q) return QUO_ERR_INVLD_ARG;
-    /* if this context is already initialized, then just return success */
-    if (q->initialized) return QUO_SUCCESS_ALREADY_DONE;
-    /* else init the context */
-    if (QUO_SUCCESS != (rc = quo_mpi_init(q->mpi))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
-                "quo_mpi_init", PACKAGE);
-        return rc;
-    }
-    q->initialized = true;
-    return QUO_SUCCESS;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-QUO_initialized(const QUO_t *q,
-                int *out_initialized)
-{
-    if (!out_initialized || !q) return QUO_ERR_INVLD_ARG;
-    *out_initialized = (int)q->initialized;
-    return QUO_SUCCESS;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-QUO_construct(QUO_t **q)
+static int
+construct_quoc(QUO_t **q)
 {
     int qrc = QUO_SUCCESS;
     QUO_t *newq = NULL;
@@ -125,6 +97,39 @@ out:
     }
     *q = newq;
     return qrc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_create(QUO_t **q)
+{
+    int rc = QUO_ERR;
+    QUO_t *tq = NULL;
+
+    if (!q) return QUO_ERR_INVLD_ARG;
+    /* construct a new context */
+    if (QUO_SUCCESS != (rc = construct_quoc(&tq))) goto out;
+    /* init the context */
+    if (QUO_SUCCESS != (rc = quo_mpi_init(tq->mpi))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
+                "quo_mpi_init", PACKAGE);
+        goto out;
+    }
+    tq->initialized = true;
+out:
+    if (QUO_SUCCESS != rc) *q = NULL;
+    else *q = tq;
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_initialized(const QUO_t *q,
+                int *out_initialized)
+{
+    if (!out_initialized || !q) return QUO_ERR_INVLD_ARG;
+    *out_initialized = (int)q->initialized;
+    return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

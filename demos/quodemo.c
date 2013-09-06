@@ -58,9 +58,9 @@ typedef struct context_t {
     char *cbindstr;
     /* flag indicating whether or not we are initially bound */
     int bound;
-    /* a pointer to our quo context (the thing that gets passed around all over
-     * the place). filler words that make this comment line look mo better... */
-    QUO_t *quo;
+    /* our quo context (the thing that gets passed around all over the place).
+     * filler words that make this comment line look mo better... */
+    QUO_context quo;
 } context_t;
 
 /**
@@ -107,12 +107,10 @@ init(context_t **c)
     if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(newc->rank))) goto err;
     /* can be called at any point -- even before init and construct. */
     if (QUO_SUCCESS != QUO_version(&(newc->qv), &(newc->qsv))) goto err;
-    /* cheap call -- must be called before init. */
-    if (QUO_SUCCESS != QUO_construct(&(newc->quo))) goto err;
     /* relatively expensive call. you only really want to do this once at the
      * beginning of time and pass the context all over the place within your
      * code. */
-    if (QUO_SUCCESS != QUO_init(newc->quo)) goto err;
+    if (QUO_SUCCESS != QUO_create(&newc->quo)) goto err;
     newc->mpi_inited = true;
     *c = newc;
     return 0;

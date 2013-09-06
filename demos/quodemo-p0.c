@@ -77,15 +77,11 @@ init(context_t **c)
 
     /* can be called at any point -- even before init and construct. */
     if (QUO_SUCCESS != QUO_version(&(newc->qv), &(newc->qsv))) goto err;
-    /* cheap call -- must be called before init. */
-    if (QUO_SUCCESS != QUO_construct(&(newc->quo))) goto err;
     /* relatively expensive call. you only really want to do this once at the
      * beginning of time and pass the context all over the place within your
-     * code. that being said, this routine can be called, from within the same
-     * quo context, multiple times. the first time is expensive, the others just
-     * return QUO_SUCCESS_ALREADY_DONE if someone else already initialized the
-     * quo context. */
-    if (QUO_SUCCESS != QUO_init(newc->quo)) goto err;
+     * code.
+     */
+    if (QUO_SUCCESS != QUO_create(&newc->quo)) goto err;
     /* mpi initialized at this point */
     newc->mpi_inited = true;
     /* return pointer to allocated resources */

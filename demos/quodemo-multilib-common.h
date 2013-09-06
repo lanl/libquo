@@ -60,7 +60,7 @@ typedef struct context_t {
     int size_smp_comm;
     /* a pointer to our quo context (the thing that gets passed around all over
      * the place). filler words that make this comment line look mo better... */
-    QUO_t *quo;
+    QUO_context quo;
 } context_t;
 
 

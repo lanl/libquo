@@ -61,7 +61,7 @@ main(void)
     char *bad_func = NULL;
     char *topostr = NULL, *cbindstr = NULL, *cbindstr2 = NULL, *cbindstr3 = NULL;
     int bound = 0, bound2 = 0, bound3 = 0;
-    QUO_t *quo = NULL;
+    QUO_context quo = NULL;
     inf_t info;
 
     if (init(&info)) {
@@ -73,13 +73,8 @@ main(void)
         goto out;
     }
     /* cheap call */
-    if (QUO_SUCCESS != (qrc = QUO_construct(&quo))) {
-        bad_func = "QUO_construct";
-        goto out;
-    }
-    /* relatively expensive call */
-    if (QUO_SUCCESS != (qrc = QUO_init(quo))) {
-        bad_func = "QUO_init";
+    if (QUO_SUCCESS != (qrc = QUO_create(&quo))) {
+        bad_func = "QUO_create";
         goto out;
     }
     if (QUO_SUCCESS != (qrc = QUO_node_topo_stringify(quo, &topostr))) {

@@ -36,7 +36,8 @@ quo_construct_f(QUO_f_t *q,
                 int *ierr)
 {
     QUO_t *context = NULL;
-    int cerr = QUO_construct(&context);
+    int cerr = QUO_ERR_NOT_FOUND;
+    //int cerr = QUO_construct(&context);
     *q = (QUO_f_t)context;
     if (ierr) *ierr = cerr;
 }
@@ -54,7 +55,8 @@ void
 quo_init_f(QUO_f_t *q,
            int *ierr)
 {
-    int cerr = QUO_init((QUO_t *)*q);
+    int cerr = QUO_ERR_NOT_FOUND;
+    //int cerr = QUO_init((QUO_t *)*q);
     if (ierr) *ierr = cerr;
 }
 

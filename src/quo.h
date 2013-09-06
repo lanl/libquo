@@ -16,6 +16,8 @@ extern "C" {
 /** opaque quo context */
 struct QUO_t;
 typedef struct QUO_t QUO_t;
+/* external QUO context type */
+typedef QUO_t * QUO_context;
 
 /** quo return codes */
 /**
@@ -109,17 +111,15 @@ QUO_version(int *version,
  *     // error handling //
  * }
  */
-int
-QUO_construct(QUO_t **q);
 
 /**
- * libquo context handle initialization routine.
+ * libquo context handle creation routine.
  *
  * @param q - constructed QUO_t context pointer. (IN)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
- * NOTES: this is typically the second "real" call into the library. a
+ * NOTES: this is typically the first "real" call into the library. a
  * relatively EXPENSIVE routine that must be called after MPI_Init. call
  * QUO_finalize to "finalize" all services that were started with this call. ALL
  * participating processes (i.e. everyone in MPI_COMM_WORLD) must call this
@@ -133,7 +133,7 @@ QUO_construct(QUO_t **q);
  * }
  */
 int
-QUO_init(QUO_t *q);
+QUO_create(QUO_context *q);
 
 /**
  * libquo context handle finalization routine.

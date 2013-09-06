@@ -18,11 +18,10 @@
 int
 main(int argc, char **argv)
 {
-    QUO_t *q = NULL;
+    QUO_context q = NULL;
 
     assert(MPI_SUCCESS == MPI_Init(&argc, &argv));
-    assert(QUO_SUCCESS == QUO_construct(&q));
-    assert(QUO_SUCCESS == QUO_init(q));
+    assert(QUO_SUCCESS == QUO_create(&q));
     assert(QUO_SUCCESS == QUO_finalize(q));
     assert(QUO_SUCCESS == QUO_destruct(q));
     assert(MPI_SUCCESS == MPI_Finalize());
