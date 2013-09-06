@@ -142,8 +142,8 @@ QUO_free(QUO_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_node_topo_stringify(QUO_t *q,
-                        char **out_str)
+QUO_machine_topo_stringify(QUO_t *q,
+                           char **out_str)
 {
     if (!q || !out_str) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */

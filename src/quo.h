@@ -183,6 +183,8 @@ QUO_free(QUO_context q);
  * // ... //
  * free(noderanks);
  */
+
+/* XXX update name again... maybe to nprocs because it is based on a comm! */
 int
 QUO_procs_on_machine(QUO_context q,
                      int *out_nprocs,
@@ -202,15 +204,15 @@ QUO_procs_on_machine(QUO_context q,
  * EXAMPLE (c):
  * // ... //
  * char *topostr = NULL;
- * if (QUO_SUCCESS != QUO_node_topo_stringify(q, &topostr)) {
+ * if (QUO_SUCCESS != QUO_machine_topo_stringify(q, &topostr)) {
  *     // error handling //
  * }
  * printf("%s\n", topostr);
  * free(topostr);
  */
 int
-QUO_node_topo_stringify(QUO_context q,
-                        char **out_str);
+QUO_machine_topo_stringify(QUO_context q,
+                           char **out_str);
 
 /**
  * libquo context query routine that returns the total number of hardware

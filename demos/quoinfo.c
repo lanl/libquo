@@ -77,7 +77,7 @@ main(void)
         bad_func = "QUO_create";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = QUO_node_topo_stringify(quo, &topostr))) {
+    if (QUO_SUCCESS != (qrc = QUO_machine_topo_stringify(quo, &topostr))) {
         bad_func = "QUO_node_topo_emit";
         goto out;
     }
@@ -152,7 +152,7 @@ main(void)
     printf("### process %d [%s] bound: %s\n",
            (int)getpid(), cbindstr3, bound3 ? "true" : "false");
     printf("### begin system topology\n%s###end system topology\n", topostr);
-    /* the string returned by QUO_node_topo_stringify MUST be free'd by us */
+    /* the string returned by QUO_machine_topo_stringify MUST be free'd by us */
     free(topostr);
     free(cbindstr);
     free(cbindstr2);
