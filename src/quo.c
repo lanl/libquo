@@ -353,7 +353,7 @@ QUO_bound(QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_stringify_cbind(const QUO_t *q,
+QUO_stringify_cbind(QUO_t *q,
                     char **cbind_str)
 {
     if (!q || !cbind_str) return QUO_ERR_INVLD_ARG;

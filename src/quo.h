@@ -516,7 +516,7 @@ QUO_bound(QUO_context q,
  * free(cbindstr);
  */
 int
-QUO_stringify_cbind(const QUO_t *q,
+QUO_stringify_cbind(QUO_context q,
                     char **cbind_str);
 
 
@@ -567,7 +567,7 @@ QUO_stringify_cbind(const QUO_t *q,
  * // ... //
  */
 int
-QUO_bind_push(QUO_t *q,
+QUO_bind_push(QUO_context q,
               QUO_bind_push_policy_t policy,
               QUO_obj_type_t type,
               int obj_index);
@@ -594,11 +594,11 @@ QUO_bind_push(QUO_t *q,
  * // ... //
  */
 int
-QUO_bind_pop(QUO_t *q);
+QUO_bind_pop(QUO_context q);
 
 
 int
-QUO_node_barrier(QUO_t *q);
+QUO_node_barrier(QUO_context q);
 
 /**
  * TODO
@@ -612,7 +612,7 @@ QUO_node_barrier(QUO_t *q);
  */
 
 int
-QUO_dist_work_member(QUO_t *q,
+QUO_dist_work_member(QUO_context q,
                      QUO_obj_type_t distrib_over_this,
                      int max_members_per_res_type,
                      int *out_am_member);
