@@ -142,7 +142,7 @@ QUO_free(QUO_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_node_topo_stringify(const QUO_t *q,
+QUO_node_topo_stringify(QUO_t *q,
                         char **out_str)
 {
     if (!q || !out_str) return QUO_ERR_INVLD_ARG;
@@ -153,7 +153,7 @@ QUO_node_topo_stringify(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_get_nobjs_in_type_by_type(const QUO_t *q,
+QUO_get_nobjs_in_type_by_type(QUO_t *q,
                               QUO_obj_type_t in_type,
                               int in_type_index,
                               QUO_obj_type_t type,
@@ -171,7 +171,7 @@ QUO_get_nobjs_in_type_by_type(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_cur_cpuset_in_type(const QUO_t *q,
+QUO_cur_cpuset_in_type(QUO_t *q,
                        QUO_obj_type_t type,
                        int in_type_index,
                        int *out_result)
@@ -280,7 +280,7 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_get_nobjs_by_type(const QUO_t *q,
+QUO_get_nobjs_by_type(QUO_t *q,
                       QUO_obj_type_t target_type,
                       int *out_nobjs)
 {
@@ -292,7 +292,7 @@ QUO_get_nobjs_by_type(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_nnumanodes(const QUO_t *q,
+QUO_nnumanodes(QUO_t *q,
                int *out_nnumanodes)
 {
     if (!q || !out_nnumanodes) return QUO_ERR_INVLD_ARG;
@@ -303,7 +303,7 @@ QUO_nnumanodes(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_nsockets(const QUO_t *q,
+QUO_nsockets(QUO_t *q,
              int *out_nsockets)
 {
     if (!q || !out_nsockets) return QUO_ERR_INVLD_ARG;
@@ -314,7 +314,7 @@ QUO_nsockets(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_ncores(const QUO_t *q,
+QUO_ncores(QUO_t *q,
            int *out_ncores)
 {
     if (!q || !out_ncores) return QUO_ERR_INVLD_ARG;
@@ -325,7 +325,7 @@ QUO_ncores(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_npus(const QUO_t *q,
+QUO_npus(QUO_t *q,
          int *out_npus)
 {
     /* make sure we are initialized before we continue */
@@ -336,7 +336,7 @@ QUO_npus(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_bound(const QUO_t *q,
+QUO_bound(QUO_t *q,
           int *bound)
 {
     int rc = QUO_ERR;
@@ -434,7 +434,7 @@ QUO_node_barrier(QUO_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_dist_work_member(const QUO_t *q,
+QUO_dist_work_member(QUO_t *q,
                      QUO_obj_type_t distrib_over_this,
                      int max_members_per_res_type,
                      int *out_am_member)

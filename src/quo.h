@@ -209,7 +209,7 @@ QUO_ranks_on_node(const QUO_t *q,
  * free(topostr);
  */
 int
-QUO_node_topo_stringify(const QUO_t *q,
+QUO_node_topo_stringify(QUO_context q,
                         char **out_str);
 
 /**
@@ -233,7 +233,7 @@ QUO_node_topo_stringify(const QUO_t *q,
  * }
  */
 int
-QUO_get_nobjs_by_type(const QUO_t *q,
+QUO_get_nobjs_by_type(QUO_context q,
                       QUO_obj_type_t target_type,
                       int *out_nobjs);
 
@@ -265,7 +265,7 @@ QUO_get_nobjs_by_type(const QUO_t *q,
  * }
  */
 int
-QUO_get_nobjs_in_type_by_type(const QUO_t *q,
+QUO_get_nobjs_in_type_by_type(QUO_context q,
                               QUO_obj_type_t in_type,
                               int in_type_index,
                               QUO_obj_type_t type,
@@ -298,7 +298,7 @@ QUO_get_nobjs_in_type_by_type(const QUO_t *q,
  * }
  */
 int
-QUO_cur_cpuset_in_type(const QUO_t *q,
+QUO_cur_cpuset_in_type(QUO_context q,
                        QUO_obj_type_t type,
                        int in_type_index,
                        int *out_result);
@@ -392,7 +392,7 @@ QUO_smpranks_in_type(const QUO_t *q,
  * // ... //
  */
 int
-QUO_nnumanodes(const QUO_t *q,
+QUO_nnumanodes(QUO_context q,
                int *out_nnumanodes);
 
 /**
@@ -400,7 +400,7 @@ QUO_nnumanodes(const QUO_t *q,
  * the caller's system.
  */
 int
-QUO_nsockets(const QUO_t *q,
+QUO_nsockets(QUO_context q,
              int *out_nsockets);
 
 /**
@@ -408,7 +408,7 @@ QUO_nsockets(const QUO_t *q,
  * the caller's system.
  */
 int
-QUO_ncores(const QUO_t *q,
+QUO_ncores(QUO_context q,
            int *out_ncores);
 
 /**
@@ -416,7 +416,7 @@ QUO_ncores(const QUO_t *q,
  * (PUs) (e.g. hardware threads) present on the caller's system.
  */
 int
-QUO_npus(const QUO_t *q,
+QUO_npus(QUO_context q,
          int *out_npus);
 
 /**
@@ -492,7 +492,7 @@ QUO_noderank(const QUO_t *q,
  */
 
 int
-QUO_bound(const QUO_t *q,
+QUO_bound(QUO_context q,
           int *bound);
 
 /**
@@ -612,7 +612,7 @@ QUO_node_barrier(QUO_t *q);
  */
 
 int
-QUO_dist_work_member(const QUO_t *q,
+QUO_dist_work_member(QUO_t *q,
                      QUO_obj_type_t distrib_over_this,
                      int max_members_per_res_type,
                      int *out_am_member);

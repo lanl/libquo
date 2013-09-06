@@ -34,16 +34,6 @@ subroutine QM_INIT(quoc)
         print *, 'QUO_INIT failure: err = ', qerr
         stop
     end if
-    ! exercise the interface by checking if the context is initialized.
-    call QUO_INITIALIZED(quoc, initialized, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_INITIALIZED failure: err = ', qerr
-        stop
-    end if
-    ! how did this happen?
-    if (initialized .NE. 1) then
-        print *, '### libquo is not initialized. stopping'
-    end if
     return
 end subroutine QM_INIT
 
