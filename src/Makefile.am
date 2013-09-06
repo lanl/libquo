@@ -80,5 +80,5 @@ libquo_la_CFLAGS =
 # by changing the API to access the structures at a lower level, which breaks
 # compatibility with the previous interface, so you release it as -version-info
 # 2:0:0. This release has a new, but backwards incompatible interface.
-libquo_la_LDFLAGS = -version-info 1:0:0
+libquo_la_LDFLAGS = -version-info 2:0:0
 libquo_la_LIBADD   = $(HWLOC_EMBEDDED_LDADD) $(HWLOC_EMBEDDED_LIBS)
