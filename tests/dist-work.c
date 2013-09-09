@@ -24,7 +24,7 @@
 #include "mpi.h"
 
 /**
- * this code tests the QUO_dist_work_member routine.
+ * this code tests the QUO_auto_distrib routine.
  */
 
 typedef struct info_t {
@@ -117,8 +117,8 @@ main(int argc, char **argv)
     assert(QUO_SUCCESS == QUO_create(&info.q));
     assert(MPI_SUCCESS == MPI_Comm_size(MPI_COMM_WORLD, &info.nranks));
     assert(MPI_SUCCESS == MPI_Comm_rank(MPI_COMM_WORLD, &info.rank));
-    assert(QUO_SUCCESS == QUO_noderank(info.q, &info.noderank));
-    assert(QUO_SUCCESS == QUO_nnoderanks(info.q, &info.nnoderanks));
+    assert(QUO_SUCCESS == QUO_id(info.q, &info.noderank));
+    assert(QUO_SUCCESS == QUO_nqids(info.q, &info.nnoderanks));
     assert(QUO_SUCCESS == QUO_nnumanodes(info.q, &nres));
     assert(QUO_SUCCESS == QUO_ncores(info.q, &info.ncores));
     setbuf(stdout, NULL);
@@ -149,7 +149,7 @@ main(int argc, char **argv)
         binds[i].bfp(&info);
         emit_bind(&info);
         tsync(&info);
-        assert(QUO_SUCCESS == QUO_dist_work_member(info.q, info.tres,
+        assert(QUO_SUCCESS == QUO_auto_distrib(info.q, info.tres,
                                                    max_members_per_res,
                                                    &work_member));
         printf("*** rank %d work member: %d\n", info.rank, work_member);

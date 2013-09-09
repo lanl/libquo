@@ -39,7 +39,6 @@ fini(context_t *c)
     if (QUO_SUCCESS != QUO_free(c->quo)) return 1;
     /* finalize mpi AFTER QUO_free - we may mpi in our free */
     if (c->mpi_inited) {
-        MPI_Comm_free(&c->smp_comm);
         MPI_Finalize();
     }
     if (c->cbindstr) free(c->cbindstr);
@@ -91,47 +90,6 @@ err:
 }
 
 /**
- * creates our own copy of the smp comm. can safely be called after quo has been
- * successfully initialized. this is used as a communication channel for
- * intra-node messages.
- */
-static int
-smpcomm_dup(context_t *c)
-{
-    int rc = QUO_SUCCESS;
-    int nnoderanks = 0;
-    int *ranks = NULL;
-    MPI_Group world_group;
-    MPI_Group smp_group;
-    /* figure out what MPI_COMM_WORLD ranks share a node with me */
-    if (QUO_SUCCESS != QUO_procs_on_machine(c->quo, &nnoderanks, &ranks)) return 1;
-    if (MPI_SUCCESS != MPI_Comm_group(MPI_COMM_WORLD, &world_group)) {
-        rc = QUO_ERR_MPI;
-        goto out;
-    }
-    if (MPI_SUCCESS != MPI_Group_incl(world_group, nnoderanks,
-                                      ranks, &smp_group)) {
-        rc = QUO_ERR_MPI;
-        goto out;
-    }
-    if (MPI_SUCCESS != MPI_Comm_create(MPI_COMM_WORLD,
-                                       smp_group,
-                                       &(c->smp_comm))) {
-        rc = QUO_ERR_MPI;
-        goto out;
-    }
-out:
-    if (ranks) free(ranks);
-    if (MPI_SUCCESS != MPI_Group_free(&world_group)) {
-        return 1;
-    }
-    if (MPI_SUCCESS != MPI_Group_free(&smp_group)) {
-        return 1;
-    }
-    return (QUO_SUCCESS == rc) ? 0 : 1;
-}
-
-/**
  * gather system and job info from libquo.
  */
 static int
@@ -141,15 +99,15 @@ sys_grok(context_t *c)
 
     /* this interface is more powerful, but the other n* calls can be more
      * convenient. at any rate, this is an example of the
-     * QUO_get_nobjs_in_type_by_type interface to get the number of sockets on
+     * QUO_nobjs_in_type_by_type interface to get the number of sockets on
      * the machine. note: you can also use the QUO_nsockets or
-     * QUO_get_nobjs_by_type to get the same info. */
-    if (QUO_SUCCESS != QUO_get_nobjs_in_type_by_type(c->quo,
+     * QUO_nobjs_by_type to get the same info. */
+    if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(c->quo,
                                                      QUO_OBJ_MACHINE,
                                                      0,
                                                      QUO_OBJ_SOCKET,
                                                      &c->nsockets)) {
-        bad_func = "QUO_get_nobjs_in_type_by_type";
+        bad_func = "QUO_nobjs_in_type_by_type";
         goto out;
     }
     if (QUO_SUCCESS != QUO_ncores(c->quo, &c->ncores)) {
@@ -172,12 +130,12 @@ sys_grok(context_t *c)
         bad_func = "QUO_nnodes";
         goto out;
     }
-    if (QUO_SUCCESS != QUO_nnoderanks(c->quo, &c->nnoderanks)) {
-        bad_func = "QUO_nnoderanks";
+    if (QUO_SUCCESS != QUO_nqids(c->quo, &c->nnoderanks)) {
+        bad_func = "QUO_nqids";
         goto out;
     }
-    if (QUO_SUCCESS != QUO_noderank(c->quo, &c->noderank)) {
-        bad_func = "QUO_noderank";
+    if (QUO_SUCCESS != QUO_id(c->quo, &c->noderank)) {
+        bad_func = "QUO_id";
         goto out;
     }
     /* for NUMA nodes */
@@ -254,7 +212,7 @@ get_p1pes(context_t *c,
     }
     /* grab the smp ranks (node ranks) that are in each socket */
     for (int socket = 0; socket < c->nsockets; ++socket) {
-        rc = QUO_smpranks_in_type(c->quo,
+        rc = QUO_qids_in_type(c->quo,
                                   QUO_OBJ_SOCKET,
                                   socket,
                                   &(nranks_bound_to_socket[socket]),
@@ -339,7 +297,7 @@ get_p1pes(context_t *c,
     *workers = worker_ranks;
     demo_emit_sync(c);
 out:
-    /* the resources returned by QUO_smpranks_in_type must be freed by us */
+    /* the resources returned by QUO_qids_in_type must be freed by us */
     for (int i = 0; i < c->nsockets; ++i) {
         if (rank_ids_bound_to_socket[i]) free(rank_ids_bound_to_socket[i]);
     }
@@ -374,8 +332,8 @@ get_p1pes(context_t *c,
 
     /* let quo distribute workers over the sockets. if p1pe_worker is 1 after
      * this call, then i have been chosen. */
-    if (QUO_SUCCESS != QUO_dist_work_member(c->quo, QUO_OBJ_SOCKET,
-                                            2, &res_assigned)) {
+    if (QUO_SUCCESS != QUO_auto_distrib(c->quo, QUO_OBJ_SOCKET,
+                                        2, &res_assigned)) {
         return 1;
     }
     /* array that hold whether or not a particular rank is going to do work */
@@ -449,13 +407,6 @@ main(void)
         bad_func = "sys_grok";
         goto out;
     }
-    /* "dup" the smp (node) communicator so we can use that as a node
-     * communicator for messages that don't need to leave the node. not really
-     * used in this example code, but is here as an example. */
-    if (smpcomm_dup(context)) {
-        bad_func = "smpcomm_dup";
-        goto out;
-    }
     /* show some info that we got about our nodes - one per node */
     if (emit_node_basics(context)) {
         bad_func = "emit_node_basics";
@@ -493,15 +444,15 @@ main(void)
             goto out;
         }
         /* signals completion within p1 */
-        if (QUO_SUCCESS != QUO_node_barrier(context->quo)) {
-            bad_func = "QUO_node_barrier";
+        if (QUO_SUCCESS != QUO_barrier(context->quo)) {
+            bad_func = "QUO_barrier";
             goto out;
         }
     }
     else {
         /* non p1pes wait in a barrier */
-        if (QUO_SUCCESS != QUO_node_barrier(context->quo)) {
-            bad_func = "QUO_node_barrier";
+        if (QUO_SUCCESS != QUO_barrier(context->quo)) {
+            bad_func = "QUO_barrier";
             goto out;
         }
     }

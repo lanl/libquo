@@ -104,37 +104,12 @@ QUO_GENERATE_F77_BINDINGS(QUO_DESTRUCT,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 void
-quo_ranks_on_node_f(QUO_f_t *q,
-                    int *ranks,
-                    int *ierr)
-{
-    int *tmpranks = NULL, tmpnranks = 0;
-    int cerr = QUO_procs_on_machine((QUO_t *)*q, &tmpnranks, &tmpranks);
-    if (ierr) *ierr = cerr;
-    if (QUO_SUCCESS != cerr) return;
-    /* copy the data into the given ranks array */
-    for (int rank = 0; rank < tmpnranks; ++rank) {
-        ranks[rank] = tmpranks[rank];
-    }
-    free(tmpranks); tmpranks = NULL;
-}
-
-QUO_GENERATE_F77_BINDINGS(QUO_RANKS_ON_NODE,
-                          quo_ranks_on_node,
-                          quo_ranks_on_node_,
-                          quo_ranks_on_node__,
-                          quo_ranks_on_node_f,
-                          (QUO_f_t *q, int *ranks, int *ierr),
-                          (q, ranks, ierr))
-
-/* ////////////////////////////////////////////////////////////////////////// */
-void
 quo_get_nobjs_by_type_f(const QUO_f_t *q,
                         int *target_type,
                         int *nobjs,
                         int *ierr)
 {
-    int cerr = QUO_get_nobjs_by_type((QUO_t *)*q,
+    int cerr = QUO_nobjs_by_type((QUO_t *)*q,
                                      (QUO_obj_type_t)*target_type,
                                      nobjs);
     if (ierr) *ierr = cerr;
@@ -157,7 +132,7 @@ quo_get_nobjs_in_type_by_type_f(const QUO_f_t *q,
                                 int *result,
                                 int *ierr)
 {
-    int cerr = QUO_get_nobjs_in_type_by_type((QUO_t *)*q,
+    int cerr = QUO_nobjs_in_type_by_type((QUO_t *)*q,
                                              (QUO_obj_type_t)*in_type,
                                              *in_type_index,
                                              (QUO_obj_type_t)*type,
@@ -182,7 +157,7 @@ quo_cur_cpuset_in_type_f(QUO_f_t *q,
                          int *out_result,
                          int *ierr)
 {
-    int cerr = QUO_cur_cpuset_in_type((QUO_t *)*q,
+    int cerr = QUO_cpuset_in_type((QUO_t *)*q,
                                       (QUO_obj_type_t)*type,
                                       *in_type_index,
                                       out_result);
@@ -206,7 +181,7 @@ quo_nsmpranks_in_type_f(const QUO_f_t *q,
                         int *n_out_smpranks,
                         int *ierr)
 {
-    int cerr = QUO_nsmpranks_in_type((QUO_t *)*q,
+    int cerr = QUO_nmachine_procs_in_type((QUO_t *)*q,
                                      (QUO_obj_type_t)*type,
                                      *in_type_index,
                                      n_out_smpranks);
@@ -231,7 +206,7 @@ quo_smpranks_in_type_f(const QUO_f_t *q,
                         int *ierr)
 {
     int *tmpranks = NULL, nranks = 0;
-    int cerr = QUO_smpranks_in_type((QUO_t *)*q,
+    int cerr = QUO_qids_in_type((QUO_t *)*q,
                                     (QUO_obj_type_t)*type,
                                     *in_type_index,
                                     &nranks,
@@ -350,7 +325,7 @@ quo_nnoderanks_f(QUO_f_t *q,
                  int *n,
                  int *ierr)
 {
-    int cerr = QUO_nnoderanks((QUO_t *)*q, n);
+    int cerr = QUO_nqids((QUO_t *)*q, n);
     if (ierr) *ierr = cerr;
 }
 
@@ -368,7 +343,7 @@ quo_noderank_f(QUO_f_t *q,
                int *n,
                int *ierr)
 {
-    int cerr = QUO_noderank((QUO_t *)*q, n);
+    int cerr = QUO_id((QUO_t *)*q, n);
     if (ierr) *ierr = cerr;
 }
 
@@ -466,7 +441,7 @@ void
 quo_node_barrier_f(QUO_f_t *q,
                    int *ierr)
 {
-    int cerr = QUO_node_barrier((QUO_t *)*q);
+    int cerr = QUO_barrier((QUO_t *)*q);
     if (ierr) *ierr = cerr;
 }
 
@@ -487,7 +462,7 @@ quo_dist_work_member_f(QUO_f_t *q,
                      int *out_am_member,
                      int *ierr)
 {
-    int cerr = QUO_dist_work_member((QUO_t *)*q,
+    int cerr = QUO_auto_distrib((QUO_t *)*q,
                                     (QUO_obj_type_t)*distrib_over_this_type,
                                     *max_members_per_res_type,
                                     out_am_member);

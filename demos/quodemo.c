@@ -128,15 +128,15 @@ sys_grok(context_t *c)
 
     /* this interface is more powerful, but the other n* calls can be more
      * convenient. at any rate, this is an example of the
-     * QUO_get_nobjs_in_type_by_type interface to get the number of sockets on
+     * QUO_nobjs_in_type_by_type interface to get the number of sockets on
      * the machine. note: you can also use the QUO_nsockets or
-     * QUO_get_nobjs_by_type to get the same info. */
-    if (QUO_SUCCESS != QUO_get_nobjs_in_type_by_type(c->quo,
-                                                     QUO_OBJ_MACHINE,
-                                                     0,
-                                                     QUO_OBJ_SOCKET,
-                                                     &c->nsockets)) {
-        bad_func = "QUO_get_nobjs_in_type_by_type";
+     * QUO_nobjs_by_type to get the same info. */
+    if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(c->quo,
+                                                 QUO_OBJ_MACHINE,
+                                                 0,
+                                                 QUO_OBJ_SOCKET,
+                                                 &c->nsockets)) {
+        bad_func = "QUO_nobjs_in_type_by_type";
         goto out;
     }
     if (QUO_SUCCESS != QUO_ncores(c->quo, &c->ncores)) {
@@ -159,12 +159,12 @@ sys_grok(context_t *c)
         bad_func = "QUO_nnodes";
         goto out;
     }
-    if (QUO_SUCCESS != QUO_nnoderanks(c->quo, &c->nnoderanks)) {
-        bad_func = "QUO_nnoderanks";
+    if (QUO_SUCCESS != QUO_nqids(c->quo, &c->nnoderanks)) {
+        bad_func = "QUO_nqids";
         goto out;
     }
-    if (QUO_SUCCESS != QUO_noderank(c->quo, &c->noderank)) {
-        bad_func = "QUO_noderank";
+    if (QUO_SUCCESS != QUO_id(c->quo, &c->noderank)) {
+        bad_func = "QUO_id";
         goto out;
     }
 out:
@@ -265,7 +265,7 @@ type_in_cur_bind(const context_t *c,
                  int type_id,
                  int *in_cur_bind)
 {
-    if (QUO_SUCCESS != QUO_cur_cpuset_in_type(c->quo,
+    if (QUO_SUCCESS != QUO_cpuset_in_type(c->quo,
                                               type,
                                               type_id,
                                               in_cur_bind)) {

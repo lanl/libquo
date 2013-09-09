@@ -142,22 +142,11 @@ QUO_free(QUO_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_machine_topo_stringify(QUO_t *q,
-                           char **out_str)
-{
-    if (!q || !out_str) return QUO_ERR_INVLD_ARG;
-    /* make sure we are initialized before we continue */
-    noinit_action(q);
-    return quo_hwloc_node_topo_stringify(q->hwloc, out_str);
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-QUO_get_nobjs_in_type_by_type(QUO_t *q,
-                              QUO_obj_type_t in_type,
-                              int in_type_index,
-                              QUO_obj_type_t type,
-                              int *out_result)
+QUO_nobjs_in_type_by_type(QUO_t *q,
+                          QUO_obj_type_t in_type,
+                          int in_type_index,
+                          QUO_obj_type_t type,
+                          int *out_result)
 {
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
@@ -171,10 +160,10 @@ QUO_get_nobjs_in_type_by_type(QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_cur_cpuset_in_type(QUO_t *q,
-                       QUO_obj_type_t type,
-                       int in_type_index,
-                       int *out_result)
+QUO_cpuset_in_type(QUO_t *q,
+                   QUO_obj_type_t type,
+                   int in_type_index,
+                   int *out_result)
 {
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
@@ -186,21 +175,21 @@ QUO_cur_cpuset_in_type(QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_nsmpranks_in_type(const QUO_t *q,
-                      QUO_obj_type_t type,
-                      int in_type_index,
-                      int *n_out_smpranks)
+QUO_nmachine_procs_in_type(QUO_t *q,
+                           QUO_obj_type_t type,
+                           int in_type_index,
+                           int *out_nqids)
 {
     int rc = QUO_ERR;
     int tot_smpranks = 0;
     int nsmpranks = 0;
 
-    if (!q || !n_out_smpranks) return QUO_ERR_INVLD_ARG;
-    *n_out_smpranks = 0;
+    if (!q || !out_nqids) return QUO_ERR_INVLD_ARG;
+    *out_nqids = 0;
     /* make sure we are initialized before we continue */
     noinit_action(q);
     /* figure out how many node ranks on the node */
-    if (QUO_SUCCESS != (rc = QUO_nnoderanks(q, &tot_smpranks))) return rc;
+    if (QUO_SUCCESS != (rc = QUO_nqids(q, &tot_smpranks))) return rc;
     /* smp ranks are always monotonically increasing starting at 0 */
     for (int rank = 0; rank < tot_smpranks; ++rank) {
         /* whether or not the particular pid is in the given obj type */
@@ -217,33 +206,33 @@ QUO_nsmpranks_in_type(const QUO_t *q,
         /* if the rank's cpuset falls within the given obj, then increment */
         if (in_cpuset) nsmpranks++;
     }
-    *n_out_smpranks = nsmpranks;
+    *out_nqids = nsmpranks;
 out:
     return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /**
- * caller is responsible for freeing *out_smpranks.
+ * caller is responsible for freeing *out_qids.
  */
 int
-QUO_smpranks_in_type(const QUO_t *q,
-                     QUO_obj_type_t type,
-                     int in_type_index,
-                     int *n_out_smpranks,
-                     int **out_smpranks)
+QUO_qids_in_type(QUO_context q,
+                 QUO_obj_type_t type,
+                 int in_type_index,
+                 int *out_nqids,
+                 int **out_qids)
 {
     int rc = QUO_ERR;
     int tot_smpranks = 0;
     int nsmpranks = 0;
     int *smpranks = NULL;
 
-    if (!q || !n_out_smpranks || !out_smpranks) return QUO_ERR_INVLD_ARG;
+    if (!q || !out_nqids || !out_qids) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     noinit_action(q);
-    *n_out_smpranks = 0; *out_smpranks = NULL;
+    *out_nqids = 0; *out_qids = NULL;
     /* figure out how many node ranks on the node */
-    if (QUO_SUCCESS != (rc = QUO_nnoderanks(q, &tot_smpranks))) return rc;
+    if (QUO_SUCCESS != (rc = QUO_nqids(q, &tot_smpranks))) return rc;
     /* smp ranks are always monotonically increasing starting at 0 */
     for (int rank = 0; rank < tot_smpranks; ++rank) {
         /* whether or not the particular pid is in the given obj type */
@@ -269,8 +258,8 @@ QUO_smpranks_in_type(const QUO_t *q,
             smpranks = newsmpranks;
         }
     }
-    *n_out_smpranks = nsmpranks;
-    *out_smpranks = smpranks;
+    *out_nqids = nsmpranks;
+    *out_qids = smpranks;
 out:
     if (QUO_SUCCESS != rc) {
         if (smpranks) free(smpranks);
@@ -280,9 +269,9 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_get_nobjs_by_type(QUO_t *q,
-                      QUO_obj_type_t target_type,
-                      int *out_nobjs)
+QUO_nobjs_by_type(QUO_t *q,
+                  QUO_obj_type_t target_type,
+                  int *out_nobjs)
 {
     if (!q || !out_nobjs) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
@@ -363,7 +352,7 @@ QUO_stringify_cbind(QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_nnodes(const QUO_t *q,
+QUO_nnodes(QUO_t *q,
            int *out_nodes)
 {
     if (!q || !out_nodes) return QUO_ERR_INVLD_ARG;
@@ -373,22 +362,22 @@ QUO_nnodes(const QUO_t *q,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_nnoderanks(const QUO_t *q,
-               int *out_nnoderanks)
+QUO_nqids(QUO_t *q,
+          int *out_nqids)
 {
-    if (!q || !out_nnoderanks) return QUO_ERR_INVLD_ARG;
+    if (!q || !out_nqids) return QUO_ERR_INVLD_ARG;
     noinit_action(q);
-    return quo_mpi_nnoderanks(q->mpi, out_nnoderanks);
+    return quo_mpi_nnoderanks(q->mpi, out_nqids);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_noderank(const QUO_t *q,
-             int *out_noderank)
+QUO_id(QUO_t *q,
+       int *out_qid)
 {
-    if (!q || !out_noderank) return QUO_ERR_INVLD_ARG;
+    if (!q || !out_qid) return QUO_ERR_INVLD_ARG;
     noinit_action(q);
-    return quo_mpi_noderank(q->mpi, out_noderank);
+    return quo_mpi_noderank(q->mpi, out_qid);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -414,18 +403,7 @@ QUO_bind_pop(QUO_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_procs_on_machine(QUO_t *q,
-                     int *out_nprocs,
-                     int **out_qids)
-{
-    if (!q || !out_nprocs || !out_qids) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
-    return quo_mpi_ranks_on_node(q->mpi, out_nprocs, out_qids);
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-QUO_node_barrier(QUO_t *q)
+QUO_barrier(QUO_t *q)
 {
     if (!q) return QUO_ERR_INVLD_ARG;
     noinit_action(q);
@@ -434,10 +412,10 @@ QUO_node_barrier(QUO_t *q)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_dist_work_member(QUO_t *q,
-                     QUO_obj_type_t distrib_over_this,
-                     int max_members_per_res_type,
-                     int *out_am_member)
+QUO_auto_distrib(QUO_t *q,
+                 QUO_obj_type_t distrib_over_this,
+                 int max_qids_per_res_type,
+                 int *out_selected)
 {
     /* total number of target resources. */
     int nres = 0;
@@ -454,16 +432,16 @@ QUO_dist_work_member(QUO_t *q,
     /* holds k set intersection info */
     int *k_set_intersection = NULL, k_set_intersection_len = 0;
 
-    if (!q || !out_am_member || max_members_per_res_type <= 0) {
+    if (!q || !out_selected || max_qids_per_res_type <= 0) {
         return QUO_ERR_INVLD_ARG;
     }
     noinit_action(q);
-    *out_am_member = 0; /* set default */
-    if (QUO_SUCCESS != (rc = QUO_nnoderanks(q, &nsmp_ranks))) return rc;
+    *out_selected = 0; /* set default */
+    if (QUO_SUCCESS != (rc = QUO_nqids(q, &nsmp_ranks))) return rc;
     /* what is my node rank? */
-    if (QUO_SUCCESS != (rc = QUO_noderank(q, &my_smp_rank))) return rc;
+    if (QUO_SUCCESS != (rc = QUO_id(q, &my_smp_rank))) return rc;
     /* figure out how many target things are on the system. */
-    if (QUO_SUCCESS != (rc = QUO_get_nobjs_by_type(q, distrib_over_this,
+    if (QUO_SUCCESS != (rc = QUO_nobjs_by_type(q, distrib_over_this,
                                                    &nres))) {
         return rc;
     }
@@ -485,9 +463,9 @@ QUO_dist_work_member(QUO_t *q,
     }
     /* grab the smp ranks (node ranks) that cover each resource. */
     for (int rid = 0; rid < nres; ++rid) {
-        rc = QUO_smpranks_in_type(q, distrib_over_this, rid,
-                                  &(nranks_in_res[rid]),
-                                  &(rank_ids_in_res[rid]));
+        rc = QUO_qids_in_type(q, distrib_over_this, rid,
+                              &(nranks_in_res[rid]),
+                              &(rank_ids_in_res[rid]));
         if (QUO_SUCCESS != rc) goto out;
     }
 
@@ -509,13 +487,13 @@ QUO_dist_work_member(QUO_t *q,
     if (0 == k_set_intersection_len) {
         for (int rid = 0; rid < nres; ++rid) {
             /* if already a member, stop search */
-            if (1 == *out_am_member) break;
+            if (1 == *out_selected) break;
             for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
                 /* if my current cpuset covers the resource in question and
                  * someone won't be assigned to that particular resource */
                 if (my_smp_rank == rank_ids_in_res[rid][rank] &&
-                    rank < max_members_per_res_type) {
-                    *out_am_member = 1;
+                    rank < max_qids_per_res_type) {
+                    *out_selected = 1;
                 }
             }
         }
@@ -523,7 +501,7 @@ QUO_dist_work_member(QUO_t *q,
     /* all processes overlap - really no hope of doing anything sane. we
      * typically see this in the "no one is bound case." */
     else if (nsmp_ranks == k_set_intersection_len) {
-        if (my_smp_rank < max_members_per_res_type * nres) *out_am_member = 1;
+        if (my_smp_rank < max_qids_per_res_type * nres) *out_selected = 1;
     }
     /* only a few ranks share a resource. i don't know if this case will ever
      * happen in practice, but i've seen stranger things... in the case, favor
@@ -549,15 +527,15 @@ QUO_dist_work_member(QUO_t *q,
         /* first only consider ranks that aren't sharing resources */
         for (int rid = 0; rid < nres; ++rid) {
             /* if already a member, stop search */
-            if (1 == *out_am_member) break;
+            if (1 == *out_selected) break;
             rmapped = 0;
             for (int rank = 0; rank < nranks_in_res[rid]; ++rank) {
                 /* this thing is shared - skip */
                 if (-1 != big_htab[rank_ids_in_res[rid][rank]]) continue;
                 /* if my current cpuset covers the resource in question */
                 if (my_smp_rank == rank_ids_in_res[rid][rank] &&
-                    rmapped < max_members_per_res_type) {
-                        *out_am_member = 1;
+                    rmapped < max_qids_per_res_type) {
+                        *out_selected = 1;
                         break;
                 }
                 ++rmapped;
@@ -566,7 +544,7 @@ QUO_dist_work_member(QUO_t *q,
         if (big_htab) free(big_htab);
     }
 out:
-    /* the resources returned by QUO_smpranks_in_type must be freed by us */
+    /* the resources returned by QUO_qids_in_type must be freed by us */
     if (rank_ids_in_res) {
         for (int i = 0; i < nres; ++i) {
             if (rank_ids_in_res[i]) free(rank_ids_in_res[i]);

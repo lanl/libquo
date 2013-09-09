@@ -69,7 +69,7 @@ typedef enum {
 typedef enum {
     /* push the exact binding policy that was provided */
     QUO_BIND_PUSH_PROVIDED = 0,
-    /* push to the "closest" QUO_obj_type_t provided */
+    /* push to the enclosing QUO_obj_type_t provided. */
     QUO_BIND_PUSH_OBJ
 } QUO_bind_push_policy_t;
 
@@ -160,61 +160,6 @@ int
 QUO_free(QUO_context q);
 
 /**
- * libquo context query routine that returns the number of ranks that are on the
- * caller's node and their corresponding MPI_COMM_WORLD ranks. the number and
- * returned array also include the calling rank's information.
- *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
- *
- * @param out_nranks - the number of ranks that are on the node (OUT)
- *
- * @param out_ranks - an array of MPI_COMM_WORLD ranks that are on the node.
- *                    *out_ranks must be freed by a call to free(3). (OUT)
- *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
- *
- * EXAMPLE (c):
- * // ... //
- * int nnoderanks = 0;
- * int *noderanks = NULL;
- * if (QUO_SUCCESS != QUO_procs_on_machine(quo, &nnoderanks, &noderanks))
- *     // error handling //
- * }
- * // ... //
- * free(noderanks);
- */
-
-/* XXX update name again... maybe to nprocs because it is based on a comm! */
-int
-QUO_procs_on_machine(QUO_context q,
-                     int *out_nprocs,
-                     int **out_qids);
-
-/**
- * libquo query routine that returns a string that represents the system's
- * topology.
- *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
- *
- * @param out_str - the system's topology string. *out_str must be freed by a
- *                  call to free(3). (OUT)
- *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
- *
- * EXAMPLE (c):
- * // ... //
- * char *topostr = NULL;
- * if (QUO_SUCCESS != QUO_machine_topo_stringify(q, &topostr)) {
- *     // error handling //
- * }
- * printf("%s\n", topostr);
- * free(topostr);
- */
-int
-QUO_machine_topo_stringify(QUO_context q,
-                           char **out_str);
-
-/**
  * libquo context query routine that returns the total number of hardware
  * resource objects that are on the caller's system.
  *
@@ -230,14 +175,14 @@ QUO_machine_topo_stringify(QUO_context q,
  * EXAMPLE (c):
  * // ... //
  * int nsockets = 0;
- * if (QUO_SUCCESS != QUO_get_nobjs_by_type(q, QUO_OBJ_SOCKET, &nsockets)) {
+ * if (QUO_SUCCESS != QUO_nobjs_by_type(q, QUO_OBJ_SOCKET, &nsockets)) {
  *     // error handling //
  * }
  */
 int
-QUO_get_nobjs_by_type(QUO_context q,
-                      QUO_obj_type_t target_type,
-                      int *out_nobjs);
+QUO_nobjs_by_type(QUO_context q,
+                  QUO_obj_type_t target_type,
+                  int *out_nobjs);
 
 /**
  * libquo context query routine that returns the total number of hardware
@@ -260,18 +205,18 @@ QUO_get_nobjs_by_type(QUO_context q,
  * EXAMPLE (c):
  * // ... //
  * int ncores_in_first_socket = 0;
- * if (QUO_SUCCESS != QUO_get_nobjs_in_type_by_type(q, QUO_OBJ_SOCKET, 0
+ * if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(q, QUO_OBJ_SOCKET, 0
  *                                                  QUO_OBJ_CORE,
  *                                                  &ncores_in_first_socket)) {
  *     // error handling //
  * }
  */
 int
-QUO_get_nobjs_in_type_by_type(QUO_context q,
-                              QUO_obj_type_t in_type,
-                              int in_type_index,
-                              QUO_obj_type_t type,
-                              int *out_result);
+QUO_nobjs_in_type_by_type(QUO_context q,
+                          QUO_obj_type_t in_type,
+                          int in_type_index,
+                          QUO_obj_type_t type,
+                          int *out_result);
 
 /**
  * libquo context handle query routine that returns whether or not my current
@@ -291,7 +236,7 @@ QUO_get_nobjs_in_type_by_type(QUO_context q,
  * EXAMPLE (c):
  * // ... //
  * int cur_binding_in_third_socket = 0;
- * if (QUO_SUCCESS != QUO_cur_cpuset_in_type(q, QUO_OBJ_SOCKET, 2
+ * if (QUO_SUCCESS != QUO_cpuset_in_type(q, QUO_OBJ_SOCKET, 2
  *                                           &cur_binding_in_third_socket)) {
  *     // error handling //
  * }
@@ -300,10 +245,10 @@ QUO_get_nobjs_in_type_by_type(QUO_context q,
  * }
  */
 int
-QUO_cur_cpuset_in_type(QUO_context q,
-                       QUO_obj_type_t type,
-                       int in_type_index,
-                       int *out_result);
+QUO_cpuset_in_type(QUO_context q,
+                   QUO_obj_type_t type,
+                   int in_type_index,
+                   int *out_result);
 
 /**
  * libquo context query routine that returns the number of node ranks whose
@@ -323,7 +268,7 @@ QUO_cur_cpuset_in_type(QUO_context q,
  * EXAMPLE (c):
  * // ... //
  * int nnode_ranks_covering_socket0 = 0;
- * if (QUO_SUCCESS != QUO_nsmpranks_in_type(q, QUO_OBJ_SOCKET, 0
+ * if (QUO_SUCCESS != QUO_nmachine_procs_in_type(q, QUO_OBJ_SOCKET, 0
  *                                          &nnode_ranks_covering_socket0)) {
  *     // error handling //
  * }
@@ -331,14 +276,15 @@ QUO_cur_cpuset_in_type(QUO_context q,
  *     // do stuff //
  * }
  */
+/* XXX may not be needed when we go to proper fortran interface */
 int
-QUO_nsmpranks_in_type(const QUO_t *q,
-                      QUO_obj_type_t type,
-                      int in_type_index,
-                      int *n_out_smpranks);
+QUO_nmachine_procs_in_type(QUO_t *q,
+                           QUO_obj_type_t type,
+                           int in_type_index,
+                           int *n_out_smpranks);
 
 /**
- * similar to QUO_nsmpranks_in_type, but also returns the "SMP_COMM_WORLD" ranks
+ * similar to QUO_nmachine_procs_in_type, but also returns the "SMP_COMM_WORLD" ranks
  * that met the query criteria.
  *
  * @param q - constructed and initialized QUO_t context pointer. (IN)
@@ -360,7 +306,7 @@ QUO_nsmpranks_in_type(const QUO_t *q,
  * // ... //
  * int nnode_ranks_covering_socket0 = 0;
  * int *node_ranks_covering_socket0 = NULL;
- * if (QUO_SUCCESS != QUO_nsmpranks_in_type(q, QUO_OBJ_SOCKET, 0
+ * if (QUO_SUCCESS != QUO_nmachine_procs_in_type(q, QUO_OBJ_SOCKET, 0
  *                                          &nnode_ranks_covering_socket0,
  *                                          &node_ranks_covering_socket0)) {
  *     // error handling //
@@ -369,11 +315,11 @@ QUO_nsmpranks_in_type(const QUO_t *q,
  * free(node_ranks_covering_socket0);
  */
 int
-QUO_smpranks_in_type(const QUO_t *q,
-                     QUO_obj_type_t type,
-                     int in_type_index,
-                     int *n_out_smpranks,
-                     int **out_smpranks);
+QUO_qids_in_type(QUO_context q,
+                 QUO_obj_type_t type,
+                 int in_type_index,
+                 int *out_nqids,
+                 int **out_qids);
 
 /**
  * libquo query routine that returns the total number of NUMA nodes that are
@@ -426,27 +372,27 @@ QUO_npus(QUO_context q,
  * the current job.
  */
 int
-QUO_nnodes(const QUO_t *q,
+QUO_nnodes(QUO_context q,
            int *out_nodes);
 
 /**
  * similar to QUO_nnumanodes, but returns the total number of ranks that are on
  * the caller's node.
  *
- * NOTES: *out_nnoderanks includes the caller. for example, if there are 3 MPI processes
+ * NOTES: *out_nqids includes the caller. for example, if there are 3 MPI processes
  * on rank 0's node, then rank 0's call to this routine will result in
- * *out_nnoderanks being set to 3.
+ * *out_nqids being set to 3.
  */
 int
-QUO_nnoderanks(const QUO_t *q,
-               int *out_nnoderanks);
+QUO_nqids(QUO_context q,
+          int *out_nqids);
 
 /**
  * libquo query routine that returns the caller's "SMP_COMM_WORLD" rank.
  *
  * @param q - constructed and initialized QUO_t context pointer. (IN)
  *
- * @param out_noderank - the caller's node rank, as assigned by libquo. (OUT)
+ * @param out_qid - the caller's node rank, as assigned by libquo. (OUT)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
@@ -455,7 +401,7 @@ QUO_nnoderanks(const QUO_t *q,
  * EXAMPLE (c):
  * // ... //
  * int mynoderank = 0;
- * if (QUO_SUCCESS != QUO_noderank(q, &mynoderank)) {_
+ * if (QUO_SUCCESS != QUO_id(q, &mynoderank)) {_
  *     // error handling //
  * }
  * if (0 == mynoderank) {
@@ -463,8 +409,8 @@ QUO_nnoderanks(const QUO_t *q,
  * }
  */
 int
-QUO_noderank(const QUO_t *q,
-             int *out_noderank);
+QUO_id(QUO_context q,
+       int *out_qid);
 
 /**
  * libquo query routine that returns whether or not the caller is currently
@@ -600,7 +546,7 @@ QUO_bind_pop(QUO_context q);
 
 
 int
-QUO_node_barrier(QUO_context q);
+QUO_barrier(QUO_context q);
 
 /**
  * TODO
@@ -614,10 +560,10 @@ QUO_node_barrier(QUO_context q);
  */
 
 int
-QUO_dist_work_member(QUO_context q,
-                     QUO_obj_type_t distrib_over_this,
-                     int max_members_per_res_type,
-                     int *out_am_member);
+QUO_auto_distrib(QUO_context q,
+                 QUO_obj_type_t distrib_over_this,
+                 int max_qids_per_res_type,
+                 int *out_selected);
 
 #ifdef __cplusplus
 }

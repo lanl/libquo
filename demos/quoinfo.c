@@ -59,7 +59,7 @@ main(void)
     int qv = 0, qsv = 0, nnodes = 0, nnoderanks = 0;
     int nsockets = 0, ncores = 0, npus = 0;
     char *bad_func = NULL;
-    char *topostr = NULL, *cbindstr = NULL, *cbindstr2 = NULL, *cbindstr3 = NULL;
+    char *cbindstr = NULL, *cbindstr2 = NULL, *cbindstr3 = NULL;
     int bound = 0, bound2 = 0, bound3 = 0;
     QUO_context quo = NULL;
     inf_t info;
@@ -75,10 +75,6 @@ main(void)
     /* cheap call */
     if (QUO_SUCCESS != (qrc = QUO_create(&quo))) {
         bad_func = "QUO_create";
-        goto out;
-    }
-    if (QUO_SUCCESS != (qrc = QUO_machine_topo_stringify(quo, &topostr))) {
-        bad_func = "QUO_node_topo_emit";
         goto out;
     }
     if (QUO_SUCCESS != (qrc = QUO_nsockets(quo, &nsockets))) {
@@ -105,7 +101,7 @@ main(void)
         bad_func = "QUO_nnodes";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = QUO_nnoderanks(quo, &nnoderanks))) {
+    if (QUO_SUCCESS != (qrc = QUO_nqids(quo, &nnoderanks))) {
         bad_func = "QUO_nnodes";
         goto out;
     }
@@ -151,9 +147,7 @@ main(void)
            (int)getpid(), cbindstr2, bound2 ? "true" : "false");
     printf("### process %d [%s] bound: %s\n",
            (int)getpid(), cbindstr3, bound3 ? "true" : "false");
-    printf("### begin system topology\n%s###end system topology\n", topostr);
     /* the string returned by QUO_machine_topo_stringify MUST be free'd by us */
-    free(topostr);
     free(cbindstr);
     free(cbindstr2);
 out:
