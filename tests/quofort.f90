@@ -10,341 +10,88 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-module QUO_MOD
-    implicit none
-    ! include quof and mpif
-    include "quof.h"
+program quofort
 
-CONTAINS
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! constructs and inits libquo context, quoc
-subroutine QM_INIT(quoc)
-    integer(QUO_IKIND), intent(inout) :: quoc
-    integer*4 :: qerr, initialized
-    ! construct the quo context.
-    call QUO_CONSTRUCT(quoc, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_CONSTRUCT failure: err = ', qerr
-        stop
-    end if
-    ! init the newly constructed context
-    call QUO_INIT(quoc, qerr)
-    if (QUO_SUCCESS .NE. qerr .AND. QUO_SUCCESS_ALREADY_DONE .NE. qerr) then
-        print *, 'QUO_INIT failure: err = ', qerr
-        stop
-    end if
-    return
-end subroutine QM_INIT
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! gathers basic system info
-subroutine QM_SYSGROK(quoc, nnodes, nnoderanks, noderank, &
-                      nnumanodes, nsocks, ncores, npus)
-    integer(QUO_IKIND), intent(in) :: quoc
-    integer*4, intent(out) :: nnodes, nnoderanks, noderank, &
-                              nnumanodes, nsocks, ncores, npus
-    integer*4 :: qerr, tmpnsocks
-    ! how many nodes are in our job
-    call QUO_NNODES(quoc, nnodes, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NNODES failure: err = ', qerr
-        stop
-    end if
-    ! what is my node rank (starts from 0)
-    call QUO_NODERANK(quoc, noderank, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NODERANK failure: err = ', qerr
-        stop
-    end if
-    ! how many ranks are on my node (includes myself)
-    call QUO_NNODERANKS(quoc, nnoderanks, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NNODERANKS failure: err = ', qerr
-        stop
-    end if
-    ! how many NUMA nodes are on this system
-    call QUO_NNUMANODES(quoc, nnumanodes, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NNUMANODES failure: err = ', qerr
-        stop
-    end if
-    ! how many sockets are on this system
-    call QUO_NSOCKETS(quoc, nsocks, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NSOCKETS failure: err = ', qerr
-        stop
-    end if
-    ! how many cores are on this system
-    call QUO_NCORES(quoc, ncores, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NCORES failure: err = ', qerr
-        stop
-    end if
-    ! how many processing units (PUs) are on this system
-    call QUO_NPUS(quoc, npus, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NPUS failure: err = ', qerr
-        stop
-    end if
-    ! exercise the interface by checking if this routine works
-    call QUO_GET_NOBJS_BY_TYPE(quoc, QUO_OBJ_SOCKET, tmpnsocks, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_GET_NOBJS_BY_TYPE failure: err = ', qerr
-        stop
-    end if
-    ! make sure that this is consistent across the two calls
-    if (tmpnsocks .NE. nsocks) then
-        print *, 'QUO_GET_NOBJS_BY_TYPE broken. please report bug.'
-        print *, 'nsocks = ', nsocks, 'tmpnsocks = ', tmpnsocks
-        stop
-    end if
-    return
-end subroutine QM_SYSGROK
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-subroutine QM_EMITBIND(quoc)
-    integer(QUO_IKIND), intent(in) :: quoc
-    integer*4 :: bound, qerr
-    ! is the process bound (cpu binding)
-    call QUO_BOUND(quoc, bound, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_BOUND failure: err = ', qerr
-        stop
-    end if
-    if (1 .EQ. bound) then
-        print *, '### process bound'
-    else
-        print *, '### process not bound'
-    end if
-    return
-end subroutine QM_EMITBIND
-end module QUO_MOD
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-program QUOFortF90
-    use QUO_MOD
-
+    use quo
+    use, intrinsic :: iso_c_binding
     implicit none
 
     include "mpif.h"
 
-    ! holds the "quo context" that is passed around (must be the same size as
-    ! the system's C pointer type.
-    integer(QUO_IKIND) :: quo
-    ! holds libquo return codes, holds mpi return codes
-    integer*4 qerr, ierr
-    ! libquo uses standard ints. these sizes must be the same as the system's
-    ! C int type.
-    integer*4 :: rank, nranks, coverflag
-    integer*4 :: quovmaj, quovmin, vindex, ncoresinfsock, nsmpranksonfsock
-    integer*4 :: nnodes, nnoderanks, nsockets, &
-                 nnumanodes, ncores, npus, bound, noderank
-    integer*4, allocatable, dimension(1) :: ranks(:), smpranksonfsock(:)
-    integer*4 :: res_allocated = 0
-    character(LEN=32) :: strbindprefix
-    ! play nice with C strings
-    character(len=6) :: cstrbindprefix = ' ### ' // CHAR(0)
+    logical bound, inres
+    integer(c_int) info
+    integer(c_int) ver, subver
+    integer(c_int) nres, qid
+    integer(c_int) cwrank
+    integer(c_int), allocatable, dimension(:) :: sock_qids
+    type(quo_context) quoc
 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! mpi stuff
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! init mpi because quo needs it
-    call MPI_INIT(ierr)
-    if (MPI_SUCCESS .NE. ierr) then
-        print *, 'MPI_INIT failure: err = ', qerr
-        stop
-    end if
-    call MPI_COMM_SIZE(MPI_COMM_WORLD, nranks, ierr)
-    if (MPI_SUCCESS .NE. ierr) then
-        print *, 'MPI_COMM_SIZE failure: err = ', qerr
-        stop
-    end if
-    call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierr)
-    if (MPI_SUCCESS .NE. ierr) then
-        print *, 'MPI_COMM_RANK failure: err = ', qerr
-        stop
-    end if
+    call quo_version(ver, subver, info)
 
-    ! get libquo's version info
-    call QUO_VERSION(quovmaj, quovmin, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        stop
-    end if
-    ! construct and init the quo context
-    call QM_INIT(quo)
+    print *, info, ver, subver
 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! libquo is initialized, so we can get to work
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    call mpi_init(info)
+    call mpi_comm_rank(MPI_COMM_WORLD, cwrank, info)
 
-    ! gather basic system info
-    call QM_SYSGROK(quo, nnodes, nnoderanks, noderank, &
-                    nnumanodes, nsockets, ncores, npus)
-    ! allocate array large enough for node ranks
-    allocate(ranks(nnoderanks))
+    call quo_create(quoc, info)
 
-    ! one rank per node will emit this info
-    if (0 .EQ. noderank) then
-        print *
-        print *, '#############################################################'
-        print *, '### nranks:             ', nranks
-        print *, '### quoversion:         ', quovmaj, quovmin
-        print *, '### nnodes:             ', nnodes
-        print *, '### nnoderanks:         ', nnoderanks
-        print *, '### nnumanodes          ', nnumanodes
-        print *, '### nsockets:           ', nsockets
-        print *, '### ncores:             ', ncores
-        print *, '### npus:               ', npus
-        print *, '#############################################################'
-        print *
-    end if
+    call quo_bound(quoc, bound, info)
 
-    ! note that the ranks array must be at least large enough to hold the
-    ! result. also note that the ranks retured by this routine are
-    ! MPI_COMM_WORLD ranks.
-    call QUO_RANKS_ON_NODE(quo, ranks, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_RANKS_ON_NODE failure: err = ', qerr
-        stop
-    end if
-    ! print node ranks
-    if (0 .EQ. noderank) then
-        print *, '### MPI_COMM_WORLD node ranks'
-        do vindex = 1, nnoderanks
-            print *, ranks(vindex)
-        end do
-        print *, '### end MPI_COMM_WORLD node ranks'
-    end if
-    ! returns the number of objects in a particular type. for example: give me
-    ! the number of cores in socket 0.
-    call QUO_GET_NOBJS_IN_TYPE_BY_TYPE(quo, QUO_OBJ_SOCKET, 0, &
-                                       QUO_OBJ_CORE, ncoresinfsock, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_GET_NOBJS_IN_TYPE_BY_TYPE failure: err = ', qerr
-        stop
-    end if
-    ! returns the number of node ranks whose current cpu binding policy covers a
-    ! particular hardware resource. for example: the number of node ranks that
-    ! are currently bound to socket 0.
-    call QUO_NSMPRANKS_IN_TYPE(quo, QUO_OBJ_SOCKET, 0, nsmpranksonfsock, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NSMPRANKS_IN_TYPE failure: err = ', qerr
-        stop
-    end if
-    ! now allocate the array so we can get the ranks
-    allocate(smpranksonfsock(nsmpranksonfsock))
-    ! now that the storage for the ranks array has been allocated, now populate
-    ! it with the MPI_COMM_WORLD ranks that are currently bound to socket 0
-    call QUO_SMPRANKS_IN_TYPE(quo, QUO_OBJ_SOCKET, 0, smpranksonfsock, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_SMPRANKS_IN_TYPE failure: err = ', qerr
-        stop
-    end if
-    call QUO_CUR_CPUSET_IN_TYPE(quo, QUO_OBJ_CORE, 0, coverflag, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_CUR_CPUSET_IN_TYPE failure: err = ', qerr
-        stop
-    end if
-    ! echo some more info
-    if (0 .EQ. noderank) then
-        print *, '### ncores in socket 0: ', ncoresinfsock
-        print *, '### nsmpranks covering socket 0: ', nsmpranksonfsock
-        print *, '### MPI_COMM_WORLD node ranks covering socket 0'
-        do vindex = 1, nsmpranksonfsock
-            print *, smpranksonfsock(vindex)
-        end do
-        print *, '### end MPI_COMM_WORLD node ranks covering socket 0'
-    end if
-    ! now everyone that covers core 0 be happy and print stuff
-    if (1 .EQ. coverflag) then
-        print *, '### rank covers core 0: ', rank
-    end if
-    !call QM_EMITBIND(quo)
+    call quo_nobjs_by_type(quoc, QUO_OBJ_CORE, nres, info)
+    print *, 'bound, nres', bound, nres
 
-    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-    call SLEEP(1)
+    call quo_nobjs_in_type_by_type(quoc, QUO_OBJ_MACHINE, 0, &
+                                   QUO_OBJ_SOCKET, nres, info)
+    print *,'sock on machine', nres
 
-    if (0 .EQ. noderank) then
-        print *
-        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-        print *, '!!! state of the bind !!!'
-        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-        print *
-    end if
-    call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
+    call quo_cpuset_in_type(quoc, QUO_OBJ_SOCKET, 0, inres, info)
+    print *, 'rank on sock 0', cwrank, inres
 
-    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
-    call SLEEP(1)
+    call quo_qids_in_type(quoc, QUO_OBJ_SOCKET, 0, sock_qids, info)
+    print *, 'sock_qids', sock_qids
+    deallocate (sock_qids)
 
-    if (0 .EQ. noderank) then
-        print *
-        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-        print *, '!!! pushing new bind policy !!!'
-        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-        print *
-    end if
-    ! bind everyone to socket 0
-    call QUO_BIND_PUSH(quo, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, 0, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_BIND_PUSH failure: err = ', qerr
-        stop
-    end if
-    call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
-    call QUO_NODE_BARRIER(quo, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NODE_BARRIER failure: err = ', qerr
-        stop
-    end if
-    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+    call quo_nnumanodes(quoc, nres, info)
+    print *, 'nnumanodes', nres
 
-    if (0 .EQ. noderank) then
-        print *
-        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-        print *, '!!! reverting bind policy !!!'
-        print *, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-        print *
-    end if
-    ! revert binding policy
-    call QUO_BIND_POP(quo, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_BIND_POP failure: err = ', qerr
-        stop
-    end if
-    call QUO_EMIT_CBIND_STRING(quo, cstrbindprefix, qerr)
-    call QUO_NODE_BARRIER(quo, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_NODE_BARRIER failure: err = ', qerr
-        stop
-    end if
-    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+    call quo_nsockets(quoc, nres, info)
+    print *, 'nsockets', nres
 
-    call QUO_DIST_WORK_MEMBER(quo, QUO_OBJ_SOCKET, 2, res_allocated, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_DIST_WORK_MEMBER failure: err = ', qerr
-        stop
-    end if
+    call quo_ncores(quoc, nres, info)
+    print *, 'ncores', nres
 
-    print *, 'work member (rank, is_member) = ', rank, res_allocated
+    call quo_npus(quoc, nres, info)
+    print *, 'npus', nres
 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! cleanup
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ! finalize the quo context (always before MPI_FINALIZE)
-    call QUO_FINALIZE(quo, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_FINALIZE failure: err = ', qerr
-        stop
-    end if
-    ! release allocated resources (always before MPI_FINALIZE)
-    call QUO_DESTRUCT(quo, qerr)
-    if (QUO_SUCCESS .NE. qerr) then
-        print *, 'QUO_DESTRUCT failure: err = ', qerr
-        stop
-    end if
-    deallocate(ranks)
-    deallocate(smpranksonfsock)
-    ! finalize mpi (always after QUO_FINALIZE and QUO_DESTRUCT)
-    call MPI_FINALIZE(ierr)
-end program QUOFortF90
+    call quo_nnodes(quoc, nres, info)
+    print *, 'nnodes', nres
+
+    call quo_nqids(quoc, nres, info)
+    print *, 'nqids', nres
+
+    call quo_id(quoc, qid, info)
+    print *, 'qid', qid
+
+    if (qid == 0) then
+        print *, 'hello from qid 0!'
+    endif
+
+    call quo_bind_push(quoc, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, -1, info)
+
+    call quo_bound(quoc, bound, info)
+
+    print *, 'bound after push', bound
+
+    call quo_bind_pop(quoc, info)
+
+    call quo_bound(quoc, bound, info)
+
+    print *, 'bound after pop', bound
+
+    call quo_barrier(quoc, info)
+
+    call quo_free(quoc, info)
+
+    call mpi_finalize(info)
+
+end program quofort

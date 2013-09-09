@@ -6,7 +6,8 @@
 SUBDIRS = hwloc
 
 lib_LTLIBRARIES = \
-libquo.la
+libquo.la \
+libquo-usequo.la
 
 # this is generated and we don't want the generated header in the distribution
 nodist_include_HEADERS = \
@@ -21,11 +22,19 @@ quo-utils.h quo-utils.c \
 quo-set.h quo-set.c \
 quo-hwloc.h quo-hwloc.c \
 quo-mpi.h quo-mpi.c \
-quo.h quo.c \
-quof-private.h quof.c
+quo.h quo.c
+
+if QUO_WITH_MPIFC
+libquo_usequo_la_SOURCES = \
+quo-types.f90 quo.f90
+libquo_usequo_la_FCFLAGS  = -I$(top_srcdir)/src
+libquo_usequo_la_LDFLAGS = -L$(top_srcdir)/src
+libquo_usequo_la_LIBADD   = libquo.la
+endif
 
 # this header is generated
 CLEANFILES = quof.h
+
 
 libquo_la_CFLAGS =
 # From: http://www.sourceware.org/autobook/autobook/autobook_91.html

@@ -43,5 +43,5 @@ if QUO_WITH_MPIFC
 quofort_SOURCES = quofort.f90
 quofort_FCFLAGS  = -I$(top_srcdir)/src
 quofort_LDFLAGS = -L$(top_srcdir)/src
-quofort_LDADD   = -lquo
+quofort_LDADD   = -lquo-usequo -lquo
 endif
