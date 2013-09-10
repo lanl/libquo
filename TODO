@@ -1,4 +1,5 @@
 libquo TODO
+o Fix parallel builds (Thanks Fortran)
 o add better error messages
 o implement global placement api
 - hwloc_obj_type_snprintf
