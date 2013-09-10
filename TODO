@@ -1,5 +1,4 @@
 libquo TODO
-o Install Fortran mods
 o add better error messages
 o implement global placement api
 - hwloc_obj_type_snprintf
@@ -8,5 +7,4 @@ o add support query
 o auto set library version (api call and so)
 o Expose memory API.
 o Return popped CPU set to caller (API).
-o implement auto magic.
 o expose HWLOC flags
