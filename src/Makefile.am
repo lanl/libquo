@@ -1,6 +1,17 @@
 ###############################################################################
+# Copyright (c) 2006-2012 Cisco Systems, Inc.  All rights reserved.
+# Copyright (c) 2012      The University of Tennessee and The University
+#                         of Tennessee Research Foundation.  All rights
+#                         reserved.
+# Copyright (c) 2012      Inria.  All rights reserved.
 # Copyright (c) 2013      Los Alamos National Security, LLC.
 #                         All rights reserved.
+#
+# $COPYRIGHT$
+#
+# Additional copyrights may follow
+#
+# $HEADER$
 ################################################################################
 
 SUBDIRS = hwloc
@@ -8,13 +19,6 @@ SUBDIRS = hwloc
 lib_LTLIBRARIES = \
 libquo.la \
 libquo-usequo.la
-
-# this is generated and we don't want the generated header in the distribution
-nodist_include_HEADERS = \
-quof.h
-
-include_HEADERS = \
-quo.h
 
 libquo_la_SOURCES = \
 quo-private.h \
@@ -32,9 +36,30 @@ libquo_usequo_la_LDFLAGS = -L$(top_srcdir)/src
 libquo_usequo_la_LIBADD   = libquo.la
 endif
 
-# this header is generated
-CLEANFILES = quof.h
+# these are generated
+MOSTLYCLEANFILES = *.mod
 
+# Install the generated .mod files.  Unfortunately, each F90 compiler
+# may generate different filenames, so we have to use a glob.  :-(
+
+install-exec-hook:
+	@ for file in `ls *.mod`; do \
+	  echo $(INSTALL) $$file $(DESTDIR)$(libdir); \
+	  $(INSTALL) $$file $(DESTDIR)$(libdir); \
+	done
+
+uninstall-local:
+	@ for file in `ls *.mod`; do \
+	  echo rm -f $(DESTDIR)$(libdir)/$$file; \
+	  rm -f $(DESTDIR)$(libdir)/$$file; \
+	done
+
+# Need to have empty targets because AM can't handle having an
+# AM_CONDITIONAL was targets in the "if" statement but not in the
+# "else".  :-(
+
+install-exec-hook:
+uninstall-local:
 
 libquo_la_CFLAGS =
 # From: http://www.sourceware.org/autobook/autobook/autobook_91.html
