@@ -556,3 +556,12 @@ out:
     if (k_set_intersection) free(k_set_intersection);
     return rc;
 }
+
+/* ////////////////////////////////////////////////////////////////////////// */
+/* fortran only. don't include in quo.h. */
+int
+QUO_ptr_free(void *p)
+{
+    if (p) free(p);
+    return QUO_SUCCESS;
+}

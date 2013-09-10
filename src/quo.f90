@@ -10,6 +10,14 @@ module quo
 interface
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       integer(c_int) &
+      function quo_ptr_free_c(cptr) &
+          bind(c, name='QUO_ptr_free')
+          use, intrinsic :: iso_c_binding, only: c_int, c_ptr
+          implicit none
+          type(c_ptr), value :: cptr
+      end function quo_ptr_free_c
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      integer(c_int) &
       function quo_version_c(version, subversion) &
           bind(c, name='QUO_version')
           use, intrinsic :: iso_c_binding, only: c_int
@@ -47,7 +55,7 @@ interface
           type(quo_context), value :: q
           integer(c_int), value :: target_type
           integer(c_int), intent(out) :: out_nobjs
-      end function quo_nobjs_by_type_c 
+      end function quo_nobjs_by_type_c
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       integer(c_int) &
@@ -59,7 +67,7 @@ interface
           implicit none
           type(quo_context), value :: q
           integer(c_int), value :: in_type, type_index, obj_type
-          integer(c_int), intent(out) :: oresult 
+          integer(c_int), intent(out) :: oresult
       end function quo_nobjs_in_type_by_type_c
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -71,7 +79,7 @@ interface
           implicit none
           type(quo_context), value :: q
           integer(c_int), value :: obj_type, type_index
-          integer(c_int), intent(out) :: oresult 
+          integer(c_int), intent(out) :: oresult
       end function quo_cpuset_in_type_c
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -86,7 +94,7 @@ interface
           integer(c_int), value :: obj_type, type_index
           integer(c_int), intent(out) :: onqids
           type(c_ptr), intent(out) :: qids
-      end function quo_qids_in_type_c 
+      end function quo_qids_in_type_c
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       integer(c_int) &
@@ -207,9 +215,32 @@ interface
           type(quo_context), value :: q
       end function quo_barrier_c
 
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      integer(c_int) &
+      function quo_auto_distrib_c(q, distrib_over_this, &
+                                  max_qids_per_res_type, oselected) &
+          bind(c, name='QUO_auto_distrib')
+          use, intrinsic :: iso_c_binding, only: c_int
+          use :: quo_types
+          implicit none
+          type(quo_context), value :: q
+          integer(c_int), value :: distrib_over_this
+          integer(c_int), value :: max_qids_per_res_type
+          integer(c_int), intent(out) :: oselected
+      end function quo_auto_distrib_c
+
 end interface
 
 contains
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine quo_ptr_free(cptr)
+          use, intrinsic :: iso_c_binding, only: c_int
+          implicit none
+          type(c_ptr), value :: cptr
+          integer(c_int) :: ierr
+          ierr = quo_ptr_free_c(cptr)
+      end subroutine quo_ptr_free
+
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_version(version, subversion, ierr)
           use, intrinsic :: iso_c_binding, only: c_int
@@ -295,7 +326,7 @@ contains
           call c_f_pointer(qidp, qidsp, [nqids])
           allocate (qids(nqids))
           forall (i = 1 : size(qidsp)) qids(i) = qidsp(i)
-          ! XXX add free
+          call quo_ptr_free(qidp)
       end subroutine quo_qids_in_type
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -411,5 +442,24 @@ contains
           integer(c_int), intent(out) :: ierr
           ierr = quo_barrier_c(q)
       end subroutine quo_barrier
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine quo_auto_distrib(q, distrib_over_this, &
+                                  max_qids_per_res_type, oselected, &
+                                  ierr)
+          use, intrinsic :: iso_c_binding, only: c_int
+          use :: quo_types
+          implicit none
+          type(quo_context), value :: q
+          integer(c_int), value :: distrib_over_this
+          integer(c_int), value :: max_qids_per_res_type
+          integer(c_int) :: iselected
+          logical, intent(out) :: oselected
+          integer(c_int), intent(out) :: ierr
+          ierr = quo_auto_distrib_c(q, distrib_over_this, &
+                                    max_qids_per_res_type, iselected)
+          oselected = (iselected == 1)
+      end subroutine quo_auto_distrib
+
 
 end module quo

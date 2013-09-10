@@ -3,8 +3,6 @@
 !                         All rights reserved.
 !
 
-! my very first fortran app -- don't laugh too hard...
-
 ! does nothing useful. just used to exercise the fortran interface.
 ! better examples can be found in demos
 
@@ -18,7 +16,7 @@ program quofort
 
     include "mpif.h"
 
-    logical bound, inres
+    logical bound, inres, have_res
     integer(c_int) info
     integer(c_int) ver, subver
     integer(c_int) nres, qid
@@ -79,14 +77,15 @@ program quofort
     call quo_bind_push(quoc, QUO_BIND_PUSH_OBJ, QUO_OBJ_SOCKET, -1, info)
 
     call quo_bound(quoc, bound, info)
-
     print *, 'bound after push', bound
 
     call quo_bind_pop(quoc, info)
 
     call quo_bound(quoc, bound, info)
-
     print *, 'bound after pop', bound
+
+    call quo_auto_distrib(quoc, QUO_OBJ_CORE, 1, have_res, info)
+    print *, 'rank, have_res', cwrank, have_res
 
     call quo_barrier(quoc, info)
 
