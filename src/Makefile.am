@@ -42,9 +42,8 @@ endif
 # these are generated
 MOSTLYCLEANFILES = *.mod
 
-# Install the generated .mod files.  Unfortunately, each F90 compiler
+# install the generated .mod files.  unfortunately, each f90 compiler
 # may generate different filenames, so we have to use a glob.  :-(
-
 install-exec-hook:
 	@ for file in `ls *.mod`; do \
 	  echo $(INSTALL) $$file $(DESTDIR)$(libdir); \
@@ -56,13 +55,6 @@ uninstall-local:
 	  echo rm -f $(DESTDIR)$(libdir)/$$file; \
 	  rm -f $(DESTDIR)$(libdir)/$$file; \
 	done
-
-# Need to have empty targets because AM can't handle having an
-# AM_CONDITIONAL was targets in the "if" statement but not in the
-# "else".  :-(
-
-install-exec-hook:
-uninstall-local:
 
 libquo_la_CFLAGS =
 # From: http://www.sourceware.org/autobook/autobook/autobook_91.html
