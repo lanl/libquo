@@ -84,7 +84,7 @@ program quofort
     call quo_bound(quoc, bound, info)
     print *, 'bound after pop', bound
 
-    call quo_auto_distrib(quoc, QUO_OBJ_CORE, 1, have_res, info)
+    call quo_auto_distrib(quoc, QUO_OBJ_SOCKET, 2, have_res, info)
     print *, 'rank, have_res', cwrank, have_res
 
     call quo_barrier(quoc, info)

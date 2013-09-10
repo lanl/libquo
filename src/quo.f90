@@ -316,7 +316,7 @@ contains
           implicit none
           type(quo_context), value :: q
           integer(c_int), value :: obj_type, type_index
-          integer(c_int), allocatable, intent(inout) :: qids(:)
+          integer(c_int), allocatable, intent(out) :: qids(:)
           integer(c_int), pointer :: qidsp(:)
           type(c_ptr) :: qidp
           integer(c_int), intent(out) :: ierr
