@@ -33,10 +33,10 @@ quo.h quo.c
 
 if QUO_WITH_MPIFC
 libquo_usequo_la_SOURCES = \
-quo-types.f90 quo.f90
-libquo_usequo_la_FCFLAGS  = -I$(top_srcdir)/src
+quof-types.f90 quof.f90
+libquo_usequo_la_FCFLAGS = -I$(top_srcdir)/src
 libquo_usequo_la_LDFLAGS = -L$(top_srcdir)/src
-libquo_usequo_la_LIBADD   = libquo.la
+libquo_usequo_la_LIBADD = libquo.la
 endif
 
 # these are generated
