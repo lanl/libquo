@@ -20,6 +20,9 @@ lib_LTLIBRARIES = \
 libquo.la \
 libquo-usequo.la
 
+include_HEADERS = \
+quo.h
+
 libquo_la_SOURCES = \
 quo-private.h \
 quo-utils.h quo-utils.c \
