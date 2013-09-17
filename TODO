@@ -1,4 +1,5 @@
 libquo TODO
+o Add MPI_Comm init.
 o Make hwloc (Intel) valgrind clean and send upstream.
 o Fix parallel builds (Thanks Fortran)
 o add better error messages

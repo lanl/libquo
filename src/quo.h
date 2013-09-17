@@ -95,51 +95,30 @@ QUO_version(int *version,
             int *subversion);
 
 /**
- * libquo context handle construction routine.
+ * libquo context handle construction and initialization routine.
  *
- * @param q - reference to a new, unconstructed QUO_t pointer. (OUT)
+ * @param q - reference to a new, unconstructed QUO_context. (OUT)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
  * NOTES: this is typically the first "real" call into the library. a
- * relatively inexpensive routine that can be called before MPI_Init. call
- * QUO_destruct to free returned resources.
+ * relatively expensive routine that can be called before MPI_Init. call
+ * QUO_free to free returned resources.
  *
  * EXAMPLE (c):
- * QUO_t *quo = NULL;
- * if (QUO_SUCCESS != QUO_construct(&quo)) {
+ * QUO_context quo = NULL;
+ * if (QUO_SUCCESS != QUO_create(&quo)) {
  *     // error handling //
  * }
  */
 
-/**
- * libquo context handle creation routine.
- *
- * @param q - constructed QUO_t context pointer. (IN)
- *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
- *
- * NOTES: this is typically the first "real" call into the library. a
- * relatively EXPENSIVE routine that must be called after MPI_Init. call
- * QUO_finalize to "finalize" all services that were started with this call. ALL
- * participating processes (i.e. everyone in MPI_COMM_WORLD) must call this
- * routine at the same time, as this is a collective operation across a
- * libquo-maintained duplicate of MPI_COMM_WORLD.
- *
- * EXAMPLE (c):
- * // ... //
- * if (QUO_SUCCESS != QUO_init(quo)) {
- *     // error handling //
- * }
- */
-/* XXX Add MPI Comm */
 int
 QUO_create(QUO_context *q);
 
 /**
  * libquo context handle destruction routine.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
@@ -152,7 +131,7 @@ QUO_create(QUO_context *q);
  *
  * EXAMPLE (c):
  * // ... //
- * if (QUO_SUCCESS != QUO_destruct(quo)) {
+ * if (QUO_SUCCESS != QUO_free(quo)) {
  *     // error handling //
  * }
  */
@@ -163,7 +142,7 @@ QUO_free(QUO_context q);
  * libquo context query routine that returns the total number of hardware
  * resource objects that are on the caller's system.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param target_type - hardware object type that is being queried. (IN)
  *
@@ -188,7 +167,7 @@ QUO_nobjs_by_type(QUO_context q,
  * libquo context query routine that returns the total number of hardware
  * resource objects that are in another hardware resource.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param in_type - container hardware object type. (IN)
  *
@@ -222,7 +201,7 @@ QUO_nobjs_in_type_by_type(QUO_context q,
  * libquo context handle query routine that returns whether or not my current
  * binding policy falls within a particular system hardware resource.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param type - hardware object type. (IN)
  *
@@ -254,7 +233,7 @@ QUO_cpuset_in_type(QUO_context q,
  * libquo context query routine that returns the number of node ranks whose
  * current binding policy fall within a particular system hardware resource.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param type - hardware object type. (IN)
  *
@@ -287,7 +266,7 @@ QUO_nmachine_procs_in_type(QUO_t *q,
  * similar to QUO_nmachine_procs_in_type, but also returns the "SMP_COMM_WORLD" ranks
  * that met the query criteria.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param type - hardware object type. (IN)
  *
@@ -325,7 +304,7 @@ QUO_qids_in_type(QUO_context q,
  * libquo query routine that returns the total number of NUMA nodes that are
  * present on the caller's system.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param out_nnumanodes - total number of NUMA nodes on the system. (OUT)
  *
@@ -390,7 +369,7 @@ QUO_nqids(QUO_context q,
 /**
  * libquo query routine that returns the caller's "SMP_COMM_WORLD" rank.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param out_qid - the caller's node rank, as assigned by libquo. (OUT)
  *
@@ -416,7 +395,7 @@ QUO_id(QUO_context q,
  * libquo query routine that returns whether or not the caller is currently
  * "bound" to a CPU resource.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param bound - flag indicating whether or not the caller is currently bound.
  *                (OUT)
@@ -447,7 +426,7 @@ QUO_bound(QUO_context q,
  * libquo query routine that returns a string representation of the caller's
  * current binding policy (cpuset) in a hexadecimal format. @see CPUSET(7).
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param cbind_str - the caller's current CPU binding policy in string form.
  *                    *cbind_str must be freed by call to free(3). (OUT)
@@ -472,7 +451,7 @@ QUO_stringify_cbind(QUO_context q,
  * libquo routine that changes the caller's process binding policy. the policy
  * is maintained in the current context's stack.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @param policy - policy that influence the behavior of this routine. if
  *                 QUO_BIND_PUSH_PROVIDED is provided, then the type and
@@ -524,7 +503,7 @@ QUO_bind_push(QUO_context q,
  * libquo routine that changes the caller's process binding policy by replacing
  * it with the policy at the top of the provided context's process bind stack.
  *
- * @param q - constructed and initialized QUO_t context pointer. (IN)
+ * @param q - constructed and initialized QUO_context. (IN)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
