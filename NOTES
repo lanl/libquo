@@ -15,6 +15,10 @@ git tag -a v0.1-rc0 -m '0.1 RC0'
 git push --tags
 # checkout tag
 git co [tag name]
+# delete tag
+git tag -d v1.1
+# delete remote tag
+push --delete origin 'TAGNAME'
 
 ################################################################################
 # Cray XE/XK 6
