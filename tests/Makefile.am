@@ -45,3 +45,6 @@ quofort_FCFLAGS  = -I$(top_srcdir)/src
 quofort_LDFLAGS = -L$(top_srcdir)/src
 quofort_LDADD   = -lquo-usequo -lquo
 endif
+
+# these are generated
+MOSTLYCLEANFILES = *.mod
