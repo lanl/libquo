@@ -1,5 +1,7 @@
 libquo TODO
-o Add MPI_Comm init.
+o reconsider default mapping if affinity is turned off. evenly distribute.
+o update header documentation.
+o add mpi_comm init.
 o Make hwloc (Intel) valgrind clean and send upstream.
 o add better error messages
 o implement global placement api
