@@ -302,10 +302,7 @@ type_in_cur_bind(const context_t *c,
                  int type_id,
                  int *in_cur_bind)
 {
-    if (QUO_SUCCESS != QUO_cpuset_in_type(c->quo,
-                                              type,
-                                              type_id,
-                                              in_cur_bind)) {
+    if (QUO_SUCCESS != QUO_cpuset_in_type(c->quo, type, type_id, in_cur_bind)) {
         return 1;
     }
     return 0;
