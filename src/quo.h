@@ -559,8 +559,7 @@ QUO_barrier(QUO_context q);
 /**
  * libquo routine that helps evenly distribute processes across hardware
  * resources.  the total number of processes assigned to a particular resource
- * will not exceed max_qids_per_res_type. a collective call, so all processes
- * that initialized the QUO context must call this routine.
+ * will not exceed max_qids_per_res_type.
  *
  * @param q - constructed and initialized QUO_context. (IN)
  *
