@@ -40,6 +40,9 @@
  *   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* i do a pretty terrible job explaining the interface. play around with the
+ * demo codes; they are simple and pretty clearly illustrate how to use QUO. */
+
 #ifndef QUO_H_INCLUDED
 #define QUO_H_INCLUDED
 
@@ -139,7 +142,7 @@ QUO_version(int *version,
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
  * NOTES: this is typically the first "real" call into the library. a
- * relatively expensive routine that can be called before MPI_Init. call
+ * relatively expensive routine that must be called before MPI_Init. call
  * QUO_free to free returned resources.
  *
  * EXAMPLE (c):
@@ -160,11 +163,9 @@ QUO_create(QUO_context *q);
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
  * NOTES: this is typically the last "real" call into the library.  a relatively
- * inexpensive routine that must be called BEFORE MPI_Finalize.  call
- * QUO_destruct to release all resources that were allocated with QUO_construct.
- * once a call to this routine is made, it is an error to use any libquo
- * services associated with the destructed libquo context from any other
- * participating process.
+ * inexpensive routine that must be called BEFORE MPI_Finalize.  once a call to
+ * this routine is made, it is an error to use any libquo services associated
+ * with the freed libquo context from any other participating process.
  *
  * EXAMPLE (c):
  * // ... //
@@ -222,8 +223,8 @@ QUO_nobjs_by_type(QUO_context q,
  * // ... //
  * int ncores_in_first_socket = 0;
  * if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(q, QUO_OBJ_SOCKET, 0
- *                                                  QUO_OBJ_CORE,
- *                                                  &ncores_in_first_socket)) {
+ *                                              QUO_OBJ_CORE,
+ *                                              &ncores_in_first_socket)) {
  *     // error handling //
  * }
  */
@@ -251,12 +252,12 @@ QUO_nobjs_in_type_by_type(QUO_context q,
  *
  * EXAMPLE (c):
  * // ... //
- * int cur_binding_in_third_socket = 0;
+ * int cur_bind_covers_sock3 = 0;
  * if (QUO_SUCCESS != QUO_cpuset_in_type(q, QUO_OBJ_SOCKET, 2
- *                                           &cur_binding_in_third_socket)) {
+ *                                       &cur_bind_covers_sock3)) {
  *     // error handling //
  * }
- * if (cur_binding_in_third_socket) {
+ * if (cur_bind_covers_sock3) {
  *     // do stuff //
  * }
  */
@@ -267,8 +268,8 @@ QUO_cpuset_in_type(QUO_context q,
                    int *out_result);
 
 /**
- * libquo context query routine that returns the number of node ranks whose
- * current binding policy fall within a particular system hardware resource.
+ * similar to QUO_cpuset_in_type, but returns the "SMP_COMM_WORLD" QUO IDs that
+ * met the query criteria.
  *
  * @param q - constructed and initialized QUO_context. (IN)
  *
@@ -276,59 +277,26 @@ QUO_cpuset_in_type(QUO_context q,
  *
  * @param in_type_index - type's ID (base 0). (IN)
  *
- * @param n_out_smpranks - total number of node ranks that met the query
- *                         criteria. (OUT)
+ * @param out_nqids - total number of node (job) processes that satisfy the
+ *                    query criteria. (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
- *
- * EXAMPLE (c):
- * // ... //
- * int nnode_ranks_covering_socket0 = 0;
- * if (QUO_SUCCESS != QUO_nmachine_procs_in_type(q, QUO_OBJ_SOCKET, 0
- *                                          &nnode_ranks_covering_socket0)) {
- *     // error handling //
- * }
- * if (nnode_ranks_covering_socket0 > 4) {
- *     // do stuff //
- * }
- */
-/* XXX may not be needed when we go to proper fortran interface */
-int
-QUO_nmachine_procs_in_type(QUO_t *q,
-                           QUO_obj_type_t type,
-                           int in_type_index,
-                           int *n_out_smpranks);
-
-/**
- * similar to QUO_nmachine_procs_in_type, but also returns the "SMP_COMM_WORLD" ranks
- * that met the query criteria.
- *
- * @param q - constructed and initialized QUO_context. (IN)
- *
- * @param type - hardware object type. (IN)
- *
- * @param in_type_index - type's ID (base 0). (IN)
- *
- * @param n_out_smpranks - total number of node ranks that satisfy the query
- *                         criteria. (OUT)
- *
- * @param out_smpranks - an array of "SMP_COMM_WORLD" ranks that met the query
- *                       criteria. *out_smpranks must be freed by a call to
+ * @param out_qids - an array of "SMP_COMM_WORLD ranks" that met the query
+ *                       criteria. *out_qids must be freed by a call to
  *                       free(3). (OUT)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
  * EXAMPLE (c):
  * // ... //
- * int nnode_ranks_covering_socket0 = 0;
- * int *node_ranks_covering_socket0 = NULL;
- * if (QUO_SUCCESS != QUO_nmachine_procs_in_type(q, QUO_OBJ_SOCKET, 0
- *                                          &nnode_ranks_covering_socket0,
- *                                          &node_ranks_covering_socket0)) {
+ * int nqids_covering_socket0 = 0;
+ * int *qids_covering_socket0 = NULL;
+ * if (QUO_SUCCESS != QUO_qids_in_type(q, QUO_OBJ_SOCKET, 0
+ *                                     &nqids_covering_socket0,
+ *                                     &qids_covering_socket0)) {
  *     // error handling //
  * }
  * // ... //
- * free(node_ranks_covering_socket0);
+ * free(qids_covering_socket0);
  */
 int
 QUO_qids_in_type(QUO_context q,
@@ -392,36 +360,36 @@ QUO_nnodes(QUO_context q,
            int *out_nodes);
 
 /**
- * similar to QUO_nnumanodes, but returns the total number of ranks that are on
- * the caller's node.
+ * similar to QUO_nnumanodes, but returns the total number of job processes that
+ * are on the caller's node.
  *
- * NOTES: *out_nqids includes the caller. for example, if there are 3 MPI processes
- * on rank 0's node, then rank 0's call to this routine will result in
- * *out_nqids being set to 3.
+ * NOTES: *out_nqids includes the caller. for example, if there are 3 MPI
+ * processes on rank 0's (MPI_COMM_WORLD) node, then rank 0's call to this
+ * routine will result in *out_nqids being set to 3.
  */
 int
 QUO_nqids(QUO_context q,
           int *out_nqids);
 
 /**
- * libquo query routine that returns the caller's "SMP_COMM_WORLD" rank.
+ * libquo query routine that returns the caller's compute node QUO node ID.
  *
  * @param q - constructed and initialized QUO_context. (IN)
  *
- * @param out_qid - the caller's node rank, as assigned by libquo. (OUT)
+ * @param out_qid - the caller's node ID, as assigned by libquo. (OUT)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
- * NOTES: node ranks start at 0 and go to NNODERANKS - 1.
+ * NOTES: QIDs start at 0 and go to NNODERANKS - 1.
  *
  * EXAMPLE (c):
  * // ... //
- * int mynoderank = 0;
- * if (QUO_SUCCESS != QUO_id(q, &mynoderank)) {_
+ * int mynodeqid = 0;
+ * if (QUO_SUCCESS != QUO_id(q, &mynodeqid)) {_
  *     // error handling //
  * }
- * if (0 == mynoderank) {
- *     // node rank 0 do stuff //
+ * if (0 == mynodeqid) {
+ *     // node id 0 do stuff //
  * }
  */
 int
@@ -498,7 +466,7 @@ QUO_stringify_cbind(QUO_context q,
  *
  * @param type - the hardware resource to bind to. (IN)
  *
- * @param type - when not ignored -- type's index (base 0). (IN)
+ * @param obj_index - when not ignored, type's index (base 0). (IN)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
  *
@@ -560,21 +528,72 @@ QUO_bind_push(QUO_context q,
 int
 QUO_bind_pop(QUO_context q);
 
-
+/**
+ * libquo routine that acts as a compute node barrier. all processes on a node
+ * MUST call this in order for everyone to proceed past the barrier on a single
+ * compute node. see demos for examples.
+ *
+ * @param q - constructed and initialized QUO_context. (IN)
+ *
+ * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ *
+ * EXAMPLE (c): // ... //
+ *  // time for p1 to do some work with some of the ranks //
+ *  if (working) {
+ *      // *** do work *** //
+ *      // signals completion //
+ *      if (QUO_SUCCESS != QUO_barrier(q)) {
+ *          // error handling //
+ *      }
+ *  } else {
+ *      // non workers wait in a barrier //
+ *      if (QUO_SUCCESS != QUO_barrier(q)) {
+ *          // error handling //
+ *      }
+ *  }
+ *  // ... ///
+ */
 int
 QUO_barrier(QUO_context q);
 
 /**
- * TODO
- * don't forget to mention that this routine, as with others (identify), assume
- * that every process calls into this routine and that the info will be the same
- * across all calling processes. this isn't unreasonable, as we care about bulk
- * sync codes.
+ * libquo routine that helps evenly distribute processes across hardware
+ * resources.  the total number of processes assigned to a particular resource
+ * will not exceed max_qids_per_res_type. a collective call, so all processes
+ * that initialized the QUO context must call this routine.
  *
- * TODO
- * document this thing.
+ * @param q - constructed and initialized QUO_context. (IN)
+ * 
+ * @param distrib_over_this - the target hardware resource on which processes will
+ *                            be evenly distributed.
+ *
+ * @param max_qids_per_res_type - the maximum number of processes that will be
+ *                                assigned to the provided resources. for
+ *                                example, if your system has two sockets and
+ *                                max_qids_per_res_type is 2, then a max of 4
+ *                                processes will be chosen (max 2 per socket).
+ *                                this routine doesn't modify the calling
+ *                                processes' affinities, but is used as a
+ *                                helper for evenly distributing processes over
+ *                                hardware resources given a global view of all
+ *                                the affinities within a job. i'm doing a terrible job
+ *                                explaining this, so look at the demos. believe
+ *                                me, this routine is useful...
+ *
+ * @param out_selected - flag indicating whether or not i was chosen in the work
+ *                       distribution. 1 means I was chosen, 0 otherwise. (OUT)
+ *
+ * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ *
+ * EXAMPLE (c):
+ * // ... //
+ * int res_assigned = 0;
+ * if (QUO_SUCCESS != QUO_auto_distrib(q, QUO_OBJ_SOCKET,
+ *                                     2, &res_assigned)) {
+ *     // error handling //
+ * }
+ * // ... //
  */
-
 int
 QUO_auto_distrib(QUO_context q,
                  QUO_obj_type_t distrib_over_this,
