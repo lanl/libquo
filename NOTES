@@ -21,8 +21,12 @@ git tag -d v1.1
 push --delete origin 'TAGNAME'
 
 ################################################################################
-# Cray XE/XK 6
+# Cray XE/XK 6 Builds
 ################################################################################
+o Install libnuma to quo prefix
+o ./configure CC=cc FC=ftn \
+  LDFLAGS="-dynamic -Wl,-rpath=/usr/lib/alps -L[prefix]/lib" \
+  --prefix=[prefix] --enable-static
 LDFLAGS="-dynamic -Wl,-rpath=/usr/lib/alps"
 
 ################################################################################
