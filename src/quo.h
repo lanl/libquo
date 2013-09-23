@@ -563,7 +563,7 @@ QUO_barrier(QUO_context q);
  * that initialized the QUO context must call this routine.
  *
  * @param q - constructed and initialized QUO_context. (IN)
- * 
+ *
  * @param distrib_over_this - the target hardware resource on which processes will
  *                            be evenly distributed.
  *
