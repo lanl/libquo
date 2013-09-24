@@ -49,7 +49,7 @@ AC_INIT([libquo], [1.2-rc0], [samuel@lanl.gov])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_SRCDIR([src])
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([config])
 AM_CONFIG_HEADER([config.h])
 
 # for hwloc - must be in between AC_INIT and AM_INIT_AUTOMAKE

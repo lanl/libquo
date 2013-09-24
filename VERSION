@@ -40,16 +40,10 @@
 #   DAMAGE.
 ################################################################################
 
-ACLOCAL_AMFLAGS = -Iconfig -Isrc/hwloc/config
+vmajor=1
+vminor=2
+vrelease=
+vother=
 
-SUBDIRS = \
-src \
-tests \
-demos
-
-EXTRA_DIST = \
-AUTHORS README THANKS LICENSE NOTES VERSION autogen contrib
-
-AM_CFLAGS = $(HWLOC_EMBEDDED_CFLAGS)
-
-AM_CPPFLAGS = $(HWLOC_EMBEDDED_CPPFLAGS)
+libquo_so_version=2:0:0
+libquo_usequo_so_version=2:0:0
