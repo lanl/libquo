@@ -21,7 +21,6 @@ LIBVINFO = "2:0:0"
 lib_LTLIBRARIES = \
 libquo.la
 
-
 if QUO_WITH_MPIFC
 lib_LTLIBRARIES += libquo-usequo.la
 endif
