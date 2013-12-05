@@ -424,7 +424,8 @@ QUO_auto_distrib(QUO_t *q,
     int *nranks_in_res = NULL;
     /* array of pointers that point to the smp ranks that cover a particular
      * hardware resource at a particular index. you can think of this as a 2D
-     * matrix where [i][j] is the ith hardware resource that smp rank j covers. */
+     * matrix where [i][j] is the ith hardware resource that smp rank j covers.
+     */
     int **rank_ids_in_res = NULL;
     int rc = QUO_ERR;
     /* my node (smp) rank */
@@ -508,9 +509,9 @@ QUO_auto_distrib(QUO_t *q,
      * unshared resources. */
     else {
         /* construct a "hash table" large enough to accommodate all possible
-         * values up to nnoderanks - 1. note: these arrays are typically small, so
-         * who cares. if this ever changes, then update the code to use a proper
-         * hash table. */
+         * values up to nnoderanks - 1. note: these arrays are typically small,
+         * so who cares. if this ever changes, then update the code to use a
+         * proper hash table. */
         int *big_htab = NULL, rmapped = 0;
         size_t bhts = nsmp_ranks * sizeof(*big_htab);
         if (NULL == (big_htab = malloc(bhts))) {

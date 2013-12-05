@@ -79,7 +79,8 @@ main(void)
 {
     int erc = EXIT_SUCCESS;
     unsigned ncores = 0;
-    hwloc_cpuset_t cpu_set = hwloc_bitmap_alloc(), first_bind = hwloc_bitmap_alloc();
+    hwloc_cpuset_t cpu_set = hwloc_bitmap_alloc(),
+                   first_bind = hwloc_bitmap_alloc();
     hwloc_topology_t topology;
     hwloc_obj_t first_core, last_core;
 
