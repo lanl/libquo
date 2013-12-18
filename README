@@ -24,7 +24,7 @@ make
 make install
 
 # Where: MPICC is your system's MPI CC wrapper compiler.
-#        MPIFC is your system's MPI Fortran wrapper compiler.
+#        MPIFC is your system's MPI Fortran wrapper compiler (Optional).
 
 # Example Configure and Build
 ./configure CC=mpicc FC=mpif90 && make && make install
@@ -42,12 +42,7 @@ libquo API
 See src/quo.h for more information.
 
 # Fortran Interface Users
-See src/quof.h and src/quo.h for more information.
-
-*** NOTE ***
-o The QUO_t * equivalent type for the Fortran interface must be an integer of
-  width sizeof(void *) bytes. For convenience, we provide a QUO_IKIND type
-  that meets this requirement.
+See src/quof.f90 and src/quo.h for more information.
 
 o Some Fortran interfaces differ slightly from their C equivalent.
 
