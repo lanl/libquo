@@ -140,10 +140,10 @@ sys_grok(context_t *c)
      * the machine. note: you can also use the QUO_nsockets or
      * QUO_nobjs_by_type to get the same info. */
     if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(c->quo,
-                                                     QUO_OBJ_MACHINE,
-                                                     0,
-                                                     QUO_OBJ_SOCKET,
-                                                     &c->nsockets)) {
+                                                 QUO_OBJ_MACHINE,
+                                                 0,
+                                                 QUO_OBJ_SOCKET,
+                                                 &c->nsockets)) {
         bad_func = "QUO_nobjs_in_type_by_type";
         goto out;
     }
@@ -238,7 +238,8 @@ get_p1pes(context_t *c,
 
     *nworkers = 0; *workers = NULL; *working = false;
     /* allocate some memory for our arrays */
-    nranks_bound_to_socket = calloc(c->nsockets, sizeof(*nranks_bound_to_socket));
+    nranks_bound_to_socket = calloc(c->nsockets,
+                                    sizeof(*nranks_bound_to_socket));
     if (!nranks_bound_to_socket) return 1;
     /* allocate pointer array */
     rank_ids_bound_to_socket = calloc(c->nsockets,

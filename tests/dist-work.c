@@ -187,8 +187,8 @@ main(int argc, char **argv)
         emit_bind(&info);
         tsync(&info);
         assert(QUO_SUCCESS == QUO_auto_distrib(info.q, info.tres,
-                                                   max_members_per_res,
-                                                   &work_member));
+                                               max_members_per_res,
+                                               &work_member));
         printf("*** rank %d work member: %d\n", info.rank, work_member);
         tsync(&info);
         binds[i].pfp(&info);
