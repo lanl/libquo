@@ -4,6 +4,8 @@ This distribution contains the source code for libquo, a library that exposes an
 interface that helps facilitate run-time binding tuning of MPI processes that
 may benefit from evolving binding policies.
 
+QUO -- LA-CC-13-076
+
 ################################################################################
 
 ########################################
