@@ -78,7 +78,7 @@ static void
 noinit_msg_emit(const char *func)
 {
     fprintf(stderr, QUO_ERR_PREFIX"%s called before %s. Cannot continue.\n",
-            func, "QUO_init");
+            func, "QUO_create");
 }
 
 #define noinit_action(qp)                                                      \
