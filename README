@@ -39,8 +39,8 @@ make install
 # Example Configure and Build
 ./configure CC=mpicc FC=mpif90 && make && make install
 
-# NOTE: a Fortran wrapper compiler is needed only if you wish to build the
-# Fortran test programs within this distribution.
+# NOTE: a Fortran wrapper compiler is needed only if you wish to build with
+# Fortran support.
 
 ################################################################################
 ################################################################################
