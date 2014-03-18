@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013      Los Alamos National Security, LLC
+# Copyright (c) 2013-2014 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -49,7 +49,8 @@ tests \
 demos
 
 EXTRA_DIST = \
-AUTHORS README THANKS LICENSE NOTES VERSION autogen contrib README.BUILDS
+AUTHORS README THANKS LICENSE NOTES VERSION autogen contrib README.BUILDS \
+BROKEN-COMPILERS
 
 AM_CFLAGS = $(HWLOC_EMBEDDED_CFLAGS)
 
