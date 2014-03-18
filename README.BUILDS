@@ -14,15 +14,10 @@ o Rename install libdir to lib if lib64 (why do you do this install script?)
 o Delete bin dir (we don't need those utilities -- only need libs and includes).
 
 o Build QUO and link against the installed version of libnuma.
-/configure CC=cc FC=ftn \
-CXXFLAGS="-I$QUO_PREFIX/include" \
-LDFLAGS="-L$QUO_PREFIX/lib" \
---prefix=$QUO_PREFIX \
---enable-shared --enable-static
-
-You may see some test build errors complaining about
-"attempted static link of dynamic object," but that's okay. Just make install.
-That should probably get fixed at some point...
+o ./configure CC=cc FC=ftn \
+  LDFLAGS="-dynamic -Wl,-rpath=/usr/lib/alps -L[prefix]/lib" \
+  --prefix=[prefix] --enable-static
+o More notes in NOTES
 
 ################################################################################
 ################################################################################
