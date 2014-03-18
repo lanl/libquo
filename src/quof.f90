@@ -1,4 +1,4 @@
-! Copyright (c) 2013      Los Alamos National Security, LLC
+! Copyright (c) 2013-2014 Los Alamos National Security, LLC
 !                         All rights reserved.
 !
 ! Copyright 2013. Los Alamos National Security, LLC. This software was
@@ -64,7 +64,7 @@ module quo
       integer(c_int) QUO_ERR_POP
       integer(c_int) QUO_ERR_NOT_FOUND
 
-      parameter(QUO_SUCCESS = 0)
+      parameter (QUO_SUCCESS = 0)
       parameter (QUO_SUCCESS_ALREADY_DONE = 1)
       parameter (QUO_ERR = 2)
       parameter (QUO_ERR_SYS = 3)
