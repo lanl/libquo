@@ -61,14 +61,12 @@ rebind_LDADD   = $(HWLOC_EMBEDDED_LDADD) $(HWLOC_EMBEDDED_LIBS)
 ### test 1
 trivial_SOURCES = trivial.c
 trivial_CFLAGS  = -I$(top_srcdir)/src
-trivial_LDFLAGS = -L$(top_srcdir)/src
-trivial_LDADD   = -lquo
+trivial_LDADD   = ../src/libquo.la
 
 ### test 2
 dist_work_SOURCES = dist-work.c
 dist_work_CFLAGS  = -I$(top_srcdir)/src
-dist_work_LDFLAGS = -L$(top_srcdir)/src
-dist_work_LDADD   = -lquo
+dist_work_LDADD   = ../src/libquo.la
 
 ### test 3
 barrier_subset_SOURCES = barrier-subset.c
@@ -81,7 +79,7 @@ if QUO_WITH_MPIFC
 quofort_SOURCES = quofort.f90
 quofort_FCFLAGS  = -I$(top_srcdir)/src
 quofort_LDFLAGS = -L$(top_srcdir)/src
-quofort_LDADD   = -lquo-usequo -lquo
+quofort_LDADD   = ../src/libquo-usequo.la ../src/libquo.la
 endif
 
 # these are generated
