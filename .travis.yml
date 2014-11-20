@@ -1,0 +1,7 @@
+language: c
+
+before_install:
+ - sudo apt-get update 
+ - sudo apt-get install check libopenmpi-dev openmpi-bin hwloc libhwloc-dev numactl
+
+script: autoreconf -i && ./configure CC=mpicc && make && sudo make install
