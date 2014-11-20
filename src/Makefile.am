@@ -36,6 +36,9 @@ quo-hwloc.h quo-hwloc.c \
 quo-mpi.h quo-mpi.c \
 quo.h quo.c
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libquo.pc
+
 if QUO_WITH_MPIFC
 libquo_usequo_la_SOURCES = \
 quof.f90

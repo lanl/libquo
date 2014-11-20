@@ -43,7 +43,7 @@
 
 AC_PREREQ([2.60])
 
-AC_INIT([libquo], [1.2.3-alpha], [samuel@lanl.gov])
+AC_INIT([libquo], [1.2.3-alpha], [samuel@lanl.gov],[libquo],[http://losalamos.github.io/libquo/])
 
 # Check If AM_SILENT_RULES Rule Are Supported
 # If So, Build Using AM_SILENT_RULES
@@ -134,7 +134,8 @@ AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  tests/Makefile
-                 demos/Makefile])
+                 demos/Makefile
+		 src/libquo.pc])
 
 AC_OUTPUT
 
