@@ -44,7 +44,8 @@
 noinst_PROGRAMS = \
 quoinfo \
 quodemo \
-quodemo-multilib
+quodemo-multilib \
+mpi-omp
 
 noinst_LTLIBRARIES = \
 libdemop1.la
@@ -72,3 +73,8 @@ libdemop1_la_CPPFLAGS = -I$(top_srcdir)/src
 libdemop1_la_LDFLAGS = -L$(top_srcdir)/src
 libdemop1_la_LIBADD = -lquo
 
+### demo 3
+mpi_omp_SOURCES = mpi-omp.c
+mpi_omp_CPPFLAGS  = -I$(top_srcdir)/src
+mpi_omp_LDFLAGS = -L$(top_srcdir)/src
+mpi_omp_LDADD   = -lquo
