@@ -337,6 +337,10 @@ do_omp_things(const context_t *c)
 int
 enter_omp_region(const context_t *c)
 {
+    /* FIXME - assumes that ranks are assigned by filling in a node at a
+     * time. Easy to create a new, more general version, but this is a demo
+     * code, so why are you doing weird mapping things anyway!?!
+     */
     bool on_rank_0s_node = c->rank < c->nnoderanks;
     if (on_rank_0s_node) {
         if (0 == c->rank) {
