@@ -71,6 +71,9 @@ export LD_LIBRARY_PATH=[QUO-PREFIX]/lib:$LD_LIBRARY_PATH
 mpicc myquoapp.c -o myquoapp -I[QUO-PREFIX]/include \
 -L[QUO-PREFIX]/lib -lquo -Wl,-rpath=[QUO-PREFIX]/lib
 
+# Example 2
+mpicc myquoapp.c -o myquoapp `pkg-config --cflags --libs libquo`
+
 ################################################################################
 ################################################################################
 libquo Environment Variables
