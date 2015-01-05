@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013      Los Alamos National Security, LLC
+# Copyright (c) 2013-2015 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -43,24 +43,31 @@
 
 noinst_PROGRAMS = \
 quoinfo \
-quodemo \
+quodemo-0 \
+quodemo-1 \
 quodemo-multilib \
 mpi-omp
 
 noinst_LTLIBRARIES = \
 libdemop1.la
 
-### demo 0
+### info demo 0
 quoinfo_SOURCES = quoinfo.c
 quoinfo_CPPFLAGS  = -I$(top_srcdir)/src
 quoinfo_LDFLAGS = -L$(top_srcdir)/src
 quoinfo_LDADD   = -lquo
 
+### demo 0
+quodemo_0_SOURCES = quodemo-0.c
+quodemo_0_CPPFLAGS  = -I$(top_srcdir)/src
+quodemo_0_LDFLAGS = -L$(top_srcdir)/src
+quodemo_0_LDADD   = -lquo
+
 ### demo 1
-quodemo_SOURCES = quodemo.c
-quodemo_CPPFLAGS  = -I$(top_srcdir)/src
-quodemo_LDFLAGS = -L$(top_srcdir)/src
-quodemo_LDADD   = -lquo
+quodemo_1_SOURCES = quodemo-1.c
+quodemo_1_CPPFLAGS  = -I$(top_srcdir)/src
+quodemo_1_LDFLAGS = -L$(top_srcdir)/src
+quodemo_1_LDADD   = -lquo
 
 ### demo 2 (multi lib example)
 quodemo_multilib_SOURCES = quodemo-multilib-common.h quodemo-p0.c
