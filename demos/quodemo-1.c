@@ -422,6 +422,7 @@ one_rank_all_res(context_t *context)
 {
     int erc = 0;
     char *bad_func = NULL;
+    demo_emit_sync(context);
     /* for the first test, we will just use ALL the resources on the node for
      * threading and quiesce all but one mpi process on each node. NOTE: doing
      * so will show that the process is NOT bound -- because it isn't.  its
@@ -468,6 +469,7 @@ all_ranks_some_res(context_t *context)
 {
     int erc = 0;
     char *bad_func = NULL;
+    demo_emit_sync(context);
     /* everyone has one of these -- default */
     QUO_obj_type_t what_to_bindup_to = QUO_OBJ_MACHINE;
     /* pick some resource to "bind up" to. */
@@ -575,13 +577,11 @@ main(void)
         goto out;
     }
     /* demo 0 */
-    demo_emit_sync(context);
     if (one_rank_all_res(context)) {
         bad_func = "one_rank_all_res";
         goto out;
     }
     /* demo 1 */
-    demo_emit_sync(context);
     if (all_ranks_some_res(context)) {
         bad_func = "all_ranks_some_res";
         goto out;
