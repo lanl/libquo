@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013      Los Alamos National Security, LLC
+ * Copyright (c) 2013-2015 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -376,7 +376,7 @@ main(void)
     }
     /* now revert the previous policy */
     if (binddown_sockets(context)) {
-        bad_func = "bindup_sockets";
+        bad_func = "binddown_sockets";
         goto out;
     }
     if (0 == context->rank) {

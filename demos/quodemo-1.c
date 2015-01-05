@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013      Los Alamos National Security, LLC
+ * Copyright (c) 2013-2015 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -62,20 +62,21 @@
 #include "mpi.h"
 
 /**
- * libquo demo code. enjoy.
- */
-
-/**
- * SUGGESTED USE
+ * another quo demo code that show how one might implement binding policies
+ * based on node process information, hardware info, and code policy.
  */
 
 typedef struct context_t {
+    /* my host's name */
+    char hostname[MPI_MAX_PROCESSOR_NAME];
     /* my rank */
     int rank;
     /* number of ranks in MPI_COMM_WORLD */
     int nranks;
     /* number of nodes in our job */
     int nnodes;
+    /* number of numa nodes on this node */
+    int nnuma;
     /* number of ranks that share this node with me (includes myself) */
     int nnoderanks;
     /* my node rank */
@@ -96,10 +97,27 @@ typedef struct context_t {
     char *cbindstr;
     /* flag indicating whether or not we are initially bound */
     int bound;
+    /* flag indicating whether or not i've pushed a policy that hasn't been
+     * popped yet. this is hacky, but illustrates a nice point. */
+    bool pushed_policy;
     /* our quo context (the thing that gets passed around all over the place).
      * filler words that make this comment line look mo better... */
     QUO_context quo;
 } context_t;
+
+static const char *
+stringify_type(QUO_obj_type_t typ)
+{
+    switch (typ) {
+        case QUO_OBJ_MACHINE: return "machine";
+        case QUO_OBJ_NODE: return "numa node";
+        case QUO_OBJ_SOCKET: return "socket";
+        case QUO_OBJ_CORE: return "core";
+        case QUO_OBJ_PU: return "processing unit";
+        default: return "???";
+    }
+    return "???";
+}
 
 /**
  * rudimentary "pretty print" routine. not needed in real life...
@@ -133,6 +151,7 @@ fini(context_t *c)
 static int
 init(context_t **c)
 {
+    int name_len = 0;
     context_t *newc = NULL;
     /* alloc our context */
     if (NULL == (newc = calloc(1, sizeof(*newc)))) return 1;
@@ -142,6 +161,10 @@ init(context_t **c)
     if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(newc->nranks))) goto err;
     /* ...and more */
     if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(newc->rank))) goto err;
+    /* stash my host's name */
+    if (MPI_SUCCESS != MPI_Get_processor_name(newc->hostname, &name_len)) {
+        goto err;
+    }
     /* can be called at any point -- even before init and construct. */
     if (QUO_SUCCESS != QUO_version(&(newc->qv), &(newc->qsv))) goto err;
     /* relatively expensive call. you only really want to do this once at the
@@ -174,6 +197,14 @@ sys_grok(context_t *c)
                                                  0,
                                                  QUO_OBJ_SOCKET,
                                                  &c->nsockets)) {
+        bad_func = "QUO_nobjs_in_type_by_type";
+        goto out;
+    }
+    if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(c->quo,
+                                                 QUO_OBJ_MACHINE,
+                                                 0,
+                                                 QUO_OBJ_NODE,
+                                                 &c->nnuma)) {
         bad_func = "QUO_nobjs_in_type_by_type";
         goto out;
     }
@@ -249,6 +280,7 @@ emit_node_basics(const context_t *c)
         printf("### quo version: %d.%d ###\n", c->qv, c->qsv);
         printf("### nnodes: %d\n", c->nnodes);
         printf("### nnoderanks: %d\n", c->nnoderanks);
+        printf("### nnumanodes: %d\n", c->nnuma);
         printf("### nsockets: %d\n", c->nsockets);
         printf("### ncores: %d\n", c->ncores);
         printf("### npus: %d\n", c->npus);
@@ -259,18 +291,65 @@ emit_node_basics(const context_t *c)
 }
 
 /**
- * elects some node ranks and distributes them onto all the sockets on the node
+ *
  */
 static int
-bindup_sockets(const context_t *c)
+bindup_node(context_t *c)
 {
-    /* if you are going to change bindings often, then cache this */
-    if (c->noderank + 1 <= c->nsockets) {
-        if (QUO_SUCCESS != QUO_bind_push(c->quo, QUO_BIND_PUSH_PROVIDED,
-                                         QUO_OBJ_SOCKET, c->noderank)) {
+    /* choose any node rank here. i use node rank 0 (quid 0) because it's easy.
+     * */
+    /* for nice printing... */
+    demo_emit_sync(c);
+    if (0 == c->noderank) {
+        printf("### [rank %d on %s] expanding my cpuset for threading!\n",
+                c->rank, c->hostname);
+        /* QUO_BIND_PUSH_OBJ, so the last argument doesn't matter */
+        int rc = QUO_bind_push(c->quo, QUO_BIND_PUSH_OBJ,
+                               QUO_OBJ_MACHINE, -1);
+        if (QUO_SUCCESS != rc) {
+            fprintf(stderr, "%s fails with rc: %d\n",
+                    "QUO_bind_push", rc);
             return 1;
         }
+        /* i pushed a policy */
+        c->pushed_policy = true;
     }
+    else {
+        printf("--- [rank %d on %s] going to sleep...\n",
+                c->rank, c->hostname);
+    }
+    /* wait for everyone to complete on this node */
+    if (QUO_SUCCESS != QUO_barrier(c->quo)) return 1;
+    /* for good measure... nice output is always nice. */
+    demo_emit_sync(c);
+    return 0;
+}
+
+/**
+ * bind to what is provided. the assumption is that the binding policy for all
+ * procs that are calling this are "binding up." this demo binds all ranks on a
+ * node to the provided "this" that encloses the current policy. for example, if
+ * i'm bound to a core and "bind up" to a socket, then i'll be bound to my
+ * enclosing socket.
+ */
+static int
+bindup_to_this(context_t *c,
+               QUO_obj_type_t this)
+{
+    demo_emit_sync(c);
+    printf("### [rank %d on %s] expanding my cpuset for threading!\n",
+            c->rank, c->hostname);
+    /* QUO_BIND_PUSH_OBJ, so the last argument doesn't matter. QUO will do smart
+     * things here (ish). This is where how the things were launched matters. */
+    int rc = QUO_bind_push(c->quo, QUO_BIND_PUSH_OBJ, this, -1);
+    if (QUO_SUCCESS != rc) {
+        fprintf(stderr, "%s fails with rc: %d\n",
+                "QUO_bind_push", rc);
+        return 1;
+    }
+    c->pushed_policy = true;
+    /* i pushed a policy */
+    demo_emit_sync(c);
     return 0;
 }
 
@@ -279,12 +358,18 @@ bindup_sockets(const context_t *c)
  * to be the socket master can now revert their binding by calling pop.
  */
 static int
-binddown_sockets(const context_t *c)
+pop_bind_policy(context_t *c)
 {
-    if (c->noderank + 1 <= c->nsockets) {
+    /* if i pushed a policy, then revert it. only one deep in our stack in this
+     * demo, so that's why the bool works. more complicated binding stack
+     * situations will require a bit more code. that is, quo let's you push an
+     * arbitrary amount of binding policies, but this code only ever pushed one
+     * at a time. */
+    if (c->pushed_policy) {
         if (QUO_SUCCESS != QUO_bind_pop(c->quo)) {
             return 1;
         }
+        c->pushed_policy = false;
     }
     return 0;
 }
@@ -324,12 +409,122 @@ cores_in_cur_bind_test(const context_t *c)
     return 0;
 }
 
+static int
+node_process_info(const context_t *c)
+{
+    /* if i'm node rank (from quo's perspective), then print out some info. */
+    if (0 == c->noderank) {
+        printf("### [rank %d] %04d mpi processes share this node: %s\n",
+              c->rank, c->nnoderanks, c->hostname);
+    }
+    return 0;
+}
+
+static int
+one_rank_all_res(context_t *context)
+{
+    int erc = 0;
+    char *bad_func = NULL;
+    /* for the first test, we will just use ALL the resources on the node for
+     * threading and quiesce all but one mpi process on each node. NOTE: doing
+     * so will show that the process is NOT bound -- because it isn't.  its
+     * cpuset is the widest it can be on a particular server, so it is NOT
+     * bound. */
+    if (0 == context->rank) {
+        fprintf(stdout,
+                "*****************************************\n"
+                "*** 1 rank given all node resources *****\n"
+                "*****************************************\n");
+        fflush(stdout);
+    }
+    if (bindup_node(context)) {
+        bad_func = "bindup_node";
+        goto out;
+    }
+    if (emit_bind_state(context)) {
+        bad_func = "emit_bind_state";
+        goto out;
+    }
+    /* now revert the previous policy */
+    if (pop_bind_policy(context)) {
+        bad_func = "pop_bind_policy";
+        goto out;
+    }
+    if (0 == context->rank) {
+        fprintf(stdout, "reverted binding change...\n");
+        fflush(stdout);
+    }
+    if (emit_bind_state(context)) {
+        bad_func = "emit_bind_state";
+        goto out;
+    }
+out:
+    if (bad_func) {
+        fprintf(stderr, "XXX %s failure in: %s\n", __FILE__, bad_func);
+        erc = 1;
+    }
+    return erc;
+}
+
+static int
+all_ranks_some_res(context_t *context)
+{
+    int erc = 0;
+    char *bad_func = NULL;
+    /* everyone has one of these -- default */
+    QUO_obj_type_t what_to_bindup_to = QUO_OBJ_MACHINE;
+    /* pick some resource to "bind up" to. */
+    if (0 != context->nnuma) {
+        what_to_bindup_to = QUO_OBJ_NODE;
+    }
+    else if (0 != context->nsockets) {
+        what_to_bindup_to = QUO_OBJ_SOCKET;
+    }
+    if (0 == context->rank) {
+        fprintf(stdout,
+                "*****************************************\n"
+                "*** all ranks given some resources       \n"
+                "*** resource is: %s                      \n"
+                "*****************************************\n",
+                stringify_type(what_to_bindup_to));
+        fflush(stdout);
+    }
+    if (bindup_to_this(context, what_to_bindup_to)) {
+        bad_func = "bindup_node";
+        goto out;
+    }
+    if (emit_bind_state(context)) {
+        bad_func = "emit_bind_state";
+        goto out;
+    }
+    /* now revert the previous policy */
+    if (pop_bind_policy(context)) {
+        bad_func = "pop_bind_policy";
+        goto out;
+    }
+    if (0 == context->rank) {
+        fprintf(stdout, "reverted binding change...\n");
+        fflush(stdout);
+    }
+    if (emit_bind_state(context)) {
+        bad_func = "emit_bind_state";
+        goto out;
+    }
+out:
+    if (NULL != bad_func) {
+        fprintf(stderr, "XXX %s failure in: %s\n", __FILE__, bad_func);
+        erc = 1;
+    }
+    return erc;
+}
+
 int
 main(void)
 {
     int erc = EXIT_SUCCESS;
     char *bad_func = NULL;
     context_t *context = NULL;
+    setbuf(stdout, NULL);
 
     /* ////////////////////////////////////////////////////////////////////// */
     /* init code */
@@ -348,43 +543,46 @@ main(void)
         bad_func = "sys_grok";
         goto out;
     }
+    /* let the people know what's going on... one per node. this info is on a
+     * per-node basis, folks... so, running on a set of heterogeneous nodes will
+     * yeild different results. policy can be set on a per node basis. */
     if (emit_node_basics(context)) {
         bad_func = "emit_node_basics";
         goto out;
     }
+    /* now show what the default bind state of each process in the job is */
     if (emit_bind_state(context)) {
         bad_func = "emit_bind_state";
         goto out;
     }
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* this is where the real work begins ...                                 */
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* ////////////////////////////////////////////////////////////////////// */
     if (0 == context->rank) {
-        fprintf(stdout, "changing binding...\n");
+        fprintf(stdout,
+                "*****************************************\n"
+                "***      starting the demo pieces     ***\n"
+                "*****************************************\n");
         fflush(stdout);
     }
-    if (bindup_sockets(context)) {
-        bad_func = "bindup_sockets";
+    /* first emit how many mpi processes share a node with me.
+     * NOTE: this is a per-node thing and the result may differ across nodes.
+     * Processes that share a node will of course see the same answer, but the
+     * answer may be different across nodes (i.e. servers/compute nodes). */
+    if (node_process_info(context)) {
+        bad_func = "node_process_info";
         goto out;
     }
-    if (emit_bind_state(context)) {
-        bad_func = "emit_bind_state";
+    /* demo 0 */
+    if (one_rank_all_res(context)) {
+        bad_func = "one_rank_all_res";
         goto out;
     }
-    /* now test to see if core 0 and the last core are in the socket that we are
-     * currently bound. */
-    if (cores_in_cur_bind_test(context)) {
-        bad_func = "cores_in_cur_bind_test";
-        goto out;
-    }
-    /* now revert the previous policy */
-    if (binddown_sockets(context)) {
-        bad_func = "bindup_sockets";
-        goto out;
-    }
-    if (0 == context->rank) {
-        fprintf(stdout, "reverting binding change...\n");
-        fflush(stdout);
-    }
-    if (emit_bind_state(context)) {
-        bad_func = "emit_bind_state";
+    /* demo 1 */
+    if (all_ranks_some_res(context)) {
+        bad_func = "all_ranks_some_res";
         goto out;
     }
 out:
