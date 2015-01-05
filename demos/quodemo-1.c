@@ -126,7 +126,7 @@ static inline void
 demo_emit_sync(const context_t *c)
 {
     MPI_Barrier(MPI_COMM_WORLD);
-    usleep((c->rank) * 1000);
+    usleep((c->rank) * 5000);
 }
 
 static int
@@ -250,7 +250,6 @@ emit_bind_state(const context_t *c)
     char *cbindstr = NULL, *bad_func = NULL;
     int bound = 0;
 
-    demo_emit_sync(c);
     if (QUO_SUCCESS != QUO_stringify_cbind(c->quo, &cbindstr)) {
         bad_func = "QUO_stringify_cbind";
         goto out;
@@ -298,8 +297,6 @@ bindup_node(context_t *c)
 {
     /* choose any node rank here. i use node rank 0 (quid 0) because it's easy.
      * */
-    /* for nice printing... */
-    demo_emit_sync(c);
     if (0 == c->noderank) {
         printf("### [rank %d on %s] expanding my cpuset for threading!\n",
                 c->rank, c->hostname);
@@ -313,15 +310,13 @@ bindup_node(context_t *c)
         }
         /* i pushed a policy */
         c->pushed_policy = true;
+        demo_emit_sync(c);
     }
     else {
         printf("--- [rank %d on %s] going to sleep...\n",
                 c->rank, c->hostname);
+        demo_emit_sync(c);
     }
-    /* wait for everyone to complete on this node */
-    if (QUO_SUCCESS != QUO_barrier(c->quo)) return 1;
-    /* for good measure... nice output is always nice. */
-    demo_emit_sync(c);
     return 0;
 }
 
@@ -412,11 +407,13 @@ cores_in_cur_bind_test(const context_t *c)
 static int
 node_process_info(const context_t *c)
 {
+    demo_emit_sync(c);
     /* if i'm node rank (from quo's perspective), then print out some info. */
     if (0 == c->noderank) {
         printf("### [rank %d] %04d mpi processes share this node: %s\n",
               c->rank, c->nnoderanks, c->hostname);
     }
+    demo_emit_sync(c);
     return 0;
 }
 
@@ -560,6 +557,7 @@ main(void)
     /* this is where the real work begins ...                                 */
     /* ////////////////////////////////////////////////////////////////////// */
     /* ////////////////////////////////////////////////////////////////////// */
+    demo_emit_sync(context);
     if (0 == context->rank) {
         fprintf(stdout,
                 "*****************************************\n"
@@ -567,6 +565,7 @@ main(void)
                 "*****************************************\n");
         fflush(stdout);
     }
+    demo_emit_sync(context);
     /* first emit how many mpi processes share a node with me.
      * NOTE: this is a per-node thing and the result may differ across nodes.
      * Processes that share a node will of course see the same answer, but the
@@ -576,11 +575,13 @@ main(void)
         goto out;
     }
     /* demo 0 */
+    demo_emit_sync(context);
     if (one_rank_all_res(context)) {
         bad_func = "one_rank_all_res";
         goto out;
     }
     /* demo 1 */
+    demo_emit_sync(context);
     if (all_ranks_some_res(context)) {
         bad_func = "all_ranks_some_res";
         goto out;
