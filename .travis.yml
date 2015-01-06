@@ -4,4 +4,4 @@ before_install:
  - sudo apt-get update 
  - sudo apt-get install check libopenmpi-dev openmpi-bin hwloc libhwloc-dev numactl
 
-script: autoreconf -i && ./configure CC=mpicc && make && sudo make install
+script: autoreconf -i && ./configure CC=mpicc FC=mpif90 && CC=mpicc FC=mpif90 make distcheck
