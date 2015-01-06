@@ -54,34 +54,28 @@ libdemop1.la
 ### info demo 0
 quoinfo_SOURCES = quoinfo.c
 quoinfo_CPPFLAGS  = -I$(top_srcdir)/src
-quoinfo_LDFLAGS = -L$(top_srcdir)/src
-quoinfo_LDADD   = -lquo
+quoinfo_LDADD   = ../src/libquo.la
 
 ### demo 0
 quodemo_0_SOURCES = quodemo-0.c
 quodemo_0_CPPFLAGS  = -I$(top_srcdir)/src
-quodemo_0_LDFLAGS = -L$(top_srcdir)/src
-quodemo_0_LDADD   = -lquo
+quodemo_0_LDADD   = ../src/libquo.la
 
 ### demo 1
 quodemo_1_SOURCES = quodemo-1.c
 quodemo_1_CPPFLAGS  = -I$(top_srcdir)/src
-quodemo_1_LDFLAGS = -L$(top_srcdir)/src
-quodemo_1_LDADD   = -lquo
+quodemo_1_LDADD   = ../src/libquo.la
 
 ### demo 2 (multi lib example)
 quodemo_multilib_SOURCES = quodemo-multilib-common.h quodemo-p0.c
 quodemo_multilib_CPPFLAGS  = -I$(top_srcdir)/src
-quodemo_multilib_LDFLAGS = -L$(top_srcdir)/src
-quodemo_multilib_LDADD   = -lquo libdemop1.la
+quodemo_multilib_LDADD   = ../src/libquo.la libdemop1.la
 
 libdemop1_la_SOURCES = quodemo-multilib-common.h quodemo-p1.h quodemo-p1.c
 libdemop1_la_CPPFLAGS = -I$(top_srcdir)/src
-libdemop1_la_LDFLAGS = -L$(top_srcdir)/src
-libdemop1_la_LIBADD = -lquo
+libdemop1_la_LIBADD = ../src/libquo.la
 
 ### demo 3
 mpi_omp_SOURCES = mpi-omp.c
 mpi_omp_CPPFLAGS  = -I$(top_srcdir)/src
-mpi_omp_LDFLAGS = -L$(top_srcdir)/src
-mpi_omp_LDADD   = -lquo
+mpi_omp_LDADD   = ../src/libquo.la
