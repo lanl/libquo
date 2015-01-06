@@ -2,6 +2,6 @@ language: c
 
 before_install:
  - sudo apt-get update 
- - sudo apt-get install check libopenmpi-dev openmpi-bin hwloc libhwloc-dev numactl
+ - sudo apt-get install check gfortran libopenmpi-dev openmpi-bin hwloc libhwloc-dev numactl
 
-script: autoreconf -i && ./configure CC=mpicc FC=mpif90 && CC=mpicc FC=mpif90 make distcheck
+script: autoreconf -i && ./configure CC=mpicc FC=mpif90 && make -j4 && CC=mpicc FC=mpif90 make distcheck
