@@ -77,8 +77,7 @@ barrier_subset_LDADD   =
 ### fortran interface test
 if QUO_WITH_MPIFC
 quofort_SOURCES = quofort.f90
-quofort_FCFLAGS  = -I$(top_srcdir)/src
-quofort_LDFLAGS = -L$(top_srcdir)/src
+quofort_FCFLAGS  = -I../src
 quofort_LDADD   = ../src/libquo-usequo.la ../src/libquo.la
 endif
 
