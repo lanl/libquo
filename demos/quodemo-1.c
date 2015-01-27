@@ -369,41 +369,6 @@ pop_bind_policy(context_t *c)
     return 0;
 }
 
-/**
- * returns whether or not our current cpuset (binding) falls within a particular
- * type and index. like: am i bound within socket 1? kinda thing.
- *
- * for example: if you are current bound to a core within socket 1, then this
- * routine will return 1. if you are not bound at all, this routine will also
- * return 1.
- */
-static int
-type_in_cur_bind(const context_t *c,
-                 QUO_obj_type_t type,
-                 int type_id,
-                 int *in_cur_bind)
-{
-    if (QUO_SUCCESS != QUO_cpuset_in_type(c->quo, type, type_id, in_cur_bind)) {
-        return 1;
-    }
-    return 0;
-}
-
-static int
-cores_in_cur_bind_test(const context_t *c)
-{
-    int b0 = -1, blast = -1;
-    if (type_in_cur_bind(c, QUO_OBJ_CORE, 0, &b0)) return 1;
-    if (type_in_cur_bind(c, QUO_OBJ_CORE, c->ncores - 1, &blast)) return 1;
-
-    printf("### [rank %d] core %d in current bind policy: %s\n",
-           c->rank, 0, b0 ? "true" : "false");
-    printf("### [rank %d] core %d in current bind policy: %s\n",
-           c->rank, c->ncores - 1, blast ? "true" : "false");
-    demo_emit_sync(c);
-    return 0;
-}
-
 static int
 node_process_info(const context_t *c)
 {

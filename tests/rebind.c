@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013      Los Alamos National Security, LLC
+ * Copyright (c) 2013-2015 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -83,7 +83,7 @@ main(void)
     hwloc_cpuset_t cpu_set = hwloc_bitmap_alloc(),
                    first_bind = hwloc_bitmap_alloc();
     hwloc_topology_t topology;
-    hwloc_obj_t first_core, last_core;
+    hwloc_obj_t last_core;
 
     /* allocate and initialize topology object. */
     hwloc_topology_init(&topology);
@@ -91,7 +91,6 @@ main(void)
     hwloc_topology_load(topology);
     /* get some info */
     ncores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
-    first_core = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, 0);
     last_core = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, ncores - 1);
     /* stash current binding */
     hwloc_get_cpubind(topology, first_bind, HWLOC_CPUBIND_PROCESS);

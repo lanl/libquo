@@ -60,7 +60,7 @@ program quofort
     integer(c_int) nres, qid
     integer(c_int) cwrank
     integer(c_int), allocatable, dimension(:) :: sock_qids
-    type(quo_context) quoc
+    type(c_ptr) quoc
 
     call quo_version(ver, subver, info)
 
