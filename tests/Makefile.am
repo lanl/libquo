@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013      Los Alamos National Security, LLC
+# Copyright (c) 2013-2015 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -61,12 +61,12 @@ rebind_LDADD   = $(HWLOC_EMBEDDED_LDADD) $(HWLOC_EMBEDDED_LIBS)
 ### test 1
 trivial_SOURCES = trivial.c
 trivial_CFLAGS  = -I$(top_srcdir)/src
-trivial_LDADD   = ../src/libquo.la
+trivial_LDADD   = $(top_builddir)/src/libquo.la
 
 ### test 2
 dist_work_SOURCES = dist-work.c
 dist_work_CFLAGS  = -I$(top_srcdir)/src
-dist_work_LDADD   = ../src/libquo.la
+dist_work_LDADD   = $(top_builddir)/src/libquo.la
 
 ### test 3
 barrier_subset_SOURCES = barrier-subset.c
@@ -78,7 +78,7 @@ barrier_subset_LDADD   =
 if QUO_WITH_MPIFC
 quofort_SOURCES = quofort.f90
 quofort_FCFLAGS  = -I../src
-quofort_LDADD   = ../src/libquo-usequo.la ../src/libquo.la
+quofort_LDADD   = $(top_builddir)/src/libquo-usequo.la $(top_builddir)/src/libquo.la
 endif
 
 # these are generated
