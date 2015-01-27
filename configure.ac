@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013-2014 Los Alamos National Security, LLC
+# Copyright (c) 2013-2015 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -43,7 +43,11 @@
 
 AC_PREREQ([2.60])
 
-AC_INIT([libquo], [1.2.3-alpha], [samuel@lanl.gov],[libquo],[http://losalamos.github.io/libquo/])
+AC_INIT([libquo],
+        [1.2.3-alpha],
+        [samuel@lanl.gov],
+        [libquo],
+        [http://losalamos.github.io/libquo/])
 
 # Check If AM_SILENT_RULES Rule Are Supported
 # If So, Build Using AM_SILENT_RULES
