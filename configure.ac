@@ -86,7 +86,6 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 
 # checks for library functions.
-AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strerror strtoul mmap])
 
 # check for sizeof(uintptr_t) for the Fortran interface.

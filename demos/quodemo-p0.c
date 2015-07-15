@@ -41,25 +41,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "quodemo-multilib-common.h"
 #include "quodemo-p1.h"
 #include "quo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "mpi.h"
 

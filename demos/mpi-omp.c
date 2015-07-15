@@ -47,23 +47,13 @@
  * rank 0 to accommodate OpenMP threading.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "quo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "mpi.h"
 

@@ -44,21 +44,13 @@
 #ifndef QUO_DEMO_MULTILIB_COMMON_H
 #define QUO_DEMO_MULTILIB_COMMON_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "quo.h"
 #include "mpi.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-#ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
-#endif
 
 /* shared context. note that the only think that really needs to be shared is
  * the quo context pointer -- *quo in this case. passing this around makes the
