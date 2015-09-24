@@ -606,3 +606,5 @@ QUO_auto_distrib(QUO_context q,
 #endif
 
 #endif
+
+int QUO_bind_threads(QUO_context q, QUO_obj_type_t type, int index);
