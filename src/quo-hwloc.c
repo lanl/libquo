@@ -665,7 +665,13 @@ out:
 }
 
 int
-quo_hwloc_bind_threads(quo_hwloc_t *hwloc, int qid, int qids_in_type, int omp_thread, int num_omp_threads) {
+quo_hwloc_bind_threads(
+    quo_hwloc_t *hwloc,
+    int qid,
+    int qids_in_type,
+    int omp_thread,
+    int num_omp_threads
+) {
     hwloc_cpuset_t set;
     cpu_set_t new_set;
     int cpu, total, count=0;
@@ -705,20 +711,23 @@ quo_hwloc_bind_threads(quo_hwloc_t *hwloc, int qid, int qids_in_type, int omp_th
     /* printf("0:%d(%d) %f", omp_thread, qid,((num_omp_threads*qid+omp_thread)*cpu_per_thread)+cpu_per_thread); */
 
     for (; i<max && i < count; i++) {
-	cpu = hwloc_cpuset_first(set);
+	cpu = hwloc_bitmap_first(set);
 	printf("%d: Thread %d %d setting %d\n", i, omp_thread, qid, cpu);
 	CPU_SET(cpu, &new_set);
-	hwloc_cpuset_clr(set, cpu);
+	hwloc_bitmap_clr(set, cpu);
     }
 
     sched_setaffinity(syscall(SYS_gettid), sizeof(cpu_set_t), &new_set);
     hwloc_bitmap_free(set);
+
+    // TODO FIXME error paths.
+    return QUO_SUCCESS;
 }
 
 int
 quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc, int omp_thread, int num_omp_threads) {
     cpu_set_t set, new_set;
-    int cpu, total, count=0;
+    int total, count=0;
     double cpu_per_thread;
     unsigned i, x, y;
 
@@ -758,4 +767,7 @@ quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc, int omp_thread, int num_omp_th
 	printf("%d: Thread %d has no setting\n", 2, omp_thread);
 
     sched_setaffinity(syscall(SYS_gettid), sizeof(cpu_set_t), &new_set);
+
+    // TODO FIXME error paths.
+    return QUO_SUCCESS;
 }
