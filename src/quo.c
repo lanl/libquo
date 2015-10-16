@@ -62,9 +62,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-// TODO add guards
+#ifdef HAVE_OMP_H
 #include <omp.h>
+#endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* QUO_t type definition */
@@ -563,34 +563,38 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_bind_threads(
-    QUO_t *q,
-    QUO_obj_type_t type,
-    int index
-) {
-    int thread_num, num_threads;
-    int bound;
-    int qids_in_type, *out_qids, qid, i;
+QUO_bind_threads(QUO_t *q,
+                 QUO_obj_type_t type,
+                 int index)
+{
+    if (!q) return QUO_ERR_INVLD_ARG;
+    noinit_action(q);
+    //
+    int thread_num = 0, num_threads = 0;
+    int bound = 0;
+    int qids_in_type = 0, *out_qids = NULL, qid = 0, i = 0;
 
     thread_num = omp_get_thread_num();
     num_threads = omp_get_num_threads();
     QUO_bound(q, &bound);
 
-    if(omp_get_level() <= 1 && bound) {
-	QUO_id(q, &qid);
-	QUO_qids_in_type(q, type, index, &qids_in_type, &out_qids);
+    if (omp_get_level() <= 1 && bound) {
+        QUO_id(q, &qid);
+        QUO_qids_in_type(q, type, index, &qids_in_type, &out_qids);
 
-	/* if(thread_num == 0) */
-	/*   printf("0: My qid: %d, In Type %d\n", qid, qids_in_type); */
+        /* if(thread_num == 0) */
+        /*   printf("0: My qid: %d, In Type %d\n", qid, qids_in_type); */
 
-	for(i = 0; i < qids_in_type; i++)
-	    if(out_qids[i] == qid)
-		break;
+        for(i = 0; i < qids_in_type; i++) {
+            if(out_qids[i] == qid) break;
+        }
 
-	quo_hwloc_bind_threads(q->hwloc, i, qids_in_type, thread_num, num_threads);
+        quo_hwloc_bind_threads(q->hwloc, i, qids_in_type,
+                               thread_num, num_threads);
     }
-    else
-	quo_hwloc_bind_nested_threads(q->hwloc, thread_num, num_threads);
+    else {
+        quo_hwloc_bind_nested_threads(q->hwloc, thread_num, num_threads);
+    }
 
     // TODO FIXME error paths.
     return QUO_SUCCESS;
