@@ -680,7 +680,7 @@ quo_hwloc_bind_threads(quo_hwloc_t *hwloc, int qid, int qids_in_type, int omp_th
     quo_hwloc_get_nobjs_by_type(hwloc, QUO_OBJ_PU, &total);
   
     for(i=0; i<total; i++)
-	count += hwloc_cpuset_isset(set, i); 
+	count += hwloc_bitmap_isset(set, i);
     
     cpu_per_thread = (double)count/(num_omp_threads*qids_in_type);
   
@@ -695,9 +695,9 @@ quo_hwloc_bind_threads(quo_hwloc_t *hwloc, int qid, int qids_in_type, int omp_th
     /* printf ("%d(%d) min: %f max: %f\n", omp_thread, qid, min, max); */
     
     for (i=0; i < min; i++){
-	cpu = hwloc_cpuset_first(set);
+	cpu = hwloc_bitmap_first(set);
 	/* printf("%d: Thread %d(%d) unsetting %d\n", i, omp_thread, qid, cpu); */
-	hwloc_cpuset_clr(set, cpu);
+	hwloc_bitmap_clr(set, cpu);
     }
     
     CPU_ZERO(&new_set);
@@ -705,13 +705,14 @@ quo_hwloc_bind_threads(quo_hwloc_t *hwloc, int qid, int qids_in_type, int omp_th
     /* printf("0:%d(%d) %f", omp_thread, qid,((num_omp_threads*qid+omp_thread)*cpu_per_thread)+cpu_per_thread); */
     
     for (; i<max && i < count; i++) {
-	cpu = hwloc_cpuset_first(set);
+	cpu = hwloc_bitmap_first(set);
 	printf("%d: Thread %d %d setting %d\n", i, omp_thread, qid, cpu);
 	CPU_SET(cpu, &new_set);
-	hwloc_cpuset_clr(set, cpu);
+	hwloc_bitmap_clr(set, cpu);
     }  
     
     sched_setaffinity(syscall(SYS_gettid), sizeof(cpu_set_t), &new_set);
+    hwloc_bitmap_free(set);
 }
 
 int
