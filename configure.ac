@@ -78,7 +78,7 @@ LT_INIT
 AC_CHECK_HEADERS([\
 inttypes.h limits.h stdint.h stdlib.h string.h unistd.h stdbool.h time.h \
 getopt.h ctype.h netdb.h sys/socket.h netinet/in.h arpa/inet.h sys/types.h \
-stddef.h assert.h pthread.h sys/mman.h sys/stat.h fcntl.h
+stddef.h assert.h pthread.h sys/mman.h sys/stat.h fcntl.h syscall.h omp.h
 ])
 
 # checks for typedefs, structures, and compiler characteristics.
@@ -134,11 +134,19 @@ AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
 #AC_SUBST(QUO_PTHREAD_CFLAGS, $PTHREAD_CFLAGS)
 #AC_SUBST(QUO_PTHREAD_LIBS, $PTHREAD_LIBS)
 
+################################################################################
+# OpenMP configury
+################################################################################
+AX_OPENMP([], AC_MSG_ERROR([*** OpenMP configure failure. ***]))
+CFLAGS="$CFLAGS $OPENMP_CFLAGS"
+#CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+FFLAGS="$FFLAGS $OPENMP_FFLAGS"
+
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  tests/Makefile
                  demos/Makefile
-		 src/libquo.pc])
+                 src/libquo.pc])
 
 AC_OUTPUT
 
@@ -156,5 +164,6 @@ libquo configuration
 | CPPFLAGS: $CPPFLAGS
 | CPP     : $CPP
 | FC      : $FC
+| FFLAGS  : $FFLAGS
 
 EOF
