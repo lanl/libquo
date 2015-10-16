@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013      Los Alamos National Security, LLC
+ * Copyright (c) 2013-2015 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -601,10 +601,16 @@ QUO_auto_distrib(QUO_context q,
                  int max_qids_per_res_type,
                  int *out_selected);
 
+/**
+ * TODO add documentation.
+ */
+int
+QUO_bind_threads(QUO_context q,
+                 QUO_obj_type_t type,
+                 int index);
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
-int QUO_bind_threads(QUO_context q, QUO_obj_type_t type, int index);
