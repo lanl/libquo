@@ -56,7 +56,7 @@
 #include <string.h>
 #endif
 #include <errno.h>
-#include <syscalls.h>
+#include <syscall.h>
 
 /* should be plenty */
 #define BIND_STACK_SIZE 128
