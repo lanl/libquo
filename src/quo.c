@@ -567,34 +567,41 @@ QUO_bind_threads(QUO_t *q,
                  QUO_obj_type_t type,
                  int index)
 {
-    if (!q) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
-    //
     int thread_num = 0, num_threads = 0;
     int bound = 0;
     int qids_in_type = 0, *out_qids = NULL, qid = 0, i = 0;
+    int rc = QUO_ERR;
+
+    if (!q) return QUO_ERR_INVLD_ARG;
+    noinit_action(q);
 
     thread_num = omp_get_thread_num();
     num_threads = omp_get_num_threads();
-    QUO_bound(q, &bound);
+
+    if (QUO_SUCCESS != (QUO_bound(q, &bound))) return rc;
 
     if (omp_get_level() <= 1 && bound) {
-        QUO_id(q, &qid);
-        QUO_qids_in_type(q, type, index, &qids_in_type, &out_qids);
+	if (QUO_SUCCESS != (rc = QUO_id(q, &qid))) return rc;
+	if (QUO_SUCCESS !=
+	    (rc = QUO_qids_in_type(q, type, index, &qids_in_type, &out_qids))) {
+	    return rc;
+	}
 
-        for(i = 0; i < qids_in_type; i++) {
-            if(out_qids[i] == qid) break;
-        }
+	for (i = 0; i < qids_in_type; i++) {
+	    if (out_qids[i] == qid) break;
+	}
 
-        quo_hwloc_bind_threads(q->hwloc, i, qids_in_type,
-                               thread_num, num_threads);
+	if (i >= qids_in_type)
+	    return QUO_ERR;
+
+	return quo_hwloc_bind_threads(q->hwloc, i, qids_in_type,
+				      thread_num, num_threads);
     }
     else {
-        quo_hwloc_bind_nested_threads(q->hwloc, thread_num, num_threads);
+	return quo_hwloc_bind_nested_threads(q->hwloc, thread_num, num_threads);
     }
 
-    // TODO FIXME error paths.
-    return QUO_SUCCESS;
+    return QUO_ERR;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
