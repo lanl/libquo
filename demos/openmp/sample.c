@@ -3,7 +3,7 @@
 #include "mpi.h"
 #include "quo.h"
 #include <omp.h>
-#include <sched.h>
+ <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -61,5 +61,5 @@ err:
         QUO_free(context);
 
     MPI_Finalize();
-    return 1;
+    return 0;
 }
