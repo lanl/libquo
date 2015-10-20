@@ -116,10 +116,14 @@ int
 quo_hwloc_bind_pop(quo_hwloc_t *hwloc);
 
 int
-quo_hwloc_bind_threads(quo_hwloc_t *hwloc, int qid, int qids_in_type, int omp_thread, int num_omp_threads);
+quo_hwloc_bind_threads(quo_hwloc_t *hwloc, 
+		       int qid, 
+		       int qids_in_type, 
+		       int omp_thread, 
+		       int num_omp_threads);
 
 int
-quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc, int omp_thread, int num_omp_threads);
-
-
+quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc, 
+			      int omp_thread, 
+			      int num_omp_threads);
 #endif
