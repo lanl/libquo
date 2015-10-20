@@ -146,6 +146,7 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  tests/Makefile
                  demos/Makefile
+                 demos/openmp/Makefile
                  src/libquo.pc])
 
 AC_OUTPUT
