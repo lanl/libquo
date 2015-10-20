@@ -669,56 +669,46 @@ out:
 }
 
 int
-quo_hwloc_bind_threads(
-    quo_hwloc_t *hwloc,
-    int qid,
-    int qids_in_type,
-    int omp_thread,
-    int num_omp_threads
-) {
+quo_hwloc_bind_threads(quo_hwloc_t *hwloc,
+                       int qid,
+                       int qids_in_type,
+                       int omp_thread,
+                       int num_omp_threads)
+{
     hwloc_cpuset_t set;
     cpu_set_t new_set;
-    int cpu, total, count=0;
+    int cpu, total, count = 0;
     double cpu_per_thread;
     unsigned i;
     double min;
     double max;
 
-    /* printf("qid: %d, omp_thread: %d\n", qid, omp_thread); */
-
     get_cur_bind(hwloc, hwloc->mypid, &set);
     quo_hwloc_get_nobjs_by_type(hwloc, QUO_OBJ_PU, &total);
 
-    for(i=0; i<total; i++)
-	count += hwloc_bitmap_isset(set, i);
+    for (i = 0; i < total; i++)
+        count += hwloc_bitmap_isset(set, i);
 
-    cpu_per_thread = (double)count/(num_omp_threads*qids_in_type);
+    cpu_per_thread = (double)count / (num_omp_threads * qids_in_type);
 
-    /* if(qid ==0 && omp_thread == 0) */
-    /*   printf("2: %f out of %d in %d\n", cpu_per_thread, count, total); */
-    min = (num_omp_threads*qid+omp_thread)*cpu_per_thread;
+    min = (num_omp_threads * qid + omp_thread) * cpu_per_thread;
     max = min + cpu_per_thread;
 
-    if(cpu_per_thread < 1)
-	min = (int)min;
+    if (cpu_per_thread < 1)
+        min = (int)min;
 
-    /* printf ("%d(%d) min: %f max: %f\n", omp_thread, qid, min, max); */
-
-    for (i=0; i < min; i++){
-	cpu = hwloc_bitmap_first(set);
-	/* printf("%d: Thread %d(%d) unsetting %d\n", i, omp_thread, qid, cpu); */
-	hwloc_bitmap_clr(set, cpu);
+    for (i = 0; i < min; i++) {
+        cpu = hwloc_bitmap_first(set);
+        hwloc_bitmap_clr(set, cpu);
     }
 
     CPU_ZERO(&new_set);
 
-    /* printf("0:%d(%d) %f", omp_thread, qid,((num_omp_threads*qid+omp_thread)*cpu_per_thread)+cpu_per_thread); */
-
-    for (; i<max && i < count; i++) {
-	cpu = hwloc_bitmap_first(set);
-	printf("%d: Thread %d %d setting %d\n", i, omp_thread, qid, cpu);
-	CPU_SET(cpu, &new_set);
-	hwloc_bitmap_clr(set, cpu);
+    for (; i < max && i < count; i++) {
+        cpu = hwloc_bitmap_first(set);
+        printf("%d: Thread %d %d setting %d\n", i, omp_thread, qid, cpu);
+        CPU_SET(cpu, &new_set);
+        hwloc_bitmap_clr(set, cpu);
     }
 
     sched_setaffinity(syscall(SYS_gettid), sizeof(cpu_set_t), &new_set);
@@ -729,9 +719,12 @@ quo_hwloc_bind_threads(
 }
 
 int
-quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc, int omp_thread, int num_omp_threads) {
+quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc,
+                              int omp_thread,
+			      int num_omp_threads)
+{
     cpu_set_t set, new_set;
-    int total, count=0;
+    int total, count = 0;
     double cpu_per_thread;
     unsigned i, x, y;
 
@@ -740,35 +733,32 @@ quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc, int omp_thread, int num_omp_th
 
     count = CPU_COUNT(&set);
 
-    cpu_per_thread = (double)count/num_omp_threads;
+    cpu_per_thread = (double)count / num_omp_threads;
 
-    /* if(omp_thread == 0)  */
-    /*   printf("2: (%d) Nested %f out of %d of %d\n", omp_thread, cpu_per_thread, count, total); */
-
-    i=0;
-    x=0;
-    y=0;
+    i = 0;
+    x = 0;
+    y = 0;
 
     CPU_ZERO(&new_set);
 
-    while(i < total)  {
-	if(CPU_ISSET(i, &set)) {
-	    if(x < ((double)cpu_per_thread * omp_thread) && cpu_per_thread >= 1) {
-		x++;
-	    }
-	    else if(y < cpu_per_thread) {
-		printf("%d: Thread %d setting %d\n", 2, omp_thread, i);
-		CPU_SET(i ,&new_set);	
-		y++;
-		if (y == cpu_per_thread)
-		    break;
-	    }
-	}
-	i++;
+    while (i < total)  {
+        if (CPU_ISSET(i, &set)) {
+            if (x < ((double)cpu_per_thread * omp_thread) && cpu_per_thread >= 1) {
+                x++;
+            }
+            else if (y < cpu_per_thread) {
+                printf("%d: Thread %d setting %d\n", 2, omp_thread, i);
+                CPU_SET(i , &new_set);
+                y++;
+                if (y == cpu_per_thread)
+                    break;
+            }
+        }
+        i++;
     }
 
-    if(CPU_COUNT(&new_set) == 0)
-	printf("%d: Thread %d has no setting\n", 2, omp_thread);
+    if (CPU_COUNT(&new_set) == 0)
+        printf("%d: Thread %d has no setting\n", 2, omp_thread);
 
     sched_setaffinity(syscall(SYS_gettid), sizeof(cpu_set_t), &new_set);
 

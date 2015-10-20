@@ -582,9 +582,6 @@ QUO_bind_threads(QUO_t *q,
         QUO_id(q, &qid);
         QUO_qids_in_type(q, type, index, &qids_in_type, &out_qids);
 
-        /* if(thread_num == 0) */
-        /*   printf("0: My qid: %d, In Type %d\n", qid, qids_in_type); */
-
         for(i = 0; i < qids_in_type; i++) {
             if(out_qids[i] == qid) break;
         }
@@ -608,4 +605,3 @@ QUO_ptr_free(void *p)
     if (p) free(p);
     return QUO_SUCCESS;
 }
-
