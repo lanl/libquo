@@ -3,11 +3,15 @@
 #include "mpi.h"
 #include "quo.h"
 #include <omp.h>
- <sched.h>
+#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_SYSCALL_H
 #include <sys/syscall.h>
+#endif
 #include <unistd.h>
 
 QUO_context context;
