@@ -41,8 +41,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-noinst_PROGRAMS = sample
+noinst_PROGRAMS = sample quofort
 
 sample_SOURCES = sample.c
 sample_CPPFLAGS  = -I$(top_srcdir)/src
 sample_LDADD   = $(top_builddir)/src/libquo.la
+
+quofort_SOURCES = quofort.f90
+quofort_FCFLAGS = -I$(top_srcdir)/src -fopenmp
+quofort_LDADD   = $(top_builddir)/src/libquo-usequo.la $(top_builddir)/src/libquo.la
