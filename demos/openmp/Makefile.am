@@ -48,5 +48,5 @@ sample_CPPFLAGS  = -I$(top_srcdir)/src
 sample_LDADD   = $(top_builddir)/src/libquo.la
 
 quofort_SOURCES = quofort.f90
-quofort_FCFLAGS = -I$(top_srcdir)/src -fopenmp
+quofort_FCFLAGS = -I$(top_builddir)/src -fopenmp #mod lives in top_builddir
 quofort_LDADD   = $(top_builddir)/src/libquo-usequo.la $(top_builddir)/src/libquo.la
