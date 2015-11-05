@@ -1,7 +1,8 @@
 language: c
 
 before_install:
+ - sudo add-apt-repository ppa:dns/gnu -y #newer autoconf
  - sudo apt-get update 
- - sudo apt-get install check gfortran libopenmpi-dev openmpi-bin hwloc libhwloc-dev numactl
+ - sudo apt-get install check gfortran libopenmpi-dev openmpi-bin hwloc libhwloc-dev numactl autoconf
 
 script: autoreconf -i && ./configure CC=mpicc FC=mpif90 && make -j4 && CC=mpicc FC=mpif90 make distcheck
