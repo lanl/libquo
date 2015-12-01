@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013      Los Alamos National Security, LLC
+ * Copyright (c) 2013-2016 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -67,10 +67,6 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
 int
 quo_hwloc_destruct(quo_hwloc_t *nhwloc);
-
-int
-quo_hwloc_node_topo_stringify(const quo_hwloc_t *hwloc,
-                              char **out_str);
 
 int
 quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,

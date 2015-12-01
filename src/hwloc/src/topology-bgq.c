@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013 Inria.  All rights reserved.
+ * Copyright © 2013-2015 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -15,12 +15,14 @@
 #include <spi/include/kernel/location.h>
 #include <spi/include/kernel/process.h>
 
+#ifndef HWLOC_DISABLE_BGQ_PORT_TEST
+
 static int
 hwloc_look_bgq(struct hwloc_backend *backend)
 {
   struct hwloc_topology *topology = backend->topology;
   unsigned i;
-  char *env;
+  const char *env;
 
   if (!topology->levels[0][0]->cpuset) {
     /* Nobody created objects yet, setup everything */
@@ -49,8 +51,8 @@ hwloc_look_bgq(struct hwloc_backend *backend)
     topology->levels[0][0]->nodeset = set;
     topology->levels[0][0]->memory.local_memory = 16ULL*1024*1024*1024ULL;
 
-    /* socket */
-    obj = hwloc_alloc_setup_object(HWLOC_OBJ_SOCKET, 0);
+    /* package */
+    obj = hwloc_alloc_setup_object(HWLOC_OBJ_PACKAGE, 0);
     set = hwloc_bitmap_alloc();
     hwloc_bitmap_set_range(set, 0, HWLOC_BGQ_CORES*4-1);
     obj->cpuset = set;
@@ -104,7 +106,7 @@ hwloc_look_bgq(struct hwloc_backend *backend)
 
   hwloc_obj_add_info(topology->levels[0][0], "Backend", "BGQ");
   if (topology->is_thissystem)
-    hwloc_add_uname_info(topology);
+    hwloc_add_uname_info(topology, NULL);
   return 1;
 }
 
@@ -202,15 +204,16 @@ hwloc_bgq_component_instantiate(struct hwloc_disc_component *component,
 {
   struct utsname utsname;
   struct hwloc_backend *backend;
-  char *env;
+  const char *env;
   int err;
 
   env = getenv("HWLOC_FORCE_BGQ");
   if (!env || !atoi(env)) {
     err = uname(&utsname);
     if (err || strcmp(utsname.sysname, "CNK") || strcmp(utsname.machine, "BGQ")) {
-      fprintf(stderr, "*** Found unexpected uname sysname `%s' machine `%s', disabling BGQ backend.\n", utsname.sysname, utsname.machine);
-      fprintf(stderr, "*** Set HWLOC_FORCE_BGQ=1 in the environment to enforce the BGQ backend.\n");
+      fprintf(stderr, "*** Found unexpected uname sysname `%s' machine `%s'\n", utsname.sysname, utsname.machine);
+      fprintf(stderr, "*** The BGQ backend is only enabled on compute nodes by default (sysname=CNK machine=BGQ)\n");
+      fprintf(stderr, "*** Set HWLOC_FORCE_BGQ=1 in the environment to enforce the BGQ backend anyway.\n");
       return NULL;
     }
   }
@@ -233,7 +236,10 @@ static struct hwloc_disc_component hwloc_bgq_disc_component = {
 
 const struct hwloc_component hwloc_bgq_component = {
   HWLOC_COMPONENT_ABI,
+  NULL, NULL,
   HWLOC_COMPONENT_TYPE_DISC,
   0,
   &hwloc_bgq_disc_component
 };
+
+#endif /* !HWLOC_DISABLE_BGQ_PORT_TEST */

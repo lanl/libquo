@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011-2012 Inria.  All rights reserved.
+ * Copyright © 2011-2014 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -20,6 +20,7 @@ hwloc_custom_insert_group_object_by_parent(struct hwloc_topology *topology, hwlo
 
   obj = hwloc_alloc_setup_object(HWLOC_OBJ_GROUP, -1);
   obj->attr->group.depth = groupdepth;
+  hwloc_obj_add_info(obj, "Backend", "Custom");
   hwloc_insert_object_by_parent(topology, parent, obj);
   /* insert_object_by_parent() doesn't merge during insert, so obj is still valid */
 
@@ -51,15 +52,17 @@ static int
 hwloc_look_custom(struct hwloc_backend *backend)
 {
   struct hwloc_topology *topology = backend->topology;
+  hwloc_obj_t root = topology->levels[0][0];
 
-  assert(!topology->levels[0][0]->cpuset);
+  assert(!root->cpuset);
 
-  if (!topology->levels[0][0]->first_child) {
+  if (!root->first_child) {
     errno = EINVAL;
     return -1;
   }
 
-  topology->levels[0][0]->type = HWLOC_OBJ_SYSTEM;
+  root->type = HWLOC_OBJ_SYSTEM;
+  hwloc_obj_add_info(root, "Backend", "Custom");
   return 1;
 }
 
@@ -90,6 +93,7 @@ static struct hwloc_disc_component hwloc_custom_disc_component = {
 
 const struct hwloc_component hwloc_custom_component = {
   HWLOC_COMPONENT_ABI,
+  NULL, NULL,
   HWLOC_COMPONENT_TYPE_DISC,
   0,
   &hwloc_custom_disc_component

@@ -1,7 +1,7 @@
 /*
  * Copyright © 2009 CNRS
  * Copyright © 2009-2013 Inria.  All rights reserved.
- * Copyright © 2009-2010 Université Bordeaux 1
+ * Copyright © 2009-2010 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
@@ -33,7 +33,11 @@ extern "C" {
 #endif
 
 
-/** \defgroup hwlocality_openfabrics OpenFabrics-Specific Functions
+/** \defgroup hwlocality_openfabrics Interoperability with OpenFabrics
+ *
+ * This interface offers ways to retrieve topology information about
+ * OpenFabrics devices.
+ *
  * @{
  */
 

@@ -1,7 +1,7 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2010 inria.  All rights reserved.
- * Copyright © 2009-2011 Université Bordeaux 1
+ * Copyright © 2009-2015 Inria.  All rights reserved.
+ * Copyright © 2009-2011 Université Bordeaux
  * See COPYING in top-level directory.
  */
 
@@ -24,9 +24,9 @@ extern "C" {
 #endif
 
 
-/** \defgroup hwlocality_linux Linux-only helpers
+/** \defgroup hwlocality_linux Linux-specific helpers
  *
- * This includes helpers for manipulating linux kernel cpumap files, and hwloc
+ * This includes helpers for manipulating Linux kernel cpumap files, and hwloc
  * equivalents of the Linux sched_setaffinity and sched_getaffinity system calls.
  *
  * @{
@@ -43,6 +43,9 @@ HWLOC_DECLSPEC int hwloc_linux_parse_cpumap_file(FILE *file, hwloc_cpuset_t set)
  *
  * The behavior is exactly the same as the Linux sched_setaffinity system call,
  * but uses a hwloc cpuset.
+ *
+ * \note This is equivalent to calling hwloc_set_proc_cpubind() with
+ * HWLOC_CPUBIND_THREAD as flags.
  */
 HWLOC_DECLSPEC int hwloc_linux_set_tid_cpubind(hwloc_topology_t topology, pid_t tid, hwloc_const_cpuset_t set);
 
@@ -50,8 +53,18 @@ HWLOC_DECLSPEC int hwloc_linux_set_tid_cpubind(hwloc_topology_t topology, pid_t 
  *
  * The behavior is exactly the same as the Linux sched_getaffinity system call,
  * but uses a hwloc cpuset.
+ *
+ * \note This is equivalent to calling hwloc_get_proc_cpubind() with
+ * ::HWLOC_CPUBIND_THREAD as flags.
  */
 HWLOC_DECLSPEC int hwloc_linux_get_tid_cpubind(hwloc_topology_t topology, pid_t tid, hwloc_cpuset_t set);
+
+/** \brief Get the last physical CPU where thread \p tid ran.
+ *
+ * \note This is equivalent to calling hwloc_get_proc_last_cpu_location() with
+ * ::HWLOC_CPUBIND_THREAD as flags.
+ */
+HWLOC_DECLSPEC int hwloc_linux_get_tid_last_cpu_location(hwloc_topology_t topology, pid_t tid, hwloc_bitmap_t set);
 
 /** @} */
 

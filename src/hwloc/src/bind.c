@@ -1,8 +1,8 @@
 /*
  * Copyright © 2009 CNRS
  * Copyright © 2009-2011 inria.  All rights reserved.
- * Copyright © 2009-2010, 2012 Université Bordeaux 1
- * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
+ * Copyright © 2009-2010, 2012 Université Bordeaux
+ * Copyright © 2011-2015 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -13,8 +13,9 @@
 #ifdef HAVE_SYS_MMAN_H
 #  include <sys/mman.h>
 #endif
-#ifdef HAVE_MALLOC_H
-#  include <malloc.h>
+/* <malloc.h> is only needed if we don't have posix_memalign() */
+#if defined(hwloc_getpagesize) && !defined(HAVE_POSIX_MEMALIGN) && defined(HAVE_MEMALIGN) && defined(HAVE_MALLOC_H)
+#include <malloc.h>
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -73,9 +74,13 @@ hwloc_set_cpubind(hwloc_topology_t topology, hwloc_const_bitmap_t set, int flags
     if (topology->binding_hooks.set_thisthread_cpubind)
       return topology->binding_hooks.set_thisthread_cpubind(topology, set, flags);
   } else {
-    if (topology->binding_hooks.set_thisproc_cpubind)
-      return topology->binding_hooks.set_thisproc_cpubind(topology, set, flags);
-    else if (topology->binding_hooks.set_thisthread_cpubind)
+    if (topology->binding_hooks.set_thisproc_cpubind) {
+      int err = topology->binding_hooks.set_thisproc_cpubind(topology, set, flags);
+      if (err >= 0 || errno != ENOSYS)
+        return err;
+      /* ENOSYS, fallback */
+    }
+    if (topology->binding_hooks.set_thisthread_cpubind)
       return topology->binding_hooks.set_thisthread_cpubind(topology, set, flags);
   }
 
@@ -93,9 +98,13 @@ hwloc_get_cpubind(hwloc_topology_t topology, hwloc_bitmap_t set, int flags)
     if (topology->binding_hooks.get_thisthread_cpubind)
       return topology->binding_hooks.get_thisthread_cpubind(topology, set, flags);
   } else {
-    if (topology->binding_hooks.get_thisproc_cpubind)
-      return topology->binding_hooks.get_thisproc_cpubind(topology, set, flags);
-    else if (topology->binding_hooks.get_thisthread_cpubind)
+    if (topology->binding_hooks.get_thisproc_cpubind) {
+      int err = topology->binding_hooks.get_thisproc_cpubind(topology, set, flags);
+      if (err >= 0 || errno != ENOSYS)
+        return err;
+      /* ENOSYS, fallback */
+    }
+    if (topology->binding_hooks.get_thisthread_cpubind)
       return topology->binding_hooks.get_thisthread_cpubind(topology, set, flags);
   }
 
@@ -163,9 +172,13 @@ hwloc_get_last_cpu_location(hwloc_topology_t topology, hwloc_bitmap_t set, int f
     if (topology->binding_hooks.get_thisthread_last_cpu_location)
       return topology->binding_hooks.get_thisthread_last_cpu_location(topology, set, flags);
   } else {
-    if (topology->binding_hooks.get_thisproc_last_cpu_location)
-      return topology->binding_hooks.get_thisproc_last_cpu_location(topology, set, flags);
-    else if (topology->binding_hooks.get_thisthread_last_cpu_location)
+    if (topology->binding_hooks.get_thisproc_last_cpu_location) {
+      int err = topology->binding_hooks.get_thisproc_last_cpu_location(topology, set, flags);
+      if (err >= 0 || errno != ENOSYS)
+        return err;
+      /* ENOSYS, fallback */
+    }
+    if (topology->binding_hooks.get_thisthread_last_cpu_location)
       return topology->binding_hooks.get_thisthread_last_cpu_location(topology, set, flags);
   }
 
@@ -271,9 +284,13 @@ hwloc_set_membind_nodeset(hwloc_topology_t topology, hwloc_const_nodeset_t nodes
     if (topology->binding_hooks.set_thisthread_membind)
       return topology->binding_hooks.set_thisthread_membind(topology, nodeset, policy, flags);
   } else {
-    if (topology->binding_hooks.set_thisproc_membind)
-      return topology->binding_hooks.set_thisproc_membind(topology, nodeset, policy, flags);
-    else if (topology->binding_hooks.set_thisthread_membind)
+    if (topology->binding_hooks.set_thisproc_membind) {
+      int err = topology->binding_hooks.set_thisproc_membind(topology, nodeset, policy, flags);
+      if (err >= 0 || errno != ENOSYS)
+        return err;
+      /* ENOSYS, fallback */
+    }
+    if (topology->binding_hooks.set_thisthread_membind)
       return topology->binding_hooks.set_thisthread_membind(topology, nodeset, policy, flags);
   }
 
@@ -306,9 +323,13 @@ hwloc_get_membind_nodeset(hwloc_topology_t topology, hwloc_nodeset_t nodeset, hw
     if (topology->binding_hooks.get_thisthread_membind)
       return topology->binding_hooks.get_thisthread_membind(topology, nodeset, policy, flags);
   } else {
-    if (topology->binding_hooks.get_thisproc_membind)
-      return topology->binding_hooks.get_thisproc_membind(topology, nodeset, policy, flags);
-    else if (topology->binding_hooks.get_thisthread_membind)
+    if (topology->binding_hooks.get_thisproc_membind) {
+      int err = topology->binding_hooks.get_thisproc_membind(topology, nodeset, policy, flags);
+      if (err >= 0 || errno != ENOSYS)
+        return err;
+      /* ENOSYS, fallback */
+    }
+    if (topology->binding_hooks.get_thisthread_membind)
       return topology->binding_hooks.get_thisthread_membind(topology, nodeset, policy, flags);
   }
 
@@ -446,7 +467,7 @@ hwloc_get_area_membind(hwloc_topology_t topology, const void *addr, size_t len, 
 void *
 hwloc_alloc_heap(hwloc_topology_t topology __hwloc_attribute_unused, size_t len)
 {
-  void *p;
+  void *p = NULL;
 #if defined(hwloc_getpagesize) && defined(HAVE_POSIX_MEMALIGN)
   errno = posix_memalign(&p, hwloc_getpagesize(), len);
   if (errno)

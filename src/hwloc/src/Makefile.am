@@ -1,6 +1,6 @@
-# Copyright © 2009-2013 Inria.  All rights reserved.
-# Copyright © 2009-2012 Université Bordeaux 1
-# Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
+# Copyright © 2009-2014 Inria.  All rights reserved.
+# Copyright © 2009-2012 Université Bordeaux
+# Copyright © 2009-2014 Cisco Systems, Inc.  All rights reserved.
 # Copyright © 2011-2012 Oracle and/or its affiliates.  All rights reserved.
 # See COPYING in top-level directory.
 
@@ -19,10 +19,10 @@ else
 noinst_LTLIBRARIES = libhwloc_embedded.la
 endif
 
-pluginsdir = $(libdir)/hwloc
-plugins_LTLIBRARIES = 
-plugins_ldflags = -module -avoid-version
-AM_CPPFLAGS += -DHWLOC_PLUGINS_DIR=\"$(pluginsdir)\"
+pluginsdir = @HWLOC_PLUGINS_DIR@
+plugins_LTLIBRARIES =
+plugins_ldflags = -module -avoid-version -lltdl
+AM_CPPFLAGS += -DHWLOC_PLUGINS_PATH=\"$(HWLOC_PLUGINS_PATH)\"
 
 # Sources and ldflags
 
@@ -33,6 +33,8 @@ sources = \
         components.c \
         bind.c \
         bitmap.c \
+        pci-common.c \
+        diff.c \
         misc.c \
         base64.c \
         topology-noos.c \
@@ -61,8 +63,8 @@ sources += topology-pci.c
 else
 plugins_LTLIBRARIES += hwloc_pci.la
 hwloc_pci_la_SOURCES = topology-pci.c
-hwloc_pci_la_CFLAGS = $(AM_CFLAGS) $(HWLOC_PCIUTILS_CFLAGS) $(HWLOC_PCIACCESS_CFLAGS) -DHWLOC_INSIDE_PLUGIN
-hwloc_pci_la_LDFLAGS = $(plugins_ldflags) $(HWLOC_PCIUTILS_LIBS) $(HWLOC_PCIACCESS_LIBS)
+hwloc_pci_la_CFLAGS = $(AM_CFLAGS) $(HWLOC_PCIACCESS_CFLAGS) -DHWLOC_INSIDE_PLUGIN
+hwloc_pci_la_LDFLAGS = $(plugins_ldflags) $(HWLOC_PCIACCESS_LIBS)
 endif
 endif HWLOC_HAVE_PCI
 
@@ -116,7 +118,7 @@ sources += topology-solaris-chiptype.c
 endif HWLOC_HAVE_SOLARIS
 
 if HWLOC_HAVE_LINUX
-sources += topology-linux.c
+sources += topology-linux.c topology-hardwired.c
 endif HWLOC_HAVE_LINUX
 
 if HWLOC_HAVE_BGQ
@@ -155,9 +157,9 @@ sources += topology-netbsd.c
 ldflags += -lpthread
 endif HWLOC_HAVE_NETBSD
 
-if HWLOC_HAVE_CPUID
+if HWLOC_HAVE_X86_CPUID
 sources += topology-x86.c
-endif HWLOC_HAVE_CPUID
+endif HWLOC_HAVE_X86_CPUID
 
 if HWLOC_HAVE_GCC
 ldflags += -no-undefined

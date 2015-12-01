@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
- * Copyright © 2010-2013 Inria.  All rights reserved.
+ * Copyright © 2010-2015 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -49,8 +49,8 @@ extern "C" {
 
 #define HWLOC_OBJ_SYSTEM HWLOC_NAME_CAPS(OBJ_SYSTEM)
 #define HWLOC_OBJ_MACHINE HWLOC_NAME_CAPS(OBJ_MACHINE)
-#define HWLOC_OBJ_NODE HWLOC_NAME_CAPS(OBJ_NODE)
-#define HWLOC_OBJ_SOCKET HWLOC_NAME_CAPS(OBJ_SOCKET)
+#define HWLOC_OBJ_NUMANODE HWLOC_NAME_CAPS(OBJ_NUMANODE)
+#define HWLOC_OBJ_PACKAGE HWLOC_NAME_CAPS(OBJ_PACKAGE)
 #define HWLOC_OBJ_CACHE HWLOC_NAME_CAPS(OBJ_CACHE)
 #define HWLOC_OBJ_CORE HWLOC_NAME_CAPS(OBJ_CORE)
 #define HWLOC_OBJ_PU HWLOC_NAME_CAPS(OBJ_PU)
@@ -106,6 +106,7 @@ extern "C" {
 #define hwloc_topology_init HWLOC_NAME(topology_init)
 #define hwloc_topology_load HWLOC_NAME(topology_load)
 #define hwloc_topology_destroy HWLOC_NAME(topology_destroy)
+#define hwloc_topology_dup HWLOC_NAME(topology_dup)
 #define hwloc_topology_check HWLOC_NAME(topology_check)
 #define hwloc_topology_ignore_type HWLOC_NAME(topology_ignore_type)
 #define hwloc_topology_ignore_type_keep_structure HWLOC_NAME(topology_ignore_type_keep_structure)
@@ -134,6 +135,9 @@ extern "C" {
 #define hwloc_topology_membind_support HWLOC_NAME(topology_membind_support)
 #define hwloc_topology_support HWLOC_NAME(topology_support)
 #define hwloc_topology_get_support HWLOC_NAME(topology_get_support)
+#define hwloc_topology_set_userdata HWLOC_NAME(topology_set_userdata)
+#define hwloc_topology_get_userdata HWLOC_NAME(topology_get_userdata)
+
 #define hwloc_topology_export_xml HWLOC_NAME(topology_export_xml)
 #define hwloc_topology_export_xmlbuffer HWLOC_NAME(topology_export_xmlbuffer)
 #define hwloc_free_xmlbuffer HWLOC_NAME(free_xmlbuffer)
@@ -141,6 +145,11 @@ extern "C" {
 #define hwloc_export_obj_userdata HWLOC_NAME(export_obj_userdata)
 #define hwloc_export_obj_userdata_base64 HWLOC_NAME(export_obj_userdata_base64)
 #define hwloc_topology_set_userdata_import_callback HWLOC_NAME(topology_set_userdata_import_callback)
+
+#define hwloc_topology_export_synthetic_flags_e HWLOC_NAME(topology_export_synthetic_flags_e)
+#define HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES HWLOC_NAME_CAPS(TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_EXTENDED_TYPES)
+#define HWLOC_TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_ATTRS HWLOC_NAME_CAPS(TOPOLOGY_EXPORT_SYNTHETIC_FLAG_NO_ATTRS)
+#define hwloc_topology_export_synthetic HWLOC_NAME(topology_export_synthetic)
 
 #define hwloc_topology_insert_misc_object_by_cpuset HWLOC_NAME(topology_insert_misc_object_by_cpuset)
 #define hwloc_topology_insert_misc_object_by_parent HWLOC_NAME(topology_insert_misc_object_by_parent)
@@ -175,10 +184,9 @@ extern "C" {
 #define hwloc_get_obj_by_type HWLOC_NAME(get_obj_by_type )
 
 #define hwloc_obj_type_string HWLOC_NAME(obj_type_string )
-#define hwloc_obj_type_of_string HWLOC_NAME(obj_type_of_string )
+#define hwloc_obj_type_sscanf HWLOC_NAME(obj_type_sscanf)
 #define hwloc_obj_type_snprintf HWLOC_NAME(obj_type_snprintf )
 #define hwloc_obj_attr_snprintf HWLOC_NAME(obj_attr_snprintf )
-#define hwloc_obj_snprintf HWLOC_NAME(obj_snprintf)
 #define hwloc_obj_cpuset_snprintf HWLOC_NAME(obj_cpuset_snprintf)
 #define hwloc_obj_get_info_by_name HWLOC_NAME(obj_get_info_by_name)
 #define hwloc_obj_add_info HWLOC_NAME(obj_add_info)
@@ -302,12 +310,12 @@ extern "C" {
 #define hwloc_get_type_or_below_depth HWLOC_NAME(get_type_or_below_depth)
 #define hwloc_get_type_or_above_depth HWLOC_NAME(get_type_or_above_depth)
 #define hwloc_get_root_obj HWLOC_NAME(get_root_obj)
-#define hwloc_get_system_obj HWLOC_NAME(get_system_obj)
 #define hwloc_get_ancestor_obj_by_depth HWLOC_NAME(get_ancestor_obj_by_depth)
 #define hwloc_get_ancestor_obj_by_type HWLOC_NAME(get_ancestor_obj_by_type)
 #define hwloc_get_next_obj_by_depth HWLOC_NAME(get_next_obj_by_depth)
 #define hwloc_get_next_obj_by_type HWLOC_NAME(get_next_obj_by_type)
 #define hwloc_get_pu_obj_by_os_index HWLOC_NAME(get_pu_obj_by_os_index)
+#define hwloc_get_numanode_obj_by_os_index HWLOC_NAME(get_numanode_obj_by_os_index)
 #define hwloc_get_next_child HWLOC_NAME(get_next_child)
 #define hwloc_get_common_ancestor_obj HWLOC_NAME(get_common_ancestor_obj)
 #define hwloc_obj_is_in_subtree HWLOC_NAME(obj_is_in_subtree)
@@ -330,8 +338,9 @@ extern "C" {
 #define hwloc_get_closest_objs HWLOC_NAME(get_closest_objs)
 #define hwloc_get_obj_below_by_type HWLOC_NAME(get_obj_below_by_type)
 #define hwloc_get_obj_below_array_by_type HWLOC_NAME(get_obj_below_array_by_type)
-#define hwloc_distributev HWLOC_NAME(distributev)
-#define hwloc_distribute HWLOC_NAME(distribute)
+#define hwloc_distrib_flags_e HWLOC_NAME(distrib_flags_e)
+#define HWLOC_DISTRIB_FLAG_REVERSE HWLOC_NAME_CAPS(DISTRIB_FLAG_REVERSE)
+#define hwloc_distrib HWLOC_NAME(distrib)
 #define hwloc_alloc_membind_policy HWLOC_NAME(alloc_membind_policy)
 #define hwloc_alloc_membind_policy_nodeset HWLOC_NAME(alloc_membind_policy_nodeset)
 #define hwloc_topology_get_complete_cpuset HWLOC_NAME(topology_get_complete_cpuset)
@@ -349,6 +358,36 @@ extern "C" {
 #define hwloc_get_whole_distance_matrix_by_type HWLOC_NAME(get_whole_distance_matrix_by_type)
 #define hwloc_get_distance_matrix_covering_obj_by_depth HWLOC_NAME(get_distance_matrix_covering_obj_by_depth)
 #define hwloc_get_latency HWLOC_NAME(get_latency)
+
+/* diff.h */
+
+#define hwloc_topology_diff_obj_attr_type_e HWLOC_NAME(topology_diff_obj_attr_type_e)
+#define hwloc_topology_diff_obj_attr_type_t HWLOC_NAME(topology_diff_obj_attr_type_t)
+#define HWLOC_TOPOLOGY_DIFF_OBJ_ATTR_SIZE HWLOC_NAME_CAPS(TOPOLOGY_DIFF_OBJ_ATTR_SIZE)
+#define HWLOC_TOPOLOGY_DIFF_OBJ_ATTR_NAME HWLOC_NAME_CAPS(TOPOLOGY_DIFF_OBJ_ATTR_NAME)
+#define HWLOC_TOPOLOGY_DIFF_OBJ_ATTR_INFO HWLOC_NAME_CAPS(TOPOLOGY_DIFF_OBJ_ATTR_INFO)
+#define hwloc_topology_diff_obj_attr_u HWLOC_NAME(topology_diff_obj_attr_u)
+#define hwloc_topology_diff_obj_attr_generic_s HWLOC_NAME(topology_diff_obj_attr_generic_s)
+#define hwloc_topology_diff_obj_attr_uint64_s HWLOC_NAME(topology_diff_obj_attr_uint64_s)
+#define hwloc_topology_diff_obj_attr_string_s HWLOC_NAME(topology_diff_obj_attr_string_s)
+#define hwloc_topology_diff_type_e HWLOC_NAME(topology_diff_type_e)
+#define hwloc_topology_diff_type_t HWLOC_NAME(topology_diff_type_t)
+#define HWLOC_TOPOLOGY_DIFF_OBJ_ATTR HWLOC_NAME_CAPS(TOPOLOGY_DIFF_OBJ_ATTR)
+#define HWLOC_TOPOLOGY_DIFF_TOO_COMPLEX HWLOC_NAME_CAPS(TOPOLOGY_DIFF_TOO_COMPLEX)
+#define hwloc_topology_diff_u HWLOC_NAME(topology_diff_u)
+#define hwloc_topology_diff_t HWLOC_NAME(topology_diff_t)
+#define hwloc_topology_diff_generic_s HWLOC_NAME(topology_diff_generic_s)
+#define hwloc_topology_diff_obj_attr_s HWLOC_NAME(topology_diff_obj_attr_s)
+#define hwloc_topology_diff_too_complex_s HWLOC_NAME(topology_diff_too_complex_s)
+#define hwloc_topology_diff_build HWLOC_NAME(topology_diff_build)
+#define hwloc_topology_diff_apply_flags_e HWLOC_NAME(topology_diff_apply_flags_e)
+#define HWLOC_TOPOLOGY_DIFF_APPLY_REVERSE HWLOC_NAME_CAPS(TOPOLOGY_DIFF_APPLY_REVERSE)
+#define hwloc_topology_diff_apply HWLOC_NAME(topology_diff_apply)
+#define hwloc_topology_diff_destroy HWLOC_NAME(topology_diff_destroy)
+#define hwloc_topology_diff_load_xml HWLOC_NAME(topology_diff_load_xml)
+#define hwloc_topology_diff_export_xml HWLOC_NAME(topology_diff_export_xml)
+#define hwloc_topology_diff_load_xmlbuffer HWLOC_NAME(topology_diff_load_xmlbuffer)
+#define hwloc_topology_diff_export_xmlbuffer HWLOC_NAME(topology_diff_export_xmlbuffer)
 
 /* glibc-sched.h */
 
@@ -371,6 +410,7 @@ extern "C" {
 #define hwloc_linux_parse_cpumap_file HWLOC_NAME(linux_parse_cpumap_file)
 #define hwloc_linux_set_tid_cpubind HWLOC_NAME(linux_set_tid_cpubind)
 #define hwloc_linux_get_tid_cpubind HWLOC_NAME(linux_get_tid_cpubind)
+#define hwloc_linux_get_tid_last_cpu_location HWLOC_NAME(linux_get_tid_last_cpu_location)
 
 /* openfabrics-verbs.h */
 
@@ -445,6 +485,8 @@ extern "C" {
 #define hwloc_component_type_t HWLOC_NAME(component_type_t)
 #define hwloc_component HWLOC_NAME(component)
 
+#define hwloc_plugin_check_namespace HWLOC_NAME(plugin_check_namespace)
+
 #define hwloc_insert_object_by_cpuset HWLOC_NAME(insert_object_by_cpuset)
 #define hwloc_report_error_t HWLOC_NAME(report_error_t)
 #define hwloc_report_os_error HWLOC_NAME(report_os_error)
@@ -452,25 +494,42 @@ extern "C" {
 #define hwloc__insert_object_by_cpuset HWLOC_NAME(_insert_object_by_cpuset)
 #define hwloc_insert_object_by_parent HWLOC_NAME(insert_object_by_parent)
 #define hwloc_alloc_setup_object HWLOC_NAME(alloc_setup_object)
+#define hwloc_fill_object_sets HWLOC_NAME(fill_object_sets)
+
+#define hwloc_insert_pci_device_list HWLOC_NAME(insert_pci_device_list)
+#define hwloc_pci_find_cap HWLOC_NAME(pci_find_cap)
+#define hwloc_pci_find_linkspeed HWLOC_NAME(pci_find_linkspeed)
+#define hwloc_pci_prepare_bridge HWLOC_NAME(pci_prepare_bridge)
+
+/* hwloc/deprecated.h */
+
+#define hwloc_obj_type_of_string HWLOC_NAME(obj_type_of_string )
+#define hwloc_obj_snprintf HWLOC_NAME(obj_snprintf)
+#define hwloc_distributev HWLOC_NAME(distributev)
+#define hwloc_distribute HWLOC_NAME(distribute)
 
 /* private/debug.h */
 
+#define hwloc_debug_enabled HWLOC_NAME(debug_enabled)
 #define hwloc_debug HWLOC_NAME(debug)
 
 /* private/misc.h */
 
 #define hwloc_snprintf HWLOC_NAME(snprintf)
 #define hwloc_namecoloncmp HWLOC_NAME(namecoloncmp)
-/* FIXME: hwloc_ffsl may be a macro, but it may not be defined yet */
+#define hwloc_ffsl_manual HWLOC_NAME(ffsl_manual)
 #define hwloc_ffs32 HWLOC_NAME(ffs32)
-/* FIXME: hwloc_flsl may be a macro, but it may not be defined yet */
+#define hwloc_ffsl_from_ffs32 HWLOC_NAME(ffsl_from_ffs32)
+#define hwloc_flsl_manual HWLOC_NAME(flsl_manual)
 #define hwloc_fls32 HWLOC_NAME(fls32)
+#define hwloc_flsl_from_fls32 HWLOC_NAME(flsl_from_fls32)
 #define hwloc_weight_long HWLOC_NAME(weight_long)
+#define hwloc_strncasecmp HWLOC_NAME(strncasecmp)
 
-/* private/cpuid.h */
+/* private/cpuid-x86.h */
 
-#define hwloc_have_cpuid HWLOC_NAME(have_cpuid)
-#define hwloc_cpuid HWLOC_NAME(cpuid)
+#define hwloc_have_x86_cpuid HWLOC_NAME(have_x86_cpuid)
+#define hwloc_x86_cpuid HWLOC_NAME(x86_cpuid)
 
 /* private/xml.h */
 
@@ -478,10 +537,12 @@ extern "C" {
 
 #define hwloc__xml_import_state_s HWLOC_NAME(_xml_import_state_s)
 #define hwloc__xml_import_state_t HWLOC_NAME(_xml_import_state_t)
+#define hwloc__xml_import_diff HWLOC_NAME(_xml_import_diff)
 #define hwloc_xml_backend_data_s HWLOC_NAME(xml_backend_data_s)
 #define hwloc__xml_export_state_s HWLOC_NAME(_xml_export_state_s)
 #define hwloc__xml_export_state_t HWLOC_NAME(_xml_export_state_t)
 #define hwloc__xml_export_object HWLOC_NAME(_xml_export_object)
+#define hwloc__xml_export_diff HWLOC_NAME(_xml_export_diff)
 
 #define hwloc_xml_callbacks HWLOC_NAME(xml_callbacks)
 #define hwloc_xml_component HWLOC_NAME(xml_component)
@@ -493,7 +554,6 @@ extern "C" {
 #define hwloc_disc_component_force_enable HWLOC_NAME(disc_component_force_enable)
 #define hwloc_disc_components_enable_others HWLOC_NAME(disc_components_instantiate_others)
 
-#define hwloc_backends_reset HWLOC_NAME(backends_reset)
 #define hwloc_backends_disable_all HWLOC_NAME(backends_disable_all)
 #define hwloc_backends_is_thissystem HWLOC_NAME(backends_is_thissystem)
 
@@ -520,21 +580,34 @@ extern "C" {
 #define hwloc_connect_children HWLOC_NAME(connect_children)
 #define hwloc_connect_levels HWLOC_NAME(connect_levels)
 
+#define hwloc__object_cpusets_compare_first HWLOC_NAME(_object_cpusets_compare_first)
+
 #define hwloc_topology_setup_defaults HWLOC_NAME(topology_setup_defaults)
 #define hwloc_topology_clear HWLOC_NAME(topology_clear)
+
+#define hwloc__add_info HWLOC_NAME(_add_info)
+#define hwloc__find_info_slot HWLOC_NAME(_find_info_slot)
+#define hwloc__move_infos HWLOC_NAME(_move_infos)
+#define hwloc__free_infos HWLOC_NAME(_free_infos)
 
 #define hwloc_binding_hooks HWLOC_NAME(binding_hooks)
 #define hwloc_set_native_binding_hooks HWLOC_NAME(set_native_binding_hooks)
 #define hwloc_set_binding_hooks HWLOC_NAME(set_binding_hooks)
 
 #define hwloc_set_linuxfs_hooks HWLOC_NAME(set_linuxfs_hooks)
+#define hwloc_set_bgq_hooks HWLOC_NAME(set_bgq_hooks)
 #define hwloc_set_solaris_hooks HWLOC_NAME(set_solaris_hooks)
 #define hwloc_set_aix_hooks HWLOC_NAME(set_aix_hooks)
 #define hwloc_set_osf_hooks HWLOC_NAME(set_osf_hooks)
 #define hwloc_set_windows_hooks HWLOC_NAME(set_windows_hooks)
 #define hwloc_set_darwin_hooks HWLOC_NAME(set_darwin_hooks)
 #define hwloc_set_freebsd_hooks HWLOC_NAME(set_freebsd_hooks)
+#define hwloc_set_netbsd_hooks HWLOC_NAME(set_netbsd_hooks)
 #define hwloc_set_hpux_hooks HWLOC_NAME(set_hpux_hooks)
+
+#define hwloc_look_hardwired_fujitsu_k HWLOC_NAME(look_hardwired_fujitsu_k)
+#define hwloc_look_hardwired_fujitsu_fx10 HWLOC_NAME(look_hardwired_fujitsu_fx10)
+#define hwloc_look_hardwired_fujitsu_fx100 HWLOC_NAME(look_hardwired_fujitsu_fx100)
 
 #define hwloc_add_uname_info HWLOC_NAME(add_uname_info)
 #define hwloc_free_unlinked_object HWLOC_NAME(free_unlinked_object)
@@ -547,7 +620,6 @@ extern "C" {
 #define hwloc_alloc_or_fail HWLOC_NAME(alloc_or_fail)
 
 #define hwloc_distances_init HWLOC_NAME(distances_init)
-#define hwloc_distances_clear HWLOC_NAME(distances_clear)
 #define hwloc_distances_destroy HWLOC_NAME(distances_destroy)
 #define hwloc_distances_set HWLOC_NAME(distances_set)
 #define hwloc_distances_set_from_env HWLOC_NAME(distances_set_from_env)
@@ -561,6 +633,12 @@ extern "C" {
 
 #define hwloc_encode_to_base64 HWLOC_NAME(encode_to_base64)
 #define hwloc_decode_from_base64 HWLOC_NAME(decode_from_base64)
+
+#define hwloc_obj_add_info_nodup HWLOC_NAME(obj_add_info_nodup)
+
+#define hwloc_progname HWLOC_NAME(progname)
+
+#define hwloc_bitmap_compare_inclusion HWLOC_NAME(bitmap_compare_inclusion)
 
 /* private/solaris-chiptype.h */
 

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2012-2013 Inria.  All rights reserved.
- * Copyright © 2013 Université Bordeaux 1.  All right reserved.
+ * Copyright © 2013 Université Bordeaux.  All right reserved.
  * See COPYING in top-level directory.
  */
 
@@ -9,9 +9,6 @@
  *
  * Applications that use both hwloc and OpenCL may want to
  * include this file so as to get topology information for OpenCL devices.
- *
- * Only the AMD OpenCL interface currently offers useful locality information
- * about its devices.
  */
 
 #ifndef HWLOC_OPENCL_H
@@ -35,7 +32,14 @@ extern "C" {
 #endif
 
 
-/** \defgroup hwlocality_opencl OpenCL Specific Functions
+/** \defgroup hwlocality_opencl Interoperability with OpenCL
+ *
+ * This interface offers ways to retrieve topology information about
+ * OpenCL devices.
+ *
+ * Only the AMD OpenCL interface currently offers useful locality information
+ * about its devices.
+ *
  * @{
  */
 

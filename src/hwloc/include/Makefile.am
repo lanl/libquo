@@ -1,5 +1,5 @@
-# Copyright © 2009-2012 Inria.  All rights reserved.
-# Copyright © 2009-2010 Université Bordeaux 1
+# Copyright © 2009-2014 Inria.  All rights reserved.
+# Copyright © 2009-2010 Université Bordeaux
 # Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
 # Copyright © 2011      Oracle and/or its affiliates.  All rights reserved.
 # See COPYING in top-level directory.
@@ -13,6 +13,8 @@ include_hwlocdir = $(includedir)/hwloc
 include_hwloc_HEADERS = \
         hwloc/bitmap.h \
         hwloc/helper.h \
+        hwloc/inlines.h \
+        hwloc/diff.h \
         hwloc/myriexpress.h \
         hwloc/openfabrics-verbs.h \
         hwloc/opencl.h \
@@ -22,9 +24,10 @@ include_hwloc_HEADERS = \
         hwloc/plugins.h \
         hwloc/gl.h \
         hwloc/intel-mic.h \
-        hwloc/rename.h
+        hwloc/rename.h \
+        hwloc/deprecated.h
 include_hwloc_autogendir = $(includedir)/hwloc/autogen
-nodist_include_hwloc_autogen_HEADERS = hwloc/autogen/config.h 
+nodist_include_hwloc_autogen_HEADERS = hwloc/autogen/config.h
 
 noinst_HEADERS = \
         private/private.h \
@@ -32,7 +35,7 @@ noinst_HEADERS = \
         private/misc.h \
         private/xml.h \
         private/components.h \
-        private/cpuid.h
+        private/cpuid-x86.h
 
 if HWLOC_HAVE_LINUX
 include_hwloc_HEADERS += \

@@ -1,6 +1,6 @@
 /*
- * Copyright © 2011 Université Bordeaux 1
- * Copyright © 2012 Inria.  All rights reserved.
+ * Copyright © 2011 Université Bordeaux
+ * Copyright © 2012-2014 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -64,6 +64,33 @@ hwloc_cuda_query_devices(struct hwloc_cuda_backend_data_s *data)
   return;
 }
 
+static unsigned hwloc_cuda_cores_per_MP(int major, int minor)
+{
+  /* based on CUDA C Programming Guide, Annex G */
+  switch (major) {
+    case 1:
+      switch (minor) {
+        case 0:
+        case 1:
+        case 2:
+        case 3: return 8;
+      }
+      break;
+    case 2:
+      switch (minor) {
+        case 0: return 32;
+        case 1: return 48;
+      }
+      break;
+    case 3:
+      return 192;
+    case 5:
+      return 128;
+  }
+  hwloc_debug("unknown compute capability %u.%u, disabling core display.\n", major, minor);
+  return 0;
+}
+
 static int
 hwloc_cuda_backend_notify_new_object(struct hwloc_backend *backend, struct hwloc_backend *caller __hwloc_attribute_unused,
 				     struct hwloc_obj *pcidev)
@@ -96,9 +123,11 @@ hwloc_cuda_backend_notify_new_object(struct hwloc_backend *backend, struct hwloc
   for(i=0; i<data->nr_devices; i++) {
     struct hwloc_cuda_device_info_s *info = &data->devices[i];
     char cuda_name[32];
+    char number[32];
     struct cudaDeviceProp prop;
     hwloc_obj_t cuda_device;
     cudaError_t cures;
+    unsigned cores;
 
     if (info->pcidomain != pcidev->attr->pcidev.domain)
       continue;
@@ -122,6 +151,24 @@ hwloc_cuda_backend_notify_new_object(struct hwloc_backend *backend, struct hwloc
     cures = cudaGetDeviceProperties(&prop, info->idx);
     if (!cures)
       hwloc_obj_add_info(cuda_device, "GPUModel", prop.name);
+
+    snprintf(number, sizeof(number), "%llu", ((unsigned long long) prop.totalGlobalMem) >> 10);
+    hwloc_obj_add_info(cuda_device, "CUDAGlobalMemorySize", number);
+
+    snprintf(number, sizeof(number), "%llu", ((unsigned long long) prop.l2CacheSize) >> 10);
+    hwloc_obj_add_info(cuda_device, "CUDAL2CacheSize", number);
+
+    snprintf(number, sizeof(number), "%d", prop.multiProcessorCount);
+    hwloc_obj_add_info(cuda_device, "CUDAMultiProcessors", number);
+
+    cores = hwloc_cuda_cores_per_MP(prop.major, prop.minor);
+    if (cores) {
+      snprintf(number, sizeof(number), "%u", cores);
+      hwloc_obj_add_info(cuda_device, "CUDACoresPerMP", number);
+    }
+
+    snprintf(number, sizeof(number), "%llu", ((unsigned long long) prop.sharedMemPerBlock) >> 10);
+    hwloc_obj_add_info(cuda_device, "CUDASharedMemorySizePerMP", number);
 
     hwloc_insert_object_by_parent(topology, pcidev, cuda_device);
     return 1;
@@ -178,12 +225,23 @@ static struct hwloc_disc_component hwloc_cuda_disc_component = {
   NULL
 };
 
+static int
+hwloc_cuda_component_init(unsigned long flags)
+{
+  if (flags)
+    return -1;
+  if (hwloc_plugin_check_namespace("cuda", "hwloc_backend_alloc") < 0)
+    return -1;
+  return 0;
+}
+
 #ifdef HWLOC_INSIDE_PLUGIN
 HWLOC_DECLSPEC extern const struct hwloc_component hwloc_cuda_component;
 #endif
 
 const struct hwloc_component hwloc_cuda_component = {
   HWLOC_COMPONENT_ABI,
+  hwloc_cuda_component_init, NULL,
   HWLOC_COMPONENT_TYPE_DISC,
   0,
   &hwloc_cuda_disc_component
