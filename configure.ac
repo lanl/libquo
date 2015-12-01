@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013-2015 Los Alamos National Security, LLC
+# Copyright (c) 2013-2016 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -44,7 +44,7 @@
 AC_PREREQ([2.60])
 
 AC_INIT([libquo],
-        [1.2.5-alpha],
+        [1.2.5],
         [samuel@lanl.gov],
         [libquo],
         [http://losalamos.github.io/libquo/])
