@@ -578,27 +578,26 @@ QUO_bind_threads(QUO_t *q,
     thread_num = omp_get_thread_num();
     num_threads = omp_get_num_threads();
 
-    if (QUO_SUCCESS != (QUO_bound(q, &bound))) return rc;
+    if (QUO_SUCCESS != (rc = QUO_bound(q, &bound))) return rc;
 
     if (omp_get_level() <= 1 && bound) {
-	if (QUO_SUCCESS != (rc = QUO_id(q, &qid))) return rc;
-	if (QUO_SUCCESS !=
-	    (rc = QUO_qids_in_type(q, type, index, &qids_in_type, &out_qids))) {
-	    return rc;
-	}
+        if (QUO_SUCCESS != (rc = QUO_id(q, &qid))) return rc;
+        //
+        if (QUO_SUCCESS !=
+            (rc = QUO_qids_in_type(q, type, index, &qids_in_type, &out_qids))) {
+            return rc;
+        }
+        for (i = 0; i < qids_in_type; i++) {
+            if (out_qids[i] == qid) break;
+        }
+        //
+        if (i >= qids_in_type) return QUO_ERR;
 
-	for (i = 0; i < qids_in_type; i++) {
-	    if (out_qids[i] == qid) break;
-	}
-
-	if (i >= qids_in_type)
-	    return QUO_ERR;
-
-	return quo_hwloc_bind_threads(q->hwloc, i, qids_in_type,
-				      thread_num, num_threads);
+        return quo_hwloc_bind_threads(q->hwloc, i, qids_in_type,
+                                      thread_num, num_threads);
     }
     else {
-	return quo_hwloc_bind_nested_threads(q->hwloc, thread_num, num_threads);
+        return quo_hwloc_bind_nested_threads(q->hwloc, thread_num, num_threads);
     }
 
     return QUO_ERR;
