@@ -1,16 +1,15 @@
 libquo TODO
-o add quo-info utility so users can gather quo build info
+
+o add quo-info utility so users can gather quo build info.
 o add broken compiler check for fortran at configure time.
 o reconsider default mapping if affinity is turned off. evenly distribute.
 o update header documentation.
-o add mpi_comm init.
+o add mpi_comm init?
 o Make hwloc (Intel) valgrind clean and send upstream.
-o add better error messages
-o implement global placement api
-- hwloc_obj_type_snprintf
-- hwloc_obj_cpuset_snprintf
-o add support query
-o auto set library version (api call and so)
-o Expose memory API.
-o Return popped CPU set to caller (API).
-o expose HWLOC flags
+o add better error messages.
+o implement global placement api.
+o add support query.
+o auto set library version (api call and so).
+o Expose memory API?
+o Return popped CPU set to caller (API)?
+o expose HWLOC flags.
