@@ -87,6 +87,15 @@ typedef struct context_t {
     QUO_context quo;
 } context_t;
 
+typedef struct experiment_t {
+    context_t *c;
+    char *name;
+    int (*fun)(context_t *, int , double *);
+    int n_trials;
+    int res_len;
+    double *results;
+} experiment_t;
+
 /**
  * rudimentary "pretty print" routine. not needed in real life...
  */
@@ -297,7 +306,128 @@ qnpus(
         double end = MPI_Wtime();
         res[i] = end - start;
     }
-    if (c->rank) printf("### NPUS: %d\n", n);
+    // Don't want compiler to optimize this away. Will never print.
+    if (c->rank == (c->nranks + 1)) printf("### NPUS: %d\n", n);
+    if (QUO_SUCCESS != QUO_free(ctx)) return 1;
+    return 0;
+}
+
+static int
+qquids_in_type(
+    context_t *c,
+    int n_trials,
+    double *res
+) {
+    //
+    QUO_context ctx;
+    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    //
+    int n = 0;
+    for (int i = 0; i < n_trials; ++i) {
+        int nq = 0;
+        int *qids = NULL;
+        double start = MPI_Wtime();
+        if (QUO_SUCCESS != QUO_qids_in_type(
+                               ctx, QUO_OBJ_PU, 0,
+                               &nq, &qids)) return 1;
+        double fs = MPI_Wtime();
+        free(qids);
+        double fe = MPI_Wtime();
+        double end = MPI_Wtime();
+        res[i] = (end - start) - (fe - fs);
+    }
+    // Don't want compiler to optimize this away. Will never print.
+    if (c->rank == (c->nranks + 1)) printf("%d\n", n);
+    if (QUO_SUCCESS != QUO_free(ctx)) return 1;
+    return 0;
+}
+
+static int
+qbind_push(
+    context_t *c,
+    int n_trials,
+    double *res
+) {
+    //
+    QUO_context ctx;
+    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    //
+    for (int i = 0; i < n_trials; ++i) {
+        double start = MPI_Wtime();
+        if (QUO_SUCCESS != QUO_bind_push(
+                               ctx, QUO_BIND_PUSH_OBJ,
+                               QUO_OBJ_MACHINE, -1)) return 1;
+        double end = MPI_Wtime();
+        res[i] = end - start;
+        if (QUO_SUCCESS != QUO_bind_pop(ctx)) return 1;
+    }
+    if (QUO_SUCCESS != QUO_free(ctx)) return 1;
+    return 0;
+}
+
+static int
+qbind_pop(
+    context_t *c,
+    int n_trials,
+    double *res
+) {
+    //
+    QUO_context ctx;
+    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    //
+    for (int i = 0; i < n_trials; ++i) {
+        if (QUO_SUCCESS != QUO_bind_push(
+                               ctx, QUO_BIND_PUSH_OBJ,
+                               QUO_OBJ_MACHINE, -1)) return 1;
+        double start = MPI_Wtime();
+        if (QUO_SUCCESS != QUO_bind_pop(ctx)) return 1;
+        double end = MPI_Wtime();
+        res[i] = end - start;
+    }
+    if (QUO_SUCCESS != QUO_free(ctx)) return 1;
+    return 0;
+}
+
+static int
+qauto_distrib(
+    context_t *c,
+    int n_trials,
+    double *res
+) {
+    //
+    QUO_context ctx;
+    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    //
+    int sel = 0;
+    for (int i = 0; i < n_trials; ++i) {
+        double start = MPI_Wtime();
+        if (QUO_SUCCESS != QUO_auto_distrib(ctx, QUO_OBJ_PU,
+                                            c->nranks, &sel)) return 1;
+        double end = MPI_Wtime();
+        res[i] = end - start;
+    }
+    // Don't want compiler to optimize this away. Will never print.
+    if (c->rank == (c->nranks + 1)) printf("### NPUS: %d\n", sel);
+    if (QUO_SUCCESS != QUO_free(ctx)) return 1;
+    return 0;
+}
+
+static int
+qbarrier(
+    context_t *c,
+    int n_trials,
+    double *res
+) {
+    //
+    QUO_context ctx;
+    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    //
+    for (int i = 0; i < n_trials; ++i) {
+        double start = MPI_Wtime();
+        if (QUO_SUCCESS != QUO_barrier(ctx)) return 1;
+        double end = MPI_Wtime();
+        res[i] = end - start;
+    }
     if (QUO_SUCCESS != QUO_free(ctx)) return 1;
     return 0;
 }
@@ -350,7 +480,6 @@ emit_stats(
     }
     double ave = tot / (double)res_len;
     printf("###############################################################\n");
-    printf("###############################################################\n");
     printf("= Test Name        : %s\n", name);
     printf("= Number of Entries: %d\n", res_len);
     printf("= Average Time (s) : %.10lf\n", ave);
@@ -361,6 +490,27 @@ out:
     demo_emit_sync(c);
     return 0;
 }
+
+static int
+run_experiment(experiment_t *e) {
+    char *bad_func = NULL;
+    if (time_fun(e->c, e->fun, e->n_trials, &(e->res_len), &(e->results))) {
+        bad_func = e->name;
+        goto out;
+    }
+    if (emit_stats(e->c, e->name, e->res_len, e->results)) {
+        bad_func = "emit_stats";
+        goto out;
+    }
+    free(e->results);
+out:
+    if (bad_func) {
+        fprintf(stderr, "%s failed!\n", bad_func);
+        return 1;
+    }
+    return 0;
+}
+
 
 int
 main(void)
@@ -396,41 +546,23 @@ main(void)
     demo_emit_sync(context);
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    static const int n_trials = 5;
-    int res_len = 0;
-    ////////////////////////////////////////////////////////////////////////////
-    double *time_create_results = NULL;
-    if (time_fun(context, qcreate, n_trials, &res_len, &time_create_results)) {
-        bad_func = "time_create";
-        goto out;
+    static const int n_trials = 1000;
+
+    experiment_t experiments[] =
+    {
+        {context, "QUO_create",         qcreate,        n_trials, 0, NULL},
+        {context, "QUO_free",           qfree,          n_trials, 0, NULL},
+        {context, "QUO_npus",           qnpus,          n_trials, 0, NULL},
+        {context, "QUO_qids_in_type",   qquids_in_type, n_trials, 0, NULL},
+        {context, "QUO_bind_push",      qbind_push,     n_trials, 0, NULL},
+        {context, "QUO_bind_pop",       qbind_pop,      n_trials, 0, NULL},
+        {context, "QUO_auto_distrib",   qauto_distrib,  n_trials, 0, NULL},
+        {context, "QUO_barrier",        qbarrier,       n_trials, 0, NULL}
+    };
+
+    for (int i = 0; i < sizeof(experiments)/sizeof(experiment_t); ++i) {
+        run_experiment(&experiments[i]);
     }
-    if (emit_stats(context, "QUO_create", res_len, time_create_results)) {
-        bad_func = "emit_stats";
-        goto out;
-    }
-    free(time_create_results);
-    ////////////////////////////////////////////////////////////////////////////
-    double *time_free_results = NULL;
-    if (time_fun(context, qfree, n_trials, &res_len, &time_free_results)) {
-        bad_func = "time_free";
-        goto out;
-    }
-    if (emit_stats(context, "QUO_free", res_len, time_free_results)) {
-        bad_func = "emit_stats";
-        goto out;
-    }
-    free(time_free_results);
-    ////////////////////////////////////////////////////////////////////////////
-    double *time_npus_results = NULL;
-    if (time_fun(context, qnpus, n_trials, &res_len, &time_npus_results)) {
-        bad_func = "time_npus";
-        goto out;
-    }
-    if (emit_stats(context, "QUO_npus", res_len, time_npus_results)) {
-        bad_func = "emit_stats";
-        goto out;
-    }
-    free(time_npus_results);
 out:
     if (NULL != bad_func) {
         fprintf(stderr, "XXX %s failure in: %s\n", __FILE__, bad_func);
