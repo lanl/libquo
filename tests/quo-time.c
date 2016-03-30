@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2015 Los Alamos National Security, LLC
+ * Copyright (c) 2013-2016 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -52,11 +52,7 @@
 #include "mpi.h"
 
 /**
- * libquo demo code. enjoy.
- */
-
-/**
- * SUGGESTED USE
+ * Measures cost of QUO calls.
  */
 
 typedef struct context_t {
@@ -204,34 +200,6 @@ out:
 }
 
 static int
-emit_bind_state(const context_t *c)
-{
-    char *cbindstr = NULL, *bad_func = NULL;
-    int bound = 0;
-
-    demo_emit_sync(c);
-    if (QUO_SUCCESS != QUO_stringify_cbind(c->quo, &cbindstr)) {
-        bad_func = "QUO_stringify_cbind";
-        goto out;
-    }
-    if (QUO_SUCCESS != QUO_bound(c->quo, &bound)) {
-        bad_func = "QUO_bound";
-        goto out;
-    }
-    printf("### process %d rank %d [%s] bound: %s\n",
-           (int)getpid(), c->rank, cbindstr, bound ? "true" : "false");
-    fflush(stdout);
-out:
-    demo_emit_sync(c);
-    if (cbindstr) free(cbindstr);
-    if (bad_func) {
-        fprintf(stderr, "%s: %s failure :-(\n", __func__, bad_func);
-        return 1;
-    }
-    return 0;
-}
-
-static int
 emit_node_basics(const context_t *c)
 {
     /* one proc per node will emit this info */
@@ -245,37 +213,6 @@ emit_node_basics(const context_t *c)
         fflush(stdout);
     }
     demo_emit_sync(c);
-    return 0;
-}
-
-/**
- * elects some node ranks and distributes them onto all the sockets on the node
- */
-static int
-bindup_sockets(const context_t *c)
-{
-    /* if you are going to change bindings often, then cache this */
-    if (c->noderank + 1 <= c->nsockets) {
-        if (QUO_SUCCESS != QUO_bind_push(c->quo, QUO_BIND_PUSH_PROVIDED,
-                                         QUO_OBJ_SOCKET, c->noderank)) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-/**
- * we can only safely pop bindings that were pushed, so those who were elected
- * to be the socket master can now revert their binding by calling pop.
- */
-static int
-binddown_sockets(const context_t *c)
-{
-    if (c->noderank + 1 <= c->nsockets) {
-        if (QUO_SUCCESS != QUO_bind_pop(c->quo)) {
-            return 1;
-        }
-    }
     return 0;
 }
 
@@ -300,16 +237,127 @@ type_in_cur_bind(const context_t *c,
 }
 
 static int
-cores_in_cur_bind_test(const context_t *c)
-{
-    int b0 = -1, blast = -1;
-    if (type_in_cur_bind(c, QUO_OBJ_CORE, 0, &b0)) return 1;
-    if (type_in_cur_bind(c, QUO_OBJ_CORE, c->ncores - 1, &blast)) return 1;
+qcreate(
+    context_t *c,
+    int n_trials,
+    double *res
+) {
+    //
+    QUO_context *ctx = calloc(n_trials, sizeof(*ctx));
+    if (!ctx) return 1;
+    //
+    for (int i = 0; i < n_trials; ++i) {
+        double start = MPI_Wtime();
+        if (QUO_SUCCESS != QUO_create(&(ctx[i]))) return 1;
+        double end = MPI_Wtime();
+        res[i] = end - start;
+    }
+    for (int i = 0; i < n_trials; ++i) {
+        QUO_free(ctx[i]);
+    }
+    return 0;
+}
 
-    printf("### [rank %d] core %d in current bind policy: %s\n",
-           c->rank, 0, b0 ? "true" : "false");
-    printf("### [rank %d] core %d in current bind policy: %s\n",
-           c->rank, c->ncores - 1, blast ? "true" : "false");
+static int
+qfree(
+    context_t *c,
+    int n_trials,
+    double *res
+) {
+    //
+    QUO_context *ctx = calloc(n_trials, sizeof(*ctx));
+    if (!ctx) return 1;
+    //
+    for (int i = 0; i < n_trials; ++i) {
+        if (QUO_SUCCESS != QUO_create(&(ctx[i]))) return 1;
+    }
+    for (int i = 0; i < n_trials; ++i) {
+        double start = MPI_Wtime();
+        QUO_free(ctx[i]);
+        double end = MPI_Wtime();
+        res[i] = end - start;
+    }
+    return 0;
+}
+
+static int
+qnpus(
+    context_t *c,
+    int n_trials,
+    double *res
+) {
+    //
+    QUO_context ctx;
+    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    //
+    int n = 0;
+    for (int i = 0; i < n_trials; ++i) {
+        double start = MPI_Wtime();
+        if (QUO_SUCCESS != QUO_npus(ctx, &n)) return 1;
+        double end = MPI_Wtime();
+        res[i] = end - start;
+    }
+    if (c->rank) printf("### NPUS: %d\n", n);
+    if (QUO_SUCCESS != QUO_free(ctx)) return 1;
+    return 0;
+}
+
+/**
+ *
+ */
+static int
+time_fun(
+    context_t *c,
+    int (*fun)(context_t *, int , double *),
+    int n_trials,
+    int *out_res_len,
+    double **out_results
+) {
+    double *res = NULL;
+    if (c->rank != 0) {
+        *out_res_len = n_trials;
+        res = calloc(*out_res_len, sizeof(*res));
+    }
+    else {
+        *out_res_len = n_trials * c->nranks;
+        res = calloc(*out_res_len, sizeof(*res));
+    }
+    if (!res) return 1;
+    //
+    if (fun(c, n_trials, res)) return 1;
+    //
+    if (MPI_SUCCESS != MPI_Gather(res, n_trials, MPI_DOUBLE,
+                                  res, n_trials, MPI_DOUBLE,
+                                  0, MPI_COMM_WORLD)) {
+        return 1;
+    }
+    *out_results = res;
+    return 0;
+}
+
+static int
+emit_stats(
+    context_t *c,
+    char *name,
+    int res_len,
+    double *results)
+{
+    if (c->rank != 0) goto out;
+    //
+    double tot = 0.0;
+    for (int i = 0; i < res_len; ++i) {
+        tot += results[i];
+    }
+    double ave = tot / (double)res_len;
+    printf("###############################################################\n");
+    printf("###############################################################\n");
+    printf("= Test Name        : %s\n", name);
+    printf("= Number of Entries: %d\n", res_len);
+    printf("= Average Time (s) : %.10lf\n", ave);
+    printf("###############################################################\n");
+    printf("\n");
+
+out:
     demo_emit_sync(c);
     return 0;
 }
@@ -342,41 +390,47 @@ main(void)
         bad_func = "emit_node_basics";
         goto out;
     }
-    if (emit_bind_state(context)) {
-        bad_func = "emit_bind_state";
-        goto out;
-    }
     if (0 == context->rank) {
-        fprintf(stdout, "changing binding...\n");
-        fflush(stdout);
+        printf("### Starting QUO Timing Tests...\n");
     }
-    if (bindup_sockets(context)) {
-        bad_func = "bindup_sockets";
+    demo_emit_sync(context);
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    static const int n_trials = 5;
+    int res_len = 0;
+    ////////////////////////////////////////////////////////////////////////////
+    double *time_create_results = NULL;
+    if (time_fun(context, qcreate, n_trials, &res_len, &time_create_results)) {
+        bad_func = "time_create";
         goto out;
     }
-    if (emit_bind_state(context)) {
-        bad_func = "emit_bind_state";
+    if (emit_stats(context, "QUO_create", res_len, time_create_results)) {
+        bad_func = "emit_stats";
         goto out;
     }
-    /* now test to see if core 0 and the last core are in the socket that we are
-     * currently bound. */
-    if (cores_in_cur_bind_test(context)) {
-        bad_func = "cores_in_cur_bind_test";
+    free(time_create_results);
+    ////////////////////////////////////////////////////////////////////////////
+    double *time_free_results = NULL;
+    if (time_fun(context, qfree, n_trials, &res_len, &time_free_results)) {
+        bad_func = "time_free";
         goto out;
     }
-    /* now revert the previous policy */
-    if (binddown_sockets(context)) {
-        bad_func = "binddown_sockets";
+    if (emit_stats(context, "QUO_free", res_len, time_free_results)) {
+        bad_func = "emit_stats";
         goto out;
     }
-    if (0 == context->rank) {
-        fprintf(stdout, "reverting binding change...\n");
-        fflush(stdout);
-    }
-    if (emit_bind_state(context)) {
-        bad_func = "emit_bind_state";
+    free(time_free_results);
+    ////////////////////////////////////////////////////////////////////////////
+    double *time_npus_results = NULL;
+    if (time_fun(context, qnpus, n_trials, &res_len, &time_npus_results)) {
+        bad_func = "time_npus";
         goto out;
     }
+    if (emit_stats(context, "QUO_npus", res_len, time_npus_results)) {
+        bad_func = "emit_stats";
+        goto out;
+    }
+    free(time_npus_results);
 out:
     if (NULL != bad_func) {
         fprintf(stderr, "XXX %s failure in: %s\n", __FILE__, bad_func);
