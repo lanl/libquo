@@ -501,11 +501,11 @@ emit_stats(
     double sem = stddev / sqrtl((double)res_len);
 
     printf("###############################################################\n");
-    printf("= Test Name             : %s\n", name);
-    printf("= Number of Entries     : %d\n", res_len);
-    printf("= Average Time (s)      : %.10lf\n", ave);
-    printf("= Standard Deviation    : %.10lf\n", stddev);
-    printf("= Standard Error of Mean: %.10lf\n", sem);
+    printf("= Test Name                   : %s\n"    , name);
+    printf("= Number of Entries           : %d\n"    , res_len);
+    printf("= Average Time (us)           : %.10lf\n", ave    * 1e6);
+    printf("= Standard Deviation (us)     : %.10lf\n", stddev * 1e6);
+    printf("= Standard Error of Mean (us) : %.10lf\n", sem    * 1e6);
     printf("###############################################################\n");
     printf("\n");
 
