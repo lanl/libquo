@@ -48,6 +48,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "mpi.h"
 
@@ -444,13 +445,16 @@ time_fun(
     double **out_results
 ) {
     double *res = NULL;
+    int res_len = 0;
     if (c->rank != 0) {
         *out_res_len = n_trials;
-        res = calloc(*out_res_len, sizeof(*res));
+        res_len = *out_res_len;
+        res = calloc(res_len, sizeof(*res));
     }
     else {
         *out_res_len = n_trials * c->nranks;
-        res = calloc(*out_res_len, sizeof(*res));
+        res_len = *out_res_len;
+        res = calloc(res_len, sizeof(*res));
     }
     if (!res) return 1;
     //
@@ -461,6 +465,14 @@ time_fun(
                                   0, MPI_COMM_WORLD)) {
         return 1;
     }
+#if 0 // DEBUG
+    if (0 == c->rank) {
+        for (int i = 0; i < res_len; ++i) {
+            printf("%lf, ", res[i]);
+        }
+        printf("\n");
+    }
+#endif
     *out_results = res;
     return 0;
 }
@@ -479,10 +491,21 @@ emit_stats(
         tot += results[i];
     }
     double ave = tot / (double)res_len;
+    // Calculate standard deviation
+    double a = 0.0;
+    for (int i = 0; i < res_len; ++i) {
+        a += powf(results[i] - ave, 2.0);
+    }
+    double stddev = sqrtl(a / (res_len - 1));
+
+    double sem = stddev / sqrtl((double)res_len);
+
     printf("###############################################################\n");
-    printf("= Test Name        : %s\n", name);
-    printf("= Number of Entries: %d\n", res_len);
-    printf("= Average Time (s) : %.10lf\n", ave);
+    printf("= Test Name             : %s\n", name);
+    printf("= Number of Entries     : %d\n", res_len);
+    printf("= Average Time (s)      : %.10lf\n", ave);
+    printf("= Standard Deviation    : %.10lf\n", stddev);
+    printf("= Standard Error of Mean: %.10lf\n", sem);
     printf("###############################################################\n");
     printf("\n");
 
@@ -544,10 +567,11 @@ main(void)
         printf("### Starting QUO Timing Tests...\n");
     }
     demo_emit_sync(context);
+
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     static const int n_trials = 1000;
-
+    //
     experiment_t experiments[] =
     {
         {context, "QUO_create",         qcreate,        n_trials, 0, NULL},
