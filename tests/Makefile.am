@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013-2015 Los Alamos National Security, LLC
+# Copyright (c) 2013-2016 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -45,7 +45,8 @@ noinst_PROGRAMS = \
 rebind \
 trivial \
 dist-work \
-barrier-subset
+barrier-subset \
+quo-time
 
 if QUO_WITH_MPIFC
 noinst_PROGRAMS += \
@@ -73,6 +74,11 @@ barrier_subset_SOURCES = barrier-subset.c
 barrier_subset_CFLAGS  =
 barrier_subset_LDFLAGS =
 barrier_subset_LDADD   =
+
+### test 4
+quo_time_SOURCES = quo-time.c
+quo_time_CFLAGS  = -I$(top_srcdir)/src
+quo_time_LDADD   = $(top_builddir)/src/libquo.la
 
 ### fortran interface test
 if QUO_WITH_MPIFC
