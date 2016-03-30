@@ -468,8 +468,8 @@ time_fun(
         }
     }
     else {
-        if (MPI_SUCCESS != MPI_Gather(res , n_trials, MPI_DOUBLE,
-                                      res , n_trials, MPI_DOUBLE,
+        if (MPI_SUCCESS != MPI_Gather(res, n_trials, MPI_DOUBLE,
+                                      res, n_trials, MPI_DOUBLE,
                                       0, MPI_COMM_WORLD)) {
             return 1;
         }
