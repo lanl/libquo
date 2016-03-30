@@ -214,12 +214,12 @@ emit_node_basics(const context_t *c)
 {
     /* one proc per node will emit this info */
     if (0 == c->noderank) {
-        printf("### quo version: %d.%d ###\n", c->qv, c->qsv);
-        printf("### nnodes: %d\n", c->nnodes);
-        printf("### nnoderanks: %d\n", c->nnoderanks);
-        printf("### nsockets: %d\n", c->nsockets);
-        printf("### ncores: %d\n", c->ncores);
-        printf("### npus: %d\n", c->npus);
+        printf("### %d: quo version: %d.%d ###\n", c->rank, c->qv, c->qsv);
+        printf("### %d: nnodes: %d\n", c->rank, c->nnodes);
+        printf("### %d: nnoderanks: %d\n", c->rank, c->nnoderanks);
+        printf("### %d: nsockets: %d\n", c->rank, c->nsockets);
+        printf("### %d: ncores: %d\n", c->rank, c->ncores);
+        printf("### %d: npus: %d\n", c->rank, c->npus);
         fflush(stdout);
     }
     demo_emit_sync(c);
