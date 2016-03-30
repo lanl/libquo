@@ -460,10 +460,19 @@ time_fun(
     //
     if (fun(c, n_trials, res)) return 1;
     //
-    if (MPI_SUCCESS != MPI_Gather(res, n_trials, MPI_DOUBLE,
-                                  res, n_trials, MPI_DOUBLE,
-                                  0, MPI_COMM_WORLD)) {
-        return 1;
+    if (0 == c->rank) {
+        if (MPI_SUCCESS != MPI_Gather(MPI_IN_PLACE, n_trials, MPI_DOUBLE,
+                                      res         , n_trials, MPI_DOUBLE,
+                                      0, MPI_COMM_WORLD)) {
+            return 1;
+        }
+    }
+    else {
+        if (MPI_SUCCESS != MPI_Gather(res , n_trials, MPI_DOUBLE,
+                                      res , n_trials, MPI_DOUBLE,
+                                      0, MPI_COMM_WORLD)) {
+            return 1;
+        }
     }
 #if 0 // DEBUG
     if (0 == c->rank) {
@@ -565,12 +574,13 @@ main(void)
     }
     if (0 == context->rank) {
         printf("### Starting QUO Timing Tests...\n");
+        fflush(stdout);
     }
     demo_emit_sync(context);
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    static const int n_trials = 1000;
+    static const int n_trials = 100;
     //
     experiment_t experiments[] =
     {
