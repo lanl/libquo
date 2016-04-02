@@ -359,7 +359,7 @@ get_p1pes(context_t *c,
     int *work_contribs = NULL;
     int *worker_ranks = NULL;
 
-    /* let quo distribute workers over the sockets. if p1pe_worker is 1 after
+    /* let quo distribute workers over the sockets. if res_assigned is 1 after
      * this call, then i have been chosen. */
     if (QUO_SUCCESS != QUO_auto_distrib(c->quo, QUO_OBJ_SOCKET,
                                         2, &res_assigned)) {
