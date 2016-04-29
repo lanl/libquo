@@ -76,6 +76,7 @@ main(void)
     printf("Build Date: %s\n", QUO_BUILD_DATE);
     printf("Build Prefix: %s\n", QUO_BUILD_PREFIX);
     printf("Build CC: %s\n", QUO_BUILD_CC);
+    printf("Build CC Path: %s\n", QUO_BUILD_WHICH_CC);
     printf("Build CFLAGS: %s\n", QUO_BUILD_CFLAGS);
     printf("Build CPPFLAGS: %s\n", QUO_BUILD_CPPFLAGS);
     printf("Build CXXFLAGS: %s\n", QUO_BUILD_CXXFLAGS);
@@ -83,6 +84,7 @@ main(void)
     printf("Build Fortran Support: %s\n", with_fort ? "yes" : "no");
 #ifdef QUO_WITH_MPIFC
     printf("Build FC: %s\n", QUO_BUILD_FC);
+    printf("Build FC Path: %s\n", QUO_BUILD_WHICH_FC);
     printf("Build FFLAGS: %s\n", QUO_BUILD_FFLAGS);
     printf("Build FCFLAGS: %s\n", QUO_BUILD_FCFLAGS);
 #endif
