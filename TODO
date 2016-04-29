@@ -1,6 +1,5 @@
 libquo TODO
 
-o add quo-info utility so users can gather quo build info.
 o add broken compiler check for fortran at configure time.
 o reconsider default mapping if affinity is turned off. evenly distribute.
 o update header documentation.
