@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013-2014 Los Alamos National Security, LLC
+# Copyright (c) 2013-2016 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -45,6 +45,7 @@ ACLOCAL_AMFLAGS = -Iconfig -Isrc/hwloc/config
 
 SUBDIRS = \
 src \
+src/tools \
 tests \
 demos
 

@@ -41,7 +41,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-SUBDIRS = openmp
+#SUBDIRS = openmp
 
 noinst_PROGRAMS = \
 quoinfo \

@@ -136,23 +136,37 @@ AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
 #AC_SUBST(QUO_PTHREAD_LIBS, $PTHREAD_LIBS)
 
 ################################################################################
-# OpenMP configury
+# OpenMP configury (Disable for now)
 ################################################################################
-AX_OPENMP([], AC_MSG_ERROR([*** OpenMP configure failure. ***]))
-CFLAGS="$CFLAGS $OPENMP_CFLAGS"
+#AX_OPENMP([], AC_MSG_ERROR([*** OpenMP configure failure. ***]))
+#CFLAGS="$CFLAGS $OPENMP_CFLAGS"
 #CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
-FFLAGS="$FFLAGS $OPENMP_FFLAGS"
+#FFLAGS="$FFLAGS $OPENMP_FFLAGS"
+
+################################################################################
+# For package info (quo-info)
+################################################################################
+AC_SUBST([CC])
+AC_SUBST([CFLAGS])
+AC_SUBST([CPPFLAGS])
+AC_SUBST([CXXFLAGS])
+AC_SUBST([CXXCPPFLAGS])
+AC_SUBST([FC])
+AC_SUBST([FFLAGS])
+AC_SUBST([FCFLAGS])
+AC_SUBST([LDFLAGS])
+AC_SUBST([LIBS])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+                 src/tools/Makefile
                  tests/Makefile
                  demos/Makefile
-                 demos/openmp/Makefile
                  src/libquo.pc])
 
 AC_OUTPUT
 
-# let the user know the configuration 
+# let the user know the configuration
 
 cat << EOF
 

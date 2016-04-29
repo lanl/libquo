@@ -60,7 +60,24 @@ main(void)
     //
     printf("Package: %s\n", PACKAGE);
     printf("Version: %s\n", VERSION);
-    printf("Library API Version: %d.%d\n", QUO_VER, QUO_SUBVER);
+    printf("API Version: %d.%d\n", QUO_VER, QUO_SUBVER);
+    printf("Package URL: %s\n", PACKAGE_URL);
+    printf("HWLOC Version: %s\n", HWLOC_VERSION);
+    printf("Build User: %s\n", QUO_BUILD_USER);
+    printf("Build Host: %s\n", QUO_BUILD_HOST);
+    printf("Build Date: %s\n", QUO_BUILD_DATE);
+    printf("Build Prefix: %s\n", QUO_BUILD_PREFIX);
+    printf("Build CC: %s\n", QUO_BUILD_CC);
+    printf("Build CFLAGS: %s\n", QUO_BUILD_CFLAGS);
+    printf("Build CPPFLAGS: %s\n", QUO_BUILD_CPPFLAGS);
+    printf("Build CXXFLAGS: %s\n", QUO_BUILD_CXXFLAGS);
+    printf("Build CXXCPPFLAGS: %s\n", QUO_BUILD_CXXCPPFLAGS);
+    printf("Build FC: %s\n", QUO_BUILD_FC);
+    printf("Build FFLAGS: %s\n", QUO_BUILD_FFLAGS);
+    printf("Build FCFLAGS: %s\n", QUO_BUILD_FCFLAGS);
+    printf("Build LDFLAGS: %s\n", QUO_BUILD_LDFLAGS);
+    printf("Build LIBS: %s\n", QUO_BUILD_LIBS);
+    printf("Report Bugs To: %s\n", PACKAGE_BUGREPORT);
     //
     return EXIT_SUCCESS;
 }

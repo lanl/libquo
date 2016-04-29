@@ -62,8 +62,10 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#if 0 // Disable for now...
 #ifdef HAVE_OMP_H
 #include <omp.h>
+#endif
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -561,6 +563,7 @@ out:
     return rc;
 }
 
+#if 0 // Disable for now...
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 QUO_bind_threads(QUO_t *q,
@@ -602,6 +605,7 @@ QUO_bind_threads(QUO_t *q,
 
     return QUO_ERR;
 }
+#endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* fortran only. don't include in quo.h. */

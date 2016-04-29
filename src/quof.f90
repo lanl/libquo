@@ -359,17 +359,17 @@ interface
 end interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-interface
-      integer(c_int) &
-      function quo_bind_threads_c(q, type, index) &
-         bind(c, name='QUO_bind_threads')
-         use, intrinsic :: iso_c_binding, only: c_int
-         import :: c_ptr
-         implicit none
-         type(c_ptr), value :: q
-         integer(c_int), value :: type, index
-       end function quo_bind_threads_c
-end interface
+!interface
+!      integer(c_int) &
+!      function quo_bind_threads_c(q, type, index) &
+!         bind(c, name='QUO_bind_threads')
+!         use, intrinsic :: iso_c_binding, only: c_int
+!         import :: c_ptr
+!         implicit none
+!         type(c_ptr), value :: q
+!         integer(c_int), value :: type, index
+!       end function quo_bind_threads_c
+!end interface
 
 contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -584,12 +584,12 @@ contains
       end subroutine quo_auto_distrib
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      subroutine quo_bind_threads(q, type, index, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
-          implicit none
-          type(c_ptr), value :: q
-          integer(c_int), value :: type, index
-          integer(c_int), intent(out) :: ierr
-          ierr = quo_bind_threads_c(q, type, index)
-        end subroutine quo_bind_threads
+      !subroutine quo_bind_threads(q, type, index, ierr)
+      !    use, intrinsic :: iso_c_binding, only: c_int
+      !    implicit none
+      !    type(c_ptr), value :: q
+      !    integer(c_int), value :: type, index
+      !    integer(c_int), intent(out) :: ierr
+      !    ierr = quo_bind_threads_c(q, type, index)
+      !end subroutine quo_bind_threads
 end module quo
