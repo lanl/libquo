@@ -49,6 +49,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
 
 /**
  *
@@ -56,6 +59,11 @@
 int
 main(void)
 {
+    bool with_fort = false;
+#ifdef QUO_WITH_MPIFC
+    with_fort = true;
+#endif
+    //
     setbuf(stdout, NULL);
     //
     printf("Package: %s\n", PACKAGE);
@@ -72,12 +80,17 @@ main(void)
     printf("Build CPPFLAGS: %s\n", QUO_BUILD_CPPFLAGS);
     printf("Build CXXFLAGS: %s\n", QUO_BUILD_CXXFLAGS);
     printf("Build CXXCPPFLAGS: %s\n", QUO_BUILD_CXXCPPFLAGS);
+    printf("Build Fortran Support: %s\n", with_fort ? "yes" : "no");
+#ifdef QUO_WITH_MPIFC
     printf("Build FC: %s\n", QUO_BUILD_FC);
     printf("Build FFLAGS: %s\n", QUO_BUILD_FFLAGS);
     printf("Build FCFLAGS: %s\n", QUO_BUILD_FCFLAGS);
+#endif
     printf("Build LDFLAGS: %s\n", QUO_BUILD_LDFLAGS);
     printf("Build LIBS: %s\n", QUO_BUILD_LIBS);
     printf("Report Bugs To: %s\n", PACKAGE_BUGREPORT);
+    // For good measure...
+    fflush(stdout);
     //
     return EXIT_SUCCESS;
 }
