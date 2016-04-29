@@ -45,7 +45,6 @@ ACLOCAL_AMFLAGS = -Iconfig -Isrc/hwloc/config
 
 SUBDIRS = \
 src \
-src/tools \
 tests \
 demos
 
