@@ -119,3 +119,10 @@ libquo_la_CFLAGS =
 # 2:0:0. This release has a new, but backwards incompatible interface.
 libquo_la_LDFLAGS = -version-info $(LIBVINFO)
 libquo_la_LIBADD = $(HWLOC_EMBEDDED_LDADD) $(HWLOC_EMBEDDED_LIBS)
+
+################################################################################
+bin_PROGRAMS = \
+quo-info
+
+quo_info_SOURCES = \
+quo-info.c
