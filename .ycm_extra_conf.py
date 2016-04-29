@@ -32,6 +32,8 @@ import os
 import ycm_core
 from clang_helpers import PrepareClangFlags
 
+home = os.getenv("HOME")
+
 # These are the compilation flags that will be used in case there's no
 # compilation database set (by default, one is not set).
 # CHANGE THIS LIST OF FLAGS. YES, THIS IS THE DROID YOU HAVE BEEN LOOKING FOR.
@@ -56,6 +58,7 @@ flags = [
 'c',
 '-I.',
 '-I./src',
+'-I' + home + '/local/ompi/1.6.5-gcc/include',
 '-I./src/hwloc/include'
 ]
 

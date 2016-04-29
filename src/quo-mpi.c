@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013      Los Alamos National Security, LLC
+ * Copyright (c) 2013-2016 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -282,6 +282,7 @@ init_setup(quo_mpi_t *mpi)
         goto out;
     }
     /* get my host's name */
+    memset(mpi->hostname, 0, sizeof(mpi->hostname));
     if (MPI_SUCCESS != MPI_Get_processor_name(mpi->hostname, &hostname_len)) {
         rc = QUO_ERR_MPI;
         goto out;
@@ -387,6 +388,7 @@ get_barrier_segment_name(quo_mpi_t *mpi,
     bool tmpdir_usable = false;
     char *usern = NULL, *tmpdir = NULL;
     int randn = 0;
+    int my_pid = (int)getpid();
 
     srand((unsigned int)time(NULL));
     randn = rand();
@@ -406,8 +408,9 @@ get_barrier_segment_name(quo_mpi_t *mpi,
         goto out;
     }
     /* all is well, so build the file name - caller must free this */
-    if (-1 == asprintf(segname, "%s/%s-%s-%s-%d-%d.%s", tmpdir, PACKAGE,
-                       mpi->hostname, usern, (int)getpid(), randn, "bseg")) {
+    if (-1 == asprintf(segname, "%s/%s-%s-%s-%d-%d.%s",
+                       tmpdir, PACKAGE, mpi->hostname, usern,
+                       my_pid, randn, "bseg")) {
         rc = QUO_ERR_OOR;
         goto out;
     }
