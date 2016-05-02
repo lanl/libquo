@@ -462,19 +462,10 @@ time_fun(
     //
     if (fun(c, n_trials, res)) return 1;
     //
-    if (0 == c->rank) {
-        if (MPI_SUCCESS != MPI_Gather(MPI_IN_PLACE, n_trials, MPI_DOUBLE,
-                                      res         , n_trials, MPI_DOUBLE,
-                                      0, MPI_COMM_WORLD)) {
-            return 1;
-        }
-    }
-    else {
-        if (MPI_SUCCESS != MPI_Gather(res, n_trials, MPI_DOUBLE,
-                                      res, n_trials, MPI_DOUBLE,
-                                      0, MPI_COMM_WORLD)) {
-            return 1;
-        }
+    if (MPI_SUCCESS != MPI_Gather(0 == c->rank ? MPI_IN_PLACE : res,
+                                  n_trials, MPI_DOUBLE, res, n_trials,
+                                  MPI_DOUBLE, 0, MPI_COMM_WORLD)) {
+        return 1;
     }
 #if 0 // DEBUG
     if (0 == c->rank) {
