@@ -524,24 +524,29 @@ bseg_name_xchange(quo_mpi_t *mpi)
     int rc = QUO_SUCCESS, plen = 0;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
+    //
     if (0 == mpi->smprank) {
         rc = get_barrier_segment_name(mpi, &mpi->bseg_path);
-        if (QUO_SUCCESS != rc) plen = -rc; /* indicates an error occurred */
-        else plen = strlen(mpi->bseg_path) + 1;
-        if (MPI_SUCCESS != MPI_Bcast(&plen, 1, MPI_INT, 0, mpi->commchan)) {
+        if (QUO_SUCCESS != rc) {
+            plen = -rc; /* indicates an error occurred */
+        }
+        else {
+            plen = strlen(mpi->bseg_path) + 1;
+        }
+        if (MPI_SUCCESS != MPI_Bcast(&plen, 1, MPI_INT, 0, mpi->smpcomm)) {
             rc = QUO_ERR_MPI;
             goto out;
         }
         /* an error occurred, so just bail */
         if (QUO_SUCCESS != rc) goto out;
         if (MPI_SUCCESS != MPI_Bcast(mpi->bseg_path, plen,
-                                     MPI_CHAR, 0, mpi->commchan)) {
+                                     MPI_CHAR, 0, mpi->smpcomm)) {
             rc = QUO_ERR_MPI;
             goto out;
         }
     }
     else {
-        if (MPI_SUCCESS != MPI_Bcast(&plen, 1, MPI_INT, 0, mpi->commchan)) {
+        if (MPI_SUCCESS != MPI_Bcast(&plen, 1, MPI_INT, 0, mpi->smpcomm)) {
             rc = QUO_ERR_MPI;
             goto out;
         }
@@ -557,7 +562,7 @@ bseg_name_xchange(quo_mpi_t *mpi)
             goto out;
         }
         if (MPI_SUCCESS != MPI_Bcast(mpi->bseg_path, plen,
-                                     MPI_CHAR, 0, mpi->commchan)) {
+                                     MPI_CHAR, 0, mpi->smpcomm)) {
             rc = QUO_ERR_MPI;
             goto out;
         }
