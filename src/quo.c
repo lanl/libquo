@@ -488,7 +488,7 @@ QUO_auto_distrib(QUO_t *q,
     /* distribute workers over target resources. */
     /* ////////////////////////////////////////////////////////////////////// */
 
-    /* !!! remember maintain "max workers per resource" !!! */
+    /* !!! remember: always maintain "max workers per resource" invariant !!! */
 
     /* completely disjoint sets, so making a local decision is easy */
     if (0 == k_set_intersection_len) {
@@ -511,7 +511,7 @@ QUO_auto_distrib(QUO_t *q,
         if (my_smp_rank < max_qids_per_res_type * nres) *out_selected = 1;
     }
     /* only a few ranks share a resource. i don't know if this case will ever
-     * happen in practice, but i've seen stranger things... in the case, favor
+     * happen in practice, but i've seen stranger things... in any case, favor
      * unshared resources. */
     else {
         /* construct a "hash table" large enough to accommodate all possible
