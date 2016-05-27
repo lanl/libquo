@@ -95,8 +95,8 @@ AC_CHECK_FUNCS([memset strerror strtoul mmap])
 
 # check for sizeof(uintptr_t) for the Fortran interface.
 # This sets the size of QUO_IKIND in the quof.h header that is generated.
-AC_COMPUTE_INT(quo_sizeof_voidptr, [sizeof(void *)])
-AC_SUBST(QUO_IKIND_VAL, $quo_sizeof_voidptr)
+# AC_COMPUTE_INT(quo_sizeof_voidptr, [sizeof(void *)])
+# AC_SUBST(QUO_IKIND_VAL, $quo_sizeof_voidptr)
 
 ################################################################################
 # mpi stuff
