@@ -394,7 +394,7 @@ contains
           use, intrinsic :: iso_c_binding, only: c_int
           implicit none
           type(c_ptr), intent(out) :: q
-          type(integer), value :: comm
+          integer, value :: comm
           integer(c_int), intent(out) :: ierr
           ierr = quo_create_c(q, comm)
       end subroutine quo_create
