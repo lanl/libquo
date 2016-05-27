@@ -121,11 +121,12 @@ end interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 interface
       integer(c_int) &
-      function quo_create_c(q) &
-          bind(c, name='QUO_create')
+      function quo_create_c(comm, q) &
+          bind(c, name='QUO_create_f2c')
           use, intrinsic :: iso_c_binding, only: c_int
           import :: c_ptr
           implicit none
+          type(integer), intent(in) :: comm
           type(c_ptr), intent(out) :: q
       end function quo_create_c
 end interface
@@ -389,12 +390,13 @@ contains
       end subroutine quo_version
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      subroutine quo_create(q, ierr)
+      subroutine quo_create(comm, q, ierr)
           use, intrinsic :: iso_c_binding, only: c_int
           implicit none
+          type(integer), intent(in) :: comm
           type(c_ptr), intent(out) :: q
           integer(c_int), intent(out) :: ierr
-          ierr = quo_create_c(q)
+          ierr = quo_create_c(comm, q)
       end subroutine quo_create
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

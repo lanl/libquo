@@ -143,6 +143,20 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/**
+ * Simply a wrapper for our Fortran interface to C interface. No need to expose
+ * in quo.h header at this point, since it is only used by our Fortran module.
+ */
+int
+QUO_create_f2c(MPI_Fint comm,
+               QUO_t **q)
+{
+    MPI_Comm c_comm = MPI_Comm_f2c(comm);
+    //
+    return QUO_create(c_comm, q);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 int
 QUO_create(MPI_Comm comm,
            QUO_t **q)
