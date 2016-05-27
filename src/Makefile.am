@@ -18,7 +18,7 @@ SUBDIRS = \
 hwloc \
 tools
 
-LIBVINFO = "3:0:0"
+LIBVINFO = "4:0:0"
 
 lib_LTLIBRARIES = \
 libquo.la

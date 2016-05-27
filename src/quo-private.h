@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013      Los Alamos National Security, LLC
+ * Copyright (c) 2013-2016 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -51,7 +51,7 @@
 #endif
 
 /* library version */
-#define QUO_VER    2
+#define QUO_VER    4
 #define QUO_SUBVER 0
 
 /* ////////////////////////////////////////////////////////////////////////// */
