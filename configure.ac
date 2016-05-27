@@ -63,7 +63,7 @@ AC_CANONICAL_TARGET
 AC_USE_SYSTEM_EXTENSIONS
 
 # note: -Wall -Werror are automake options.  they are NOT compiler flags
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([1.14 -Wall -Werror foreign])
 
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -72,6 +72,10 @@ AM_PROG_AR
 AC_GNU_SOURCE
 AC_PROG_FC
 
+################################################################################
+# Libtool things
+################################################################################
+LT_PREREQ([2.4.2])
 LT_INIT
 
 # checks for header files.
