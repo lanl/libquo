@@ -144,7 +144,8 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_create(QUO_t **q)
+QUO_create(MPI_Comm comm,
+           QUO_t **q)
 {
     int rc = QUO_ERR;
     QUO_t *tq = NULL;

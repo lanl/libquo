@@ -2,15 +2,15 @@
  * Copyright (c) 2013-2016 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
- * Copyright 2013. Los Alamos National Security, LLC. This software was produced
- * under U.S. Government contract DE-AC52-06NA25396 for Los Alamos National
- * Laboratory (LANL), which is operated by Los Alamos National Security, LLC for
- * the U.S. Department of Energy. The U.S. Government has rights to use,
- * reproduce, and distribute this software.  NEITHER THE GOVERNMENT NOR LOS
- * ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR
- * ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If software is modified
- * to produce derivative works, such modified software should be clearly marked,
- * so as not to confuse it with the version available from LANL.
+ * This software was produced under U.S. Government contract DE-AC52-06NA25396
+ * for Los Alamos National Laboratory (LANL), which is operated by Los Alamos
+ * National Security, LLC for the U.S.  Department of Energy. The U.S.
+ * Government has rights to use, reproduce, and distribute this software.
+ * NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY
+ * WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS
+ * SOFTWARE.  If software is modified to produce derivative works, such modified
+ * software should be clearly marked, so as not to confuse it with the version
+ * available from LANL.
  *
  * Additionally, redistribution and use in source and binary forms, with or
  * without modification, are permitted provided that the following conditions
@@ -143,7 +143,7 @@ init(context_t **c)
     /* relatively expensive call. you only really want to do this once at the
      * beginning of time and pass the context all over the place within your
      * code. */
-    if (QUO_SUCCESS != QUO_create(&newc->quo)) goto err;
+    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &newc->quo)) goto err;
     newc->mpi_inited = true;
     *c = newc;
     return 0;
@@ -260,7 +260,7 @@ qcreate(
     //
     for (int i = 0; i < n_trials; ++i) {
         double start = MPI_Wtime();
-        if (QUO_SUCCESS != QUO_create(&(ctx[i]))) return 1;
+        if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &(ctx[i]))) return 1;
         double end = MPI_Wtime();
         res[i] = end - start;
     }
@@ -281,7 +281,7 @@ qfree(
     if (!ctx) return 1;
     //
     for (int i = 0; i < n_trials; ++i) {
-        if (QUO_SUCCESS != QUO_create(&(ctx[i]))) return 1;
+        if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &(ctx[i]))) return 1;
     }
     for (int i = 0; i < n_trials; ++i) {
         double start = MPI_Wtime();
@@ -300,7 +300,7 @@ qnpus(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &ctx)) return 1;
     //
     int n = 0;
     for (int i = 0; i < n_trials; ++i) {
@@ -323,7 +323,7 @@ qquids_in_type(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &ctx)) return 1;
     //
     int n = 0;
     for (int i = 0; i < n_trials; ++i) {
@@ -353,7 +353,7 @@ qbind_push(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &ctx)) return 1;
     //
     for (int i = 0; i < n_trials; ++i) {
         double start = MPI_Wtime();
@@ -376,7 +376,7 @@ qbind_pop(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &ctx)) return 1;
     //
     for (int i = 0; i < n_trials; ++i) {
         if (QUO_SUCCESS != QUO_bind_push(
@@ -399,7 +399,7 @@ qauto_distrib(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &ctx)) return 1;
     //
     int sel = 0;
     for (int i = 0; i < n_trials; ++i) {
@@ -423,7 +423,7 @@ qbarrier(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx)) return 1;
+    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &ctx)) return 1;
     //
     for (int i = 0; i < n_trials; ++i) {
         double start = MPI_Wtime();

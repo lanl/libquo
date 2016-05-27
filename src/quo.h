@@ -47,6 +47,9 @@
 #ifndef QUO_H_INCLUDED
 #define QUO_H_INCLUDED
 
+/* for MPI_Comm type */
+#include "mpi.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -138,6 +141,7 @@ QUO_version(int *version,
 /**
  * libquo context handle construction and initialization routine.
  *
+ * @param comm - initializing MPI communicator. (IN)
  * @param q - reference to a new QUO_context. (OUT)
  *
  * @returnvalue QUO_SUCCESS if the operation completed successfully.
@@ -154,7 +158,8 @@ QUO_version(int *version,
  */
 
 int
-QUO_create(QUO_context *q);
+QUO_create(MPI_Comm comm,
+           QUO_context *q);
 
 /**
  * libquo context handle destruction routine.
