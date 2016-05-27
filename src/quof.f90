@@ -127,7 +127,7 @@ interface
           import :: c_ptr
           implicit none
           type(c_ptr), intent(out) :: q
-          type(integer), value :: comm
+          integer(c_int), value :: comm
       end function quo_create_c
 end interface
 
