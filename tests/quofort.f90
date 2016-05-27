@@ -68,7 +68,7 @@ program quofort
     call mpi_init(info)
     call mpi_comm_rank(MPI_COMM_WORLD, cwrank, info)
 
-    call quo_create(MPI_COMM_WORLD, quoc, info)
+    call quo_create(quoc, MPI_COMM_WORLD, info)
 
     call quo_bound(quoc, bound, info)
 

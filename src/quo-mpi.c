@@ -120,7 +120,7 @@ struct quo_mpi_t {
     int mpi_inited;
     /* my host's name */
     char hostname[MPI_MAX_PROCESSOR_NAME];
-    /* communication channel for libquo mpi bits - dup of MPI_COMM_WORLD */
+    /* communication channel for libquo mpi bits - dup of initializing comm */
     MPI_Comm commchan;
     /* node communicator */
     MPI_Comm smpcomm;
@@ -255,10 +255,11 @@ out:
 /* ////////////////////////////////////////////////////////////////////////// */
 /** communication channel setup used for quo communication. */
 static int
-commchan_setup(quo_mpi_t *mpi)
+commchan_setup(quo_mpi_t *mpi,
+               MPI_Comm comm)
 {
     if (!mpi) return QUO_ERR_INVLD_ARG;
-    if (MPI_SUCCESS != MPI_Comm_dup(MPI_COMM_WORLD, &(mpi->commchan))) {
+    if (MPI_SUCCESS != MPI_Comm_dup(comm, &(mpi->commchan))) {
         return QUO_ERR_MPI;
     }
     return QUO_SUCCESS;
@@ -266,12 +267,13 @@ commchan_setup(quo_mpi_t *mpi)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-init_setup(quo_mpi_t *mpi)
+init_setup(quo_mpi_t *mpi,
+           MPI_Comm comm)
 {
     int rc = QUO_ERR, hostname_len = 0;
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
-    if (QUO_SUCCESS != (rc = commchan_setup(mpi))) goto out;
+    if (QUO_SUCCESS != (rc = commchan_setup(mpi, comm))) goto out;
     /* gather some basic info that we need */
     if (MPI_SUCCESS != MPI_Comm_size(mpi->commchan, &(mpi->nranks))) {
         rc = QUO_ERR_MPI;
@@ -641,7 +643,8 @@ quo_mpi_construct(quo_mpi_t **nmpi)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_mpi_init(quo_mpi_t *mpi)
+quo_mpi_init(quo_mpi_t *mpi,
+             MPI_Comm comm)
 {
     int rc = QUO_ERR;
 
@@ -657,13 +660,13 @@ quo_mpi_init(quo_mpi_t *mpi)
     /* if we are here, then mpi is initialized */
     mpi->mpi_inited = 1;
     /* first perform basic initialization */
-    if (QUO_SUCCESS != (rc = init_setup(mpi))) goto err;
+    if (QUO_SUCCESS != (rc = init_setup(mpi, comm))) goto err;
     /* setup node rank info */
     if (QUO_SUCCESS != (rc = smprank_setup(mpi))) goto err;
     /* mpi is setup and we know about our node neighbors and all the jive, so
      * setup and exchange node pids and node ranks. */
     if (QUO_SUCCESS != (rc = pid_smprank_xchange(mpi))) goto err;
-    /* now cache the MPI_COMM_WORLD ranks that are the node with me */
+    /* now cache the initializing comm ranks that are the node with me */
     if (QUO_SUCCESS != (rc = node_rank_xchange(mpi))) goto err;
     /* now setup shared memory stuff for our barrier */
     if (QUO_SUCCESS != (rc = sm_setup(mpi))) goto err;

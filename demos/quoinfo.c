@@ -101,7 +101,7 @@ main(void)
         goto out;
     }
     /* cheap call */
-    if (QUO_SUCCESS != (qrc = QUO_create(MPI_COMM_WORLD, &quo))) {
+    if (QUO_SUCCESS != (qrc = QUO_create(&quo, MPI_COMM_WORLD))) {
         bad_func = "QUO_create";
         goto out;
     }

@@ -152,14 +152,14 @@ QUO_version(int *version,
  *
  * EXAMPLE (c):
  * QUO_context quo = NULL;
- * if (QUO_SUCCESS != QUO_create(&quo)) {
+ * if (QUO_SUCCESS != QUO_create(&quo, MPI_COMM_WORLD)) {
  *     // error handling //
  * }
  */
 
 int
-QUO_create(MPI_Comm comm,
-           QUO_context *q);
+QUO_create(QUO_context *q,
+           MPI_Comm comm);
 
 /**
  * libquo context handle destruction routine.

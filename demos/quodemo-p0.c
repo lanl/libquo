@@ -106,7 +106,7 @@ init(context_t **c)
      * beginning of time and pass the context all over the place within your
      * code.
      */
-    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &newc->quo)) goto err;
+    if (QUO_SUCCESS != QUO_create(&newc->quo, MPI_COMM_WORLD)) goto err;
     /* mpi initialized at this point */
     newc->mpi_inited = true;
     /* return pointer to allocated resources */

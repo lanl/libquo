@@ -148,18 +148,18 @@ out:
  * in quo.h header at this point, since it is only used by our Fortran module.
  */
 int
-QUO_create_f2c(MPI_Fint comm,
-               QUO_t **q)
+QUO_create_f2c(QUO_t **q,
+               MPI_Fint comm)
 {
     MPI_Comm c_comm = MPI_Comm_f2c(comm);
     //
-    return QUO_create(c_comm, q);
+    return QUO_create(q, c_comm);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_create(MPI_Comm comm,
-           QUO_t **q)
+QUO_create(QUO_t **q,
+           MPI_Comm comm)
 {
     int rc = QUO_ERR;
     QUO_t *tq = NULL;
@@ -168,7 +168,7 @@ QUO_create(MPI_Comm comm,
     /* construct a new context */
     if (QUO_SUCCESS != (rc = construct_quoc(&tq))) goto out;
     /* init the context */
-    if (QUO_SUCCESS != (rc = quo_mpi_init(tq->mpi))) {
+    if (QUO_SUCCESS != (rc = quo_mpi_init(tq->mpi, comm))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
                 "quo_mpi_init", PACKAGE);
         goto out;

@@ -142,7 +142,7 @@ main(int argc, char **argv)
     info.tres = QUO_OBJ_NODE;
 
     assert(MPI_SUCCESS == MPI_Init(&argc, &argv));
-    assert(QUO_SUCCESS == QUO_create(MPI_COMM_WORLD, &info.q));
+    assert(QUO_SUCCESS == QUO_create(&info.q, MPI_COMM_WORLD));
     assert(MPI_SUCCESS == MPI_Comm_size(MPI_COMM_WORLD, &info.nranks));
     assert(MPI_SUCCESS == MPI_Comm_rank(MPI_COMM_WORLD, &info.rank));
     assert(QUO_SUCCESS == QUO_id(info.q, &info.noderank));

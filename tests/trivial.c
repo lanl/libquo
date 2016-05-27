@@ -55,7 +55,7 @@ main(int argc, char **argv)
     QUO_context q = NULL;
 
     assert(MPI_SUCCESS == MPI_Init(&argc, &argv));
-    assert(QUO_SUCCESS == QUO_create(MPI_COMM_WORLD, &q));
+    assert(QUO_SUCCESS == QUO_create(&q, MPI_COMM_WORLD));
     assert(QUO_SUCCESS == QUO_free(q));
     assert(MPI_SUCCESS == MPI_Finalize());
     return EXIT_SUCCESS;

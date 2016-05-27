@@ -51,6 +51,8 @@
 #include "quo-private.h"
 #include "quo.h"
 
+#include "mpi.h"
+
 struct quo_mpi_t;
 typedef struct quo_mpi_t quo_mpi_t;
 
@@ -58,7 +60,8 @@ int
 quo_mpi_construct(quo_mpi_t **nmpi);
 
 int
-quo_mpi_init(quo_mpi_t *nmpi);
+quo_mpi_init(quo_mpi_t *nmpi,
+             MPI_Comm comm);
 
 int
 quo_mpi_destruct(quo_mpi_t *nmpi);

@@ -160,7 +160,7 @@ init(context_t **c)
     /* relatively expensive call. you only really want to do this once at the
      * beginning of time and pass the context all over the place within your
      * code. */
-    if (QUO_SUCCESS != QUO_create(MPI_COMM_WORLD, &newc->quo)) goto err;
+    if (QUO_SUCCESS != QUO_create(&newc->quo, MPI_COMM_WORLD)) goto err;
     newc->mpi_inited = true;
     *c = newc;
     return 0;
