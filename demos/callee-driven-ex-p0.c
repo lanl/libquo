@@ -41,7 +41,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "quodemo-multilib-common.h"
+#include "callee-driven-ex-common.h"
 #include "callee-driven-ex-p1.h"
 
 #include <stdio.h>
