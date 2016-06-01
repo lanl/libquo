@@ -49,7 +49,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "caller-driven-ex-p1.h"
+#include "callee-driven-ex-p1.h"
 
 typedef struct p1context_t {
     /* communicator used by p1 */

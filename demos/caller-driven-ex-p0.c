@@ -54,7 +54,9 @@
 #include "mpi.h"
 
 /**
- * libquo demo code that illustrates how two libraries interact.
+ * libquo demo code that illustrates how two libraries interact. in this code
+ * the caller makes all the decisions about how its target library's environment
+ * should be set up.
  */
 
 /**

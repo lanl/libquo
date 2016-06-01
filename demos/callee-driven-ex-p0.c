@@ -42,7 +42,7 @@
  */
 
 #include "quodemo-multilib-common.h"
-#include "caller-driven-ex-p1.h"
+#include "callee-driven-ex-p1.h"
 #include "quo.h"
 
 #include <stdio.h>
@@ -54,7 +54,9 @@
 #include "mpi.h"
 
 /**
- * libquo demo code that illustrates how two libraries interact.
+ * libquo demo code that illustrates how two libraries interact. in this code
+ * the callee makes all the decisions about how its environment should be set
+ * up.
  */
 
 /**
