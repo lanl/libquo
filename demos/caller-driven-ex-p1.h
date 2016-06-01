@@ -41,8 +41,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef QUO_DEMO_P1_H
-#define QUO_DEMO_P1_H
+#pragma once
 
 #include "quodemo-multilib-common.h"
 #include "quo.h"
@@ -57,5 +56,3 @@ p1_fini(void);
 
 int
 p1_entry_point(context_t *c);
-
-#endif

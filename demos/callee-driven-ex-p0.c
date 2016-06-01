@@ -43,7 +43,6 @@
 
 #include "quodemo-multilib-common.h"
 #include "callee-driven-ex-p1.h"
-#include "quo.h"
 
 #include <stdio.h>
 #include <stdlib.h>

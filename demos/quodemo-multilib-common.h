@@ -41,8 +41,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef QUO_DEMO_MULTILIB_COMMON_H
-#define QUO_DEMO_MULTILIB_COMMON_H
+#pragma once
 
 #include "quo.h"
 #include "mpi.h"
@@ -134,5 +133,3 @@ out:
     }
     return 0;
 }
-
-#endif
