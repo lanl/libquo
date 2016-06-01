@@ -47,11 +47,11 @@ noinst_PROGRAMS = \
 quoinfo \
 quodemo-0 \
 quodemo-1 \
-quodemo-multilib \
+caller-driven-multilib \
 mpi-omp
 
 noinst_LTLIBRARIES = \
-libdemop1.la
+libcaller_driven_callee_p1.la
 
 ### info demo 0
 quoinfo_SOURCES = quoinfo.c
@@ -68,14 +68,16 @@ quodemo_1_SOURCES = quodemo-1.c
 quodemo_1_CPPFLAGS  = -I$(top_srcdir)/src
 quodemo_1_LDADD   = $(top_builddir)/src/libquo.la
 
-### demo 2 (multi lib example)
-quodemo_multilib_SOURCES = quodemo-multilib-common.h quodemo-p0.c
-quodemo_multilib_CPPFLAGS  = -I$(top_srcdir)/src
-quodemo_multilib_LDADD   = $(top_builddir)/src/libquo.la libdemop1.la
+### demo 2 (caller-driven multi lib example)
+caller_driven_multilib_SOURCES = quodemo-multilib-common.h caller-driven-ex-p0.c
+caller_driven_multilib_CPPFLAGS  = -I$(top_srcdir)/src
+caller_driven_multilib_LDADD = \
+$(top_builddir)/src/libquo.la libcaller_driven_callee_p1.la
 
-libdemop1_la_SOURCES = quodemo-multilib-common.h quodemo-p1.h quodemo-p1.c
-libdemop1_la_CPPFLAGS = -I$(top_srcdir)/src
-libdemop1_la_LIBADD = $(top_builddir)/src/libquo.la
+libcaller_driven_callee_p1_la_SOURCES = \
+quodemo-multilib-common.h quodemo-p1.h caller-driven-ex-p1.c
+libcaller_driven_callee_p1_la_CPPFLAGS = -I$(top_srcdir)/src
+libcaller_driven_callee_p1_la_LIBADD = $(top_builddir)/src/libquo.la
 
 ### demo 3
 mpi_omp_SOURCES = mpi-omp.c
