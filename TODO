@@ -1,6 +1,5 @@
 libquo TODO
 
-o fix 'make uninstall'. crud: pkgconfig  quo.mod
 o add broken compiler check for fortran at configure time.
 o reconsider default mapping if affinity is turned off. evenly distribute.
 o update header documentation.
