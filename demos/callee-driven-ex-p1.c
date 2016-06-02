@@ -236,18 +236,10 @@ out:
 static int
 push_bind(const p1_context_t *c)
 {
-#if 0
-    /* p1 wants each pe to expand their bindings to the socket in which they are
-     * currently bound. the idea here is that p0 will call us with a particular
-     * binding policy, but we need a different one. we'll "bind up" to the
-     * closest socket. notice that with QUO_BIND_PUSH_OBJ, the last argument
-     * (the obj index [e.g socket 1]) is ignored. this is NOT the case when
-     * using the QUO_BIND_PUSH_PROVIDED option. */
     if (QUO_SUCCESS != QUO_bind_push(c->quo, QUO_BIND_PUSH_OBJ,
                                      QUO_OBJ_SOCKET, -1)) {
         return 1;
     }
-#endif
     return 0;
 }
 
@@ -256,9 +248,7 @@ push_bind(const p1_context_t *c)
 static int
 pop_bind(const p1_context_t *c)
 {
-#if 0
     if (QUO_SUCCESS != QUO_bind_pop(c->quo)) return 1;
-#endif
     return 0;
 }
 
@@ -283,7 +273,7 @@ gen_libcomm(p1_context_t *c,
 {
     int rc = QUO_SUCCESS;
     if (0 == c->noderank) {
-        printf("### [rank %d] %d p1pes initializing p1\n", c->rank, np1s);
+        printf("### [rank %d] %d p1pes slated for work\n", c->rank, np1s);
         printf("### [rank %d] and they are: ", c->rank);
         if (0 == np1s) printf("\n");
         fflush(stdout);
@@ -324,8 +314,6 @@ gen_libcomm(p1_context_t *c,
             goto out;
         }
     }
-    /* for pretty print */
-    usleep((c->rank) * 1000);
 out:
     if (MPI_SUCCESS != MPI_Group_free(&init_comm_grp)) return 1;
     return (QUO_SUCCESS == rc) ? 0 : 1;
@@ -367,21 +355,37 @@ p1_init(p1_context_t **p1_ctx,
     int n_workers = 0;
     int *worker_comm_ids = NULL;
     if (get_worker_pes(newc, &n_workers, &worker_comm_ids)) return 1;
+    if (gen_libcomm(newc, n_workers, worker_comm_ids)) return 1;
     //
     *p1_ctx = newc;
     return 0;
 }
 
 int
-p1_fini(p1_context_t *p1_ctx)
+p1_fini(p1_context_t *c)
 {
-    QUO_free(p1_ctx->quo);
-    if (p1_ctx) free(p1_ctx);
+    if (!c) return 0;
+    MPI_Comm_free(&c->init_comm_dup);
+    if (c->in_quo_comm) MPI_Comm_free(&c->quo_comm);
+    QUO_free(c->quo);
+    free(c);
     return 0;
 }
 
 int
 p1_entry_point(p1_context_t *c)
 {
+    /* actually do threaded work? */
+    if (c->in_quo_comm) {
+        /* prep runtime environment */
+        push_bind(c);
+        /* DO WORK HERE */
+        if (emit_bind_state(c, "-->")) return 1;
+        /* revert to previous runtime environment */
+        pop_bind(c);
+    }
+    if (QUO_SUCCESS != QUO_barrier(c->quo)) return 1;
+    /* via mpi, share results with processes that were not in quo_comm, or any
+     * other processes that need those data. sharing is caring. */
     return 0;
 }

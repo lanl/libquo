@@ -145,6 +145,10 @@ main(void)
         bad_func = "p1_init";
         goto out;
     }
+    if (p1_entry_point(p1_context)) {
+        bad_func = "p1_entry_point";
+        goto out;
+    }
     //
     demo_emit_sync(p0_context);
     //
