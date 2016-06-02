@@ -82,13 +82,13 @@ libcaller_driven_callee_p1_la_CPPFLAGS = -I$(top_srcdir)/src
 libcaller_driven_callee_p1_la_LIBADD = $(top_builddir)/src/libquo.la
 
 ### demo 3 (callee-driven multi-library example)
-callee_driven_multilib_SOURCES = callee-driven-ex-common.h callee-driven-ex-p0.c
+callee_driven_multilib_SOURCES = callee-driven-ex-p0.c
 callee_driven_multilib_CPPFLAGS = -I$(top_srcdir)/src
 callee_driven_multilib_LDADD = \
 $(top_builddir)/src/libquo.la libcallee_driven_callee_p1.la
 
 libcallee_driven_callee_p1_la_SOURCES = \
-callee-driven-ex-common.h callee-driven-ex-p1.h callee-driven-ex-p1.c
+callee-driven-ex-p1.h callee-driven-ex-p1.c
 libcallee_driven_callee_p1_la_CPPFLAGS = -I$(top_srcdir)/src
 libcallee_driven_callee_p1_la_LIBADD = $(top_builddir)/src/libquo.la
 

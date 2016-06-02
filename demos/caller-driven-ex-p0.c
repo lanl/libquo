@@ -79,11 +79,11 @@ fini(context_t *c)
 /**
  * i'm being really sloppy here. ideally, one should probably save the rc and
  * then display or do some other cool thing with it. don't be like this code. if
- * QUO_construct or QUO_init fail, then someone using this could just continue
- * without the awesomeness that is libquo. they cleanup after themselves, so
- * things *should* be in an okay state after an early failure. the failures may
- * be part of a larger problem, however. if you are reading this, you are
- * probably the first -- thanks! */
+ * QUO_create fails, then someone using this could just continue without the
+ * awesomeness that is libquo. they cleanup after themselves, so things *should*
+ * be in an okay state after an early failure. the failures may be part of a
+ * larger problem, however. if you are reading this, you are probably the first
+ * -- thanks! */
 static int
 init(context_t **c)
 {
@@ -102,7 +102,7 @@ init(context_t **c)
      * initialized first. */
     /* ////////////////////////////////////////////////////////////////////// */
 
-    /* can be called at any point -- even before init and construct. */
+    /* can be called at any point -- even before construct. */
     if (QUO_SUCCESS != QUO_version(&(newc->qv), &(newc->qsv))) goto err;
     /* relatively expensive call. you only really want to do this once at the
      * beginning of time and pass the context all over the place within your

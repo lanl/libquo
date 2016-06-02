@@ -43,16 +43,53 @@
 
 #pragma once
 
-#include "callee-driven-ex-common.h"
+#include "mpi.h"
 #include "quo.h"
 
-int
-p1_init(context_t *c,
-        int np1s,
-        int *p1who);
+typedef struct p1_context_t {
+    /* my rank */
+    int rank;
+    /* number of ranks in MPI_COMM_WORLD */
+    int nranks;
+    /* number of nodes in our job */
+    int nnodes;
+    /* number of ranks that share this node with me (includes myself) */
+    int nnoderanks;
+    /* my node rank */
+    int noderank;
+    /* number of NUMA nodes on the node */
+    int nnumanodes;
+    /* number of sockets on the node */
+    int nsockets;
+    /* number of cores on the node */
+    int ncores;
+    /* number of pus (processing units - e.g hw threads) */
+    int npus;
+    /* quo major version */
+    int qv;
+    /* quo minor version */
+    int qsv;
+    /* flag indicating whether or not we are initially bound */
+    int bound;
+    /* bind state string */
+    char *cbindstr;
+    /* dup of initializing communicator */
+    MPI_Comm init_comm_dup;
+    /* convenience communicator that contains all ranks on the node */
+    MPI_Comm smp_comm;
+    /* size of worker_comm */
+    int size_smp_comm;
+    /* quo context handle */
+    QUO_context quo;
+} p1_context_t;
+
 
 int
-p1_fini(void);
+p1_init(p1_context_t **p1_ctx,
+        MPI_Comm comm);
 
 int
-p1_entry_point(context_t *c);
+p1_entry_point(p1_context_t *c);
+
+int
+p1_fini(p1_context_t *p1_ctx);
