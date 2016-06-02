@@ -85,7 +85,7 @@ out:
 static void
 demo_emit_sync(const p1_context_t *c)
 {
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(c->init_comm_dup);
     usleep((c->rank) * 1000);
 }
 
@@ -204,7 +204,7 @@ get_worker_pes(p1_context_t *c,
     }
     if (MPI_SUCCESS != (rc = MPI_Allgather(&res_assigned, 1, MPI_INT,
                                            work_contribs, 1, MPI_INT,
-                                           MPI_COMM_WORLD))) {
+                                           c->init_comm_dup))) {
         rc = QUO_ERR_MPI;
         goto out;
     }
@@ -274,6 +274,61 @@ quo_init(p1_context_t *ctx)
     if (QUO_SUCCESS != QUO_create(&ctx->quo, ctx->init_comm_dup)) return 1;
     //
     return 0;
+}
+
+int
+gen_libcomm(p1_context_t *c,
+            int np1s /* number of participants |p1who| */,
+            int *p1who /* the participating ranks (initializing comm) */)
+{
+    int rc = QUO_SUCCESS;
+    if (0 == c->noderank) {
+        printf("### [rank %d] %d p1pes initializing p1\n", c->rank, np1s);
+        printf("### [rank %d] and they are: ", c->rank);
+        if (0 == np1s) printf("\n");
+        fflush(stdout);
+        for (int i = 0; i < np1s; ++i) {
+            printf("%d ", p1who[i]); fflush(stdout);
+            if (i + 1 == np1s) printf("\n"); fflush(stdout);
+        }
+    }
+    /* ////////////////////////////////////////////////////////////////////// */
+    /* now create our own communicator based on the rank ids passed here */
+    /* ////////////////////////////////////////////////////////////////////// */
+    MPI_Group init_comm_grp;
+    MPI_Group p1_group;
+    if (MPI_SUCCESS != MPI_Comm_group(c->init_comm_dup, &init_comm_grp)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Group_incl(init_comm_grp, np1s,
+                                      p1who, &p1_group)) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Comm_create(c->init_comm_dup,
+                                       p1_group,
+                                       &(c->quo_comm))) {
+        rc = QUO_ERR_MPI;
+        goto out;
+    }
+    /* am i in the new communicator? */
+    c->in_quo_comm = (MPI_COMM_NULL == c->quo_comm) ? false : true;
+    if (c->in_quo_comm) {
+        if (MPI_SUCCESS != MPI_Comm_size(c->quo_comm, &c->qc_size)) {
+            rc = QUO_ERR_MPI;
+            goto out;
+        }
+        if (MPI_SUCCESS != MPI_Comm_rank(c->quo_comm, &c->qc_rank)) {
+            rc = QUO_ERR_MPI;
+            goto out;
+        }
+    }
+    /* for pretty print */
+    usleep((c->rank) * 1000);
+out:
+    if (MPI_SUCCESS != MPI_Group_free(&init_comm_grp)) return 1;
+    return (QUO_SUCCESS == rc) ? 0 : 1;
 }
 
 int

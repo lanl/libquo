@@ -46,12 +46,14 @@
 #include "mpi.h"
 #include "quo.h"
 
+#include <stdbool.h>
+
 typedef struct p1_context_t {
     /* my rank */
     int rank;
-    /* number of ranks in MPI_COMM_WORLD */
+    /* number of ranks in initializing communicator */
     int nranks;
-    /* number of nodes in our job */
+    /* number of nodes used across initializing communicator */
     int nnodes;
     /* number of ranks that share this node with me (includes myself) */
     int nnoderanks;
@@ -75,10 +77,14 @@ typedef struct p1_context_t {
     char *cbindstr;
     /* dup of initializing communicator */
     MPI_Comm init_comm_dup;
-    /* convenience communicator that contains all ranks on the node */
-    MPI_Comm smp_comm;
-    /* size of worker_comm */
-    int size_smp_comm;
+    /* "quo communicator" containing active quo processes (workers ids). */
+    MPI_Comm quo_comm;
+    /* quo_comm rank */
+    int qc_rank;
+    /* quo_comm size */
+    int qc_size;
+    /* am i in quo_comm? */
+    bool in_quo_comm;
     /* quo context handle */
     QUO_context quo;
 } p1_context_t;

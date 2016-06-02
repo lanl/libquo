@@ -83,10 +83,6 @@ typedef struct context_t {
     char *cbindstr;
     /* flag indicating whether or not we are initially bound */
     int bound;
-    /* convenience communicator that contains all ranks on the node */
-    MPI_Comm smp_comm;
-    /* size of worker_comm */
-    int size_smp_comm;
     /* a pointer to our quo context (the thing that gets passed around all over
      * the place). filler words that make this comment line look mo better... */
     QUO_context quo;
