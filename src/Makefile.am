@@ -50,7 +50,7 @@ libquo_usequo_la_LIBADD = libquo.la
 endif
 
 # these are generated
-MOSTLYCLEANFILES = *.mod
+MOSTLYCLEANFILES = *.mod $(pkgconfig_DATA)
 
 # install the generated .mod files.  unfortunately, each f90 compiler
 # may generate different filenames, so we have to use a glob.  :-(
