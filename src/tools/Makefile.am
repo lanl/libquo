@@ -19,7 +19,7 @@ quo_info_CPPFLAGS = \
 -DQUO_BUILD_DATE="\"`date`\"" \
 -DQUO_BUILD_PREFIX="\"@prefix@\"" \
 -DQUO_BUILD_CC="\"@CC@\"" \
--DQUO_BUILD_WHICH_CC="\"`which @CC@`\"" \
+-DQUO_BUILD_WHICH_CC="\"@QUO_WHICH_CC@\"" \
 -DQUO_BUILD_CFLAGS="\"@CFLAGS@\"" \
 -DQUO_BUILD_CPPFLAGS="\"@CPPFLAGS@\"" \
 -DQUO_BUILD_CXXFLAGS="\"@CXXFLAGS@\"" \
@@ -29,7 +29,7 @@ if QUO_WITH_MPIFC
 quo_info_CPPFLAGS += \
 -DQUO_WITH_MPIFC \
 -DQUO_BUILD_FC="\"@FC@\"" \
--DQUO_BUILD_WHICH_FC="\"`which @FC@`\"" \
+-DQUO_BUILD_WHICH_FC="\"@QUO_WHICH_FC@\"" \
 -DQUO_BUILD_FFLAGS="\"@FFLAGS@\"" \
 -DQUO_BUILD_FCFLAGS="\"@FCFLAGS@\""
 endif

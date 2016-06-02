@@ -150,12 +150,21 @@ AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
 ################################################################################
 # For package info (quo-info)
 ################################################################################
+
+QUO_WHICH_CC=`which $CC | tr -s ' ' | cut -f1 -d' '`
+QUO_WHICH_FC=`which $FC | tr -s ' ' | cut -f1 -d' '`
+if test "x$QUO_WHICH_FC" = x; then
+    QUO_WHICH_FC="none"
+fi
+
 AC_SUBST([CC])
+AC_SUBST([QUO_WHICH_CC])
 AC_SUBST([CFLAGS])
 AC_SUBST([CPPFLAGS])
 AC_SUBST([CXXFLAGS])
 AC_SUBST([CXXCPPFLAGS])
 AC_SUBST([FC])
+AC_SUBST([QUO_WHICH_FC])
 AC_SUBST([FFLAGS])
 AC_SUBST([FCFLAGS])
 AC_SUBST([LDFLAGS])
