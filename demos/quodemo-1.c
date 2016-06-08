@@ -52,7 +52,7 @@
 #include "mpi.h"
 
 /**
- * another quo demo code that show how one might implement binding policies
+ * another quo demo code that shows how one might implement binding policies
  * based on node process information, hardware info, and code policy.
  */
 
