@@ -41,6 +41,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * an example to show how one could evenly distribute processes across resources
+ * on a compute node irrespective of how they were distributed by the parallel
+ * launcher.
+ */
+
 #include "quo.h"
 
 #include <stdio.h>
@@ -56,6 +62,16 @@ typedef struct inf_t {
     int nranks;
     bool mpi_inited;
 } inf_t;
+
+/**
+ * rudimentary "pretty print" routine. not needed in real life...
+ */
+static inline void
+demo_emit_sync(const inf_t *c)
+{
+    MPI_Barrier(MPI_COMM_WORLD);
+    usleep((c->rank) * 1000);
+}
 
 static int
 init(inf_t *inf)
@@ -84,11 +100,10 @@ int
 main(void)
 {
     int qrc = QUO_SUCCESS, erc = EXIT_SUCCESS;
-    int qv = 0, qsv = 0, nnodes = 0, nnoderanks = 0;
-    int nsockets = 0, ncores = 0, npus = 0;
+    int qv = 0, qsv = 0, nnodes = 0, node_rank = 0, nnoderanks = 0;
+    int nnumas = 0, nsockets = 0, ncores = 0, npus = 0;
     char *bad_func = NULL;
     char *cbindstr = NULL, *cbindstr2 = NULL, *cbindstr3 = NULL;
-    int bound = 0, bound2 = 0, bound3 = 0;
     QUO_context quo = NULL;
     inf_t info;
 
@@ -105,6 +120,10 @@ main(void)
         bad_func = "QUO_create";
         goto out;
     }
+    if (QUO_SUCCESS != (qrc = QUO_nnumanodes(quo, &nnumas))) {
+        bad_func = "QUO_nnumanodes";
+        goto out;
+    }
     if (QUO_SUCCESS != (qrc = QUO_nsockets(quo, &nsockets))) {
         bad_func = "QUO_nsockets";
         goto out;
@@ -117,25 +136,53 @@ main(void)
         bad_func = "QUO_npus";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = QUO_bound(quo, &bound))) {
-        bad_func = "QUO_bound";
-        goto out;
-    }
-    if (QUO_SUCCESS != (qrc = QUO_stringify_cbind(quo, &cbindstr))) {
-        bad_func = "QUO_stringify_cbind";
-        goto out;
-    }
     if (QUO_SUCCESS != (qrc = QUO_nnodes(quo, &nnodes))) {
         bad_func = "QUO_nnodes";
+        goto out;
+    }
+    if (QUO_SUCCESS != (qrc = QUO_id(quo, &node_rank))) {
+        bad_func = "QUO_id";
         goto out;
     }
     if (QUO_SUCCESS != (qrc = QUO_nqids(quo, &nnoderanks))) {
         bad_func = "QUO_nnodes";
         goto out;
     }
-    /* last argument ignored with QUO_BIND_PUSH_OBJ option */
-    if (QUO_SUCCESS != (qrc = QUO_bind_push(quo, QUO_BIND_PUSH_OBJ,
-                                            QUO_OBJ_CORE, 0))) {
+    ////////////////////////////////////////////////////////////////////////////
+    if (0 == node_rank) {
+        printf("### quo version: %d.%d ###\n", qv, qsv);
+        printf("### nnodes: %d\n", nnodes);
+        printf("### nnoderanks: %d\n", nnoderanks);
+        printf("### nnuma: %d\n", nnumas);
+        printf("### nsockets: %d\n", nsockets);
+        printf("### ncores: %d\n", ncores);
+        printf("### npus: %d\n", npus);
+    }
+    ////////////////////////////////////////////////////////////////////////////
+    /* first let's print what our initial binding looks like... */
+    ////////////////////////////////////////////////////////////////////////////
+    demo_emit_sync(&info);
+    if (QUO_SUCCESS != (qrc = QUO_stringify_cbind(quo, &cbindstr))) {
+        bad_func = "QUO_stringify_cbind";
+        goto out;
+    }
+    printf("000[rank %d, qid %d] %s\n", info.rank, node_rank, cbindstr);
+    demo_emit_sync(&info);
+    ////////////////////////////////////////////////////////////////////////////
+    /* now evenly distribute over a target resource. this will round-robin over
+     * the target resource. */
+    ////////////////////////////////////////////////////////////////////////////
+    QUO_obj_type_t target_res = QUO_OBJ_NODE;
+    if (nnumas == 0) {
+        target_res = QUO_OBJ_SOCKET;
+    }
+    int ntarget = 0;
+    if (QUO_SUCCESS != (qrc = QUO_nobjs_by_type(quo, target_res, &ntarget))) {
+        bad_func = "QUO_nnodes";
+        goto out;
+    }
+    if (QUO_SUCCESS != (qrc = QUO_bind_push(quo, QUO_BIND_PUSH_PROVIDED,
+                                            target_res, node_rank % ntarget))) {
         bad_func = "QUO_bind_push";
         goto out;
     }
@@ -143,38 +190,27 @@ main(void)
         bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = QUO_bound(quo, &bound2))) {
-        bad_func = "QUO_bound";
-        goto out;
-    }
-    if (QUO_SUCCESS != (qrc = QUO_bind_pop(quo))) {
-        bad_func = "QUO_bind_pop";
+    printf("111[rank %d, qid %d] %s\n", info.rank, node_rank, cbindstr2);
+    demo_emit_sync(&info);
+    ////////////////////////////////////////////////////////////////////////////
+    /* now bind to cores within the resource (may be nice for mpi-e execution */
+    ////////////////////////////////////////////////////////////////////////////
+    if (QUO_SUCCESS != (qrc = QUO_bind_push(quo, QUO_BIND_PUSH_OBJ,
+                                            QUO_OBJ_CORE, -1))) {
+        bad_func = "QUO_bind_push";
         goto out;
     }
     if (QUO_SUCCESS != (qrc = QUO_stringify_cbind(quo, &cbindstr3))) {
         bad_func = "QUO_stringify_cbind";
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = QUO_bound(quo, &bound3))) {
-        bad_func = "QUO_bound";
-        goto out;
-    }
+    printf("222[rank %d, qid %d] %s\n", info.rank, node_rank, cbindstr3);
+    demo_emit_sync(&info);
+    // TODO - what happens when more than one process per resource!!! FIXME
     if (QUO_SUCCESS != (qrc = QUO_free(quo))) {
         bad_func = "QUO_free";
         goto out;
     }
-    printf("### quo version: %d.%d ###\n", qv, qsv);
-    printf("### nnodes: %d\n", nnodes);
-    printf("### nnoderanks: %d\n", nnoderanks);
-    printf("### nsockets: %d\n", nsockets);
-    printf("### ncores: %d\n", ncores);
-    printf("### npus: %d\n", npus);
-    printf("### process %d [%s] bound: %s\n",
-           (int)getpid(), cbindstr, bound ? "true" : "false");
-    printf("### process %d [%s] bound: %s\n",
-           (int)getpid(), cbindstr2, bound2 ? "true" : "false");
-    printf("### process %d [%s] bound: %s\n",
-           (int)getpid(), cbindstr3, bound3 ? "true" : "false");
     /* the string returned by QUO_machine_topo_stringify MUST be free'd by us */
     free(cbindstr);
     free(cbindstr2);

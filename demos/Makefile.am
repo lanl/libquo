@@ -45,6 +45,7 @@
 
 noinst_PROGRAMS = \
 quoinfo \
+even-distrib \
 quodemo-0 \
 quodemo-1 \
 caller-driven-multilib \
@@ -55,22 +56,27 @@ noinst_LTLIBRARIES = \
 libcaller_driven_callee_p1.la \
 libcallee_driven_callee_p1.la
 
-### info demo 0
+###
 quoinfo_SOURCES = quoinfo.c
 quoinfo_CPPFLAGS = -I$(top_srcdir)/src
 quoinfo_LDADD = $(top_builddir)/src/libquo.la
 
-### demo 0
+###
+even_distrib_SOURCES = even-distrib.c
+even_distrib_CPPFLAGS = -I$(top_srcdir)/src
+even_distrib_LDADD = $(top_builddir)/src/libquo.la
+
+###
 quodemo_0_SOURCES = quodemo-0.c
 quodemo_0_CPPFLAGS = -I$(top_srcdir)/src
 quodemo_0_LDADD = $(top_builddir)/src/libquo.la
 
-### demo 1
+###
 quodemo_1_SOURCES = quodemo-1.c
 quodemo_1_CPPFLAGS = -I$(top_srcdir)/src
 quodemo_1_LDADD = $(top_builddir)/src/libquo.la
 
-### demo 2 (caller-driven multi-library example)
+### caller-driven multi-library example
 caller_driven_multilib_SOURCES = caller-driven-ex-common.h caller-driven-ex-p0.c
 caller_driven_multilib_CPPFLAGS = -I$(top_srcdir)/src
 caller_driven_multilib_LDADD = \
@@ -81,7 +87,7 @@ caller-driven-ex-common.h caller-driven-ex-p1.h caller-driven-ex-p1.c
 libcaller_driven_callee_p1_la_CPPFLAGS = -I$(top_srcdir)/src
 libcaller_driven_callee_p1_la_LIBADD = $(top_builddir)/src/libquo.la
 
-### demo 3 (callee-driven multi-library example)
+### callee-driven multi-library example
 callee_driven_multilib_SOURCES = callee-driven-ex-p0.c
 callee_driven_multilib_CPPFLAGS = -I$(top_srcdir)/src
 callee_driven_multilib_LDADD = \
@@ -92,7 +98,7 @@ callee-driven-ex-p1.h callee-driven-ex-p1.c
 libcallee_driven_callee_p1_la_CPPFLAGS = -I$(top_srcdir)/src
 libcallee_driven_callee_p1_la_LIBADD = $(top_builddir)/src/libquo.la
 
-### demo 4
+###
 mpi_omp_SOURCES = mpi-omp.c
 mpi_omp_CPPFLAGS = -I$(top_srcdir)/src
 mpi_omp_LDADD = $(top_builddir)/src/libquo.la
