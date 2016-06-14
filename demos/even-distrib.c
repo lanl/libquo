@@ -178,7 +178,7 @@ main(void)
     }
     int ntarget = 0;
     if (QUO_SUCCESS != (qrc = QUO_nobjs_by_type(quo, target_res, &ntarget))) {
-        bad_func = "QUO_nnodes";
+        bad_func = "QUO_nobjs_by_type";
         goto out;
     }
     if (QUO_SUCCESS != (qrc = QUO_bind_push(quo, QUO_BIND_PUSH_PROVIDED,
