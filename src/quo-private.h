@@ -76,4 +76,12 @@ do {                                                                           \
     fprintf(stderr, QUO_ERR_PREFIX"%s failed: %s.\n", __func__, (whystr));     \
 } while (0)
 
+/**
+ * Convenience macro used to silence warnings about unused variables.
+ */
+#define QUO_UNUSED(x)                                                          \
+do {                                                                           \
+    (void)(x);                                                                 \
+} while (0)
+
 #endif

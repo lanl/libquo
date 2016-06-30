@@ -585,7 +585,7 @@ main(void)
         {context, "QUO_barrier",        qbarrier,       n_trials, 0, NULL}
     };
 
-    for (int i = 0; i < sizeof(experiments)/sizeof(experiment_t); ++i) {
+    for (unsigned i = 0; i < sizeof(experiments)/sizeof(experiment_t); ++i) {
         run_experiment(&experiments[i]);
     }
 out:

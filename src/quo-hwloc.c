@@ -636,6 +636,15 @@ quo_hwloc_bind_threads(quo_hwloc_t *hwloc,
                        int omp_thread,
                        int num_omp_threads)
 {
+    // TODO FIXME
+#if 1
+    QUO_UNUSED(hwloc);
+    QUO_UNUSED(qid);
+    QUO_UNUSED(qids_in_type);
+    QUO_UNUSED(omp_thread);
+    QUO_UNUSED(num_omp_threads);
+    return QUO_ERR_NOT_SUPPORTED;
+#else
     hwloc_cpuset_t set;
     cpu_set_t new_set;
     int cpu, total, count = 0;
@@ -681,6 +690,7 @@ quo_hwloc_bind_threads(quo_hwloc_t *hwloc,
     hwloc_bitmap_free(set);
 
     return QUO_SUCCESS;
+#endif
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -689,6 +699,13 @@ quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc,
                               int omp_thread,
                               int num_omp_threads)
 {
+    // TODO FIXME
+#if 1
+    QUO_UNUSED(hwloc);
+    QUO_UNUSED(omp_thread);
+    QUO_UNUSED(num_omp_threads);
+    return QUO_ERR_NOT_SUPPORTED;
+#else
     cpu_set_t set, new_set;
     int total, count = 0;
     double cpu_per_thread;
@@ -734,4 +751,5 @@ quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc,
         return rc;
 
     return QUO_SUCCESS;
+#endif
 }
