@@ -464,7 +464,7 @@ QUO_auto_distrib(QUO_t *q,
     if (QUO_SUCCESS != (rc = QUO_id(q, &my_smp_rank))) return rc;
     /* figure out how many target things are on the system. */
     if (QUO_SUCCESS != (rc = QUO_nobjs_by_type(q, distrib_over_this,
-                                                   &nres))) {
+                                               &nres))) {
         return rc;
     }
     /* if there are no resources, then return not found */
