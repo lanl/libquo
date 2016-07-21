@@ -54,7 +54,7 @@ See src/quo.h for more information.
 # Fortran Interface Users
 See src/quof.f90 and src/quo.h for more information.
 
-o Some Fortran interfaces differ slightly from their C equivalent.
+o Some Fortran interfaces differ slightly from their C counterpart.
 
 # Interface Examples
 o In tests and demos.
