@@ -575,14 +575,14 @@ main(void)
     //
     experiment_t experiments[] =
     {
-        {context, "QUO_create",         qcreate,        n_trials, 0, NULL},
-        {context, "QUO_free",           qfree,          n_trials, 0, NULL},
-        {context, "QUO_npus",           qnpus,          n_trials, 0, NULL},
-        {context, "QUO_qids_in_type",   qquids_in_type, n_trials, 0, NULL},
-        {context, "QUO_bind_push",      qbind_push,     n_trials, 0, NULL},
-        {context, "QUO_bind_pop",       qbind_pop,      n_trials, 0, NULL},
-        {context, "QUO_auto_distrib",   qauto_distrib,  n_trials, 0, NULL},
-        {context, "QUO_barrier",        qbarrier,       n_trials, 0, NULL}
+        {context, "QUO_create",       qcreate,        n_trials, 0, NULL},
+        {context, "QUO_free",         qfree,          n_trials, 0, NULL},
+        {context, "QUO_npus",         qnpus,          n_trials, 0, NULL},
+        {context, "QUO_qids_in_type", qquids_in_type, n_trials, 0, NULL},
+        {context, "QUO_bind_push",    qbind_push,     n_trials, 0, NULL},
+        {context, "QUO_bind_pop",     qbind_pop,      n_trials, 0, NULL},
+        {context, "QUO_auto_distrib", qauto_distrib,  n_trials, 0, NULL},
+        {context, "QUO_barrier",      qbarrier,       n_trials, 0, NULL}
     };
 
     for (unsigned i = 0; i < sizeof(experiments)/sizeof(experiment_t); ++i) {
