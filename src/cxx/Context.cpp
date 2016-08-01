@@ -43,14 +43,36 @@
 
 #include "Context.hpp"
 
+#include <quo.h>
 #include <stdlib.h>
 
-#include <quo.h>
-
 #include "handle_error.hpp"
-#include "utils_priv.hpp"
 
 namespace quo {
+
+QUO_obj_type_t map_to_quo(ObjectType type) {
+  switch (type) {
+  case ObjectType::MACHINE:
+    return QUO_OBJ_MACHINE;
+  case ObjectType::NODE:
+    return QUO_OBJ_NODE;
+  case ObjectType::SOCKET:
+    return QUO_OBJ_SOCKET;
+  case ObjectType::CORE:
+    return QUO_OBJ_CORE;
+  case ObjectType::PROCESSING_UNIT:
+    return QUO_OBJ_PU;
+  }
+}
+
+QUO_bind_push_policy_t map_to_quo(BindPushPolicy policy) {
+  switch (policy) {
+  case BindPushPolicy::PROVIDED:
+    return QUO_BIND_PUSH_PROVIDED;
+  case BindPushPolicy::OBJECT:
+    return QUO_BIND_PUSH_OBJ;
+  }
+}
 
 struct Context::Impl {
   QUO_context ctx;
@@ -65,7 +87,8 @@ Context::~Context() { QUO_free(m_impl->ctx); }
 int Context::nobjs_by_type(ObjectType type) const {
   int nobjs{0};
 
-  QUO_CXX_HANDLE_ERROR(QUO_nobjs_by_type(m_impl->ctx, map_to_quo(type), &nobjs));
+  QUO_CXX_HANDLE_ERROR(
+      QUO_nobjs_by_type(m_impl->ctx, map_to_quo(type), &nobjs));
 
   return nobjs;
 }
@@ -184,8 +207,8 @@ bool Context::auto_distrib(ObjectType distrib_over_this,
   int selected{0};
 
   QUO_CXX_HANDLE_ERROR(QUO_auto_distrib(m_impl->ctx,
-                                      map_to_quo(distrib_over_this),
-                                      max_qids_per_res_type, &selected));
+                                        map_to_quo(distrib_over_this),
+                                        max_qids_per_res_type, &selected));
 
   return (selected != 0);
 }
