@@ -48,6 +48,12 @@
 
 namespace quo {
 
+/**
+ * @brief RAII warpper for binding.
+ *
+ * This class sets a new binding policy on construction and makes
+ * sure that it is poped on scope exit.
+ */
 class BindGuard {
 public:
   BindGuard(Context const &ctx, BindPushPolicy policy, ObjectType type,
