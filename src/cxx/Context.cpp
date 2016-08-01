@@ -49,7 +49,7 @@
 #include "handle_error.hpp"
 
 namespace quo {
-
+namespace {
 QUO_obj_type_t map_to_quo(ObjectType type) {
   switch (type) {
   case ObjectType::MACHINE:
@@ -72,6 +72,7 @@ QUO_bind_push_policy_t map_to_quo(BindPushPolicy policy) {
   case BindPushPolicy::OBJECT:
     return QUO_BIND_PUSH_OBJ;
   }
+}
 }
 
 struct Context::Impl {
