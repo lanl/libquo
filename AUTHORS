@@ -1,3 +1,18 @@
-Samuel K. Gutierrez, Author - Los Alamos National Laboratory
-Florian Weik, Contributor - Los Alamos National Laboratory
-Douglas Otstott, Contributor - New Mexico Consortium
+libquo Authors
+==============
+
+The following list contains the github IDs, names, and affiliations of all
+individuals who have committed code to the libquo repository.
+
+Username          Name                        Affiliation(s)
+----------------  --------------------------- -------------------------
+BigTheta          Douglas Otstott             NMC
+fweik             Florian Weik                LANL, US
+junghans          Christoph Junghans          LANL
+samuelkgutierrez  Samuel K. Gutierrez         LANL
+
+Affiliation Abbreviations
+-------------------------
+LANL = Los Alamos National Laboratory
+NMC = New Mexico Consortium
+US = University of Stuttgart
