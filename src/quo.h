@@ -536,9 +536,9 @@ int
 QUO_bind_pop(QUO_context q);
 
 /**
- * libquo routine that acts as a compute node barrier. all processes on a node
- * MUST call this in order for everyone to proceed past the barrier on a single
- * compute node. see demos for examples.
+ * libquo routine that acts as a compute node barrier. all context-initializing
+ * processes on a node MUST call this in order for everyone to proceed past the
+ * barrier. see demos for examples.
  *
  * @param q - constructed and initialized QUO_context. (IN)
  *
