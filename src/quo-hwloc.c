@@ -115,7 +115,7 @@ ext2intobj(QUO_obj_type_t external,
             *internal = HWLOC_OBJ_MACHINE;
             break;
         case QUO_OBJ_NODE:
-            *internal = HWLOC_OBJ_NODE;
+            *internal = HWLOC_OBJ_NUMANODE;
             break;
         case QUO_OBJ_SOCKET:
             *internal = HWLOC_OBJ_SOCKET;
