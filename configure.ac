@@ -65,12 +65,21 @@ AC_USE_SYSTEM_EXTENSIONS
 # note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign])
 
-AC_PROG_CC
-AM_PROG_CC_C_O
+# for C
 AC_PROG_CC_C99
+AM_PROG_CC_C_O
+
+# for C++
+#AC_PROG_CXX
+#AC_PROG_CXXCPP
+#AC_PROG_CXX_C_O
+
+# for Fortran
+AC_PROG_FC
+AC_PROG_FC_C_O
+
 AM_PROG_AR
 AC_GNU_SOURCE
-AC_PROG_FC
 
 ################################################################################
 # Libtool things
@@ -106,7 +115,8 @@ AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPICC" != "x1"],dnl
       [AC_MSG_ERROR(
        [*** CC cannot compile MPI apps. set CC to something that can. ***])])
 
-# note that a mpi wrapper compiler for fortran is only needed for tests
+# determine if we have a fortran wrapper compiler that can deal with mpi apps.
+# if not disable fortran support.
 AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" != "x1"],dnl
       [AC_MSG_WARN(
        [*** FC cannot compile MPI apps. set FC to something that can. ***])])
@@ -185,14 +195,16 @@ cat << EOF
 
 libquo configuration
 +-------------------
-| version : $VERSION
-| CC      : $CC
-| CFLAGS  : $CFLAGS
-| LDFLAGS : $LDFLAGS
-| LIBS    : $LIBS
-| CPPFLAGS: $CPPFLAGS
-| CPP     : $CPP
-| FC      : $FC
-| FFLAGS  : $FFLAGS
+| version : ${VERSION}
+| CC      : ${CC}
+| CFLAGS  : ${CFLAGS}
+| CXX     : ${CXX}
+| CXXFLAGS: ${CXXFLAGS}
+| LDFLAGS : ${LDFLAGS}
+| LIBS    : ${LIBS}
+| CPPFLAGS: ${CPPFLAGS}
+| CPP     : ${CPP}
+| FC      : ${FC}
+| FFLAGS  : ${FFLAGS}
 
 EOF
