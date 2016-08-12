@@ -40,25 +40,38 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
-
-AC_LANG([C])
+AC_PREREQ([2.60])
 
 AC_INIT([libquo],
         [1.3-alpha],
         [samuel@lanl.gov],
         [libquo],
         [http://losalamos.github.io/libquo/])
-AC_PREREQ([2.60])
 
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([config])
+
+AC_USE_SYSTEM_EXTENSIONS
+
+################################################################################
+# C Language
+################################################################################
+AC_PROG_CC_C99
+AC_PROG_CC_C_O
+AC_PROG_CPP
+
+AX_PROGS_MPICOMPS
+AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPICC" != "x1"],dnl
+      [AC_MSG_ERROR(
+       [*** CC cannot compile MPI apps. set CC to something that can. ***])])
 
 # for hwloc - must be in between AC_INIT and AM_INIT_AUTOMAKE
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
-AC_USE_SYSTEM_EXTENSIONS
-
+################################################################################
+# Automake things
+################################################################################
 # note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign])
 # Check If AM_SILENT_RULES Rule Are Supported
@@ -67,26 +80,31 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_CONFIG_HEADER([config.h])
 AM_PROG_AR
 
-# for C
-AC_PROG_CC_C99
-AC_PROG_CC_C_O
-
-# for C++
-#AC_PROG_CXX
-#AC_PROG_CXXCPP
-#AC_PROG_CXX_C_O
-
-# for Fortran
-AC_PROG_FC
-AC_PROG_FC_C_O
-
-AC_GNU_SOURCE
-
 ################################################################################
 # Libtool things
 ################################################################################
 LT_PREREQ([2.4.2])
-LT_INIT
+LT_INIT()
+
+################################################################################
+# C++ Language
+################################################################################
+AC_PROG_CXX
+AC_PROG_CXXCPP
+AC_PROG_CXX_C_O
+
+################################################################################
+# Fortran Language
+################################################################################
+AC_PROG_FC
+AC_PROG_FC_C_O
+
+# determine whether or not we have a fortran wrapper compiler that can deal with
+# mpi apps.  if not disable fortran support.
+AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" != "x1"],dnl
+      [AC_MSG_WARN(
+       [*** FC cannot compile MPI apps. set FC to something that can. ***])])
+AM_CONDITIONAL(QUO_WITH_MPIFC, test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" = "x1")
 
 # checks for header files.
 AC_CHECK_HEADERS([\
@@ -103,25 +121,10 @@ AC_TYPE_SIZE_T
 # checks for library functions.
 AC_CHECK_FUNCS([memset strerror strtoul mmap])
 
-# check for sizeof(uintptr_t) for the Fortran interface.
-# This sets the size of QUO_IKIND in the quof.h header that is generated.
-# AC_COMPUTE_INT(quo_sizeof_voidptr, [sizeof(void *)])
-# AC_SUBST(QUO_IKIND_VAL, $quo_sizeof_voidptr)
-
-################################################################################
-# mpi stuff
-################################################################################
-AX_PROGS_MPICOMPS
-AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPICC" != "x1"],dnl
-      [AC_MSG_ERROR(
-       [*** CC cannot compile MPI apps. set CC to something that can. ***])])
-
-# determine if we have a fortran wrapper compiler that can deal with mpi apps.
-# if not disable fortran support.
-AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" != "x1"],dnl
-      [AC_MSG_WARN(
-       [*** FC cannot compile MPI apps. set FC to something that can. ***])])
-AM_CONDITIONAL(QUO_WITH_MPIFC, test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" = "x1")
+dnl check for sizeof(uintptr_t) for the Fortran interface.
+dnl This sets the size of QUO_IKIND in the quof.h header that is generated.
+dnl AC_COMPUTE_INT(quo_sizeof_voidptr, [sizeof(void *)])
+dnl AC_SUBST(QUO_IKIND_VAL, $quo_sizeof_voidptr)
 
 ################################################################################
 # hwloc stuff
@@ -191,21 +194,22 @@ AC_CONFIG_FILES([Makefile
 AC_OUTPUT
 
 # let the user know the configuration
-
 cat << EOF
 
-libquo configuration
-+-------------------
-| version : ${VERSION}
-| CC      : ${CC}
-| CFLAGS  : ${CFLAGS}
-| CXX     : ${CXX}
-| CXXFLAGS: ${CXXFLAGS}
-| LDFLAGS : ${LDFLAGS}
-| LIBS    : ${LIBS}
-| CPPFLAGS: ${CPPFLAGS}
-| CPP     : ${CPP}
-| FC      : ${FC}
-| FFLAGS  : ${FFLAGS}
++-------------------------------------------------------------------------------
+| libquo configuration :::::::::::::::::::::::::::::::::::::::::::::::::::::::
++-------------------------------------------------------------------------------
+| version  : ${VERSION}
+| target   : ${target}
+| CC       : ${CC}
+| CFLAGS   : ${CFLAGS}
+| CXX      : ${CXX}
+| CXXFLAGS : ${CXXFLAGS}
+| LDFLAGS  : ${LDFLAGS}
+| LIBS     : ${LIBS}
+| CPPFLAGS : ${CPPFLAGS}
+| CPP      : ${CPP}
+| FC       : ${FC}
+| FFLAGS   : ${FFLAGS}
 
 EOF
