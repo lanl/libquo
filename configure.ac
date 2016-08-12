@@ -41,33 +41,35 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-AC_PREREQ([2.60])
+AC_LANG([C])
 
 AC_INIT([libquo],
         [1.3-alpha],
         [samuel@lanl.gov],
         [libquo],
         [http://losalamos.github.io/libquo/])
-
-# Check If AM_SILENT_RULES Rule Are Supported
-# If So, Build Using AM_SILENT_RULES
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AC_PREREQ([2.60])
 
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([config])
-AM_CONFIG_HEADER([config.h])
 
 # for hwloc - must be in between AC_INIT and AM_INIT_AUTOMAKE
+AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 AC_USE_SYSTEM_EXTENSIONS
 
 # note: -Wall -Werror are automake options.  they are NOT compiler flags
 AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign])
+# Check If AM_SILENT_RULES Rule Are Supported
+# If So, Build Using AM_SILENT_RULES
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AM_CONFIG_HEADER([config.h])
+AM_PROG_AR
 
 # for C
 AC_PROG_CC_C99
-AM_PROG_CC_C_O
+AC_PROG_CC_C_O
 
 # for C++
 #AC_PROG_CXX
@@ -78,7 +80,6 @@ AM_PROG_CC_C_O
 AC_PROG_FC
 AC_PROG_FC_C_O
 
-AM_PROG_AR
 AC_GNU_SOURCE
 
 ################################################################################
