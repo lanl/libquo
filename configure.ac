@@ -205,11 +205,13 @@ cat << EOF
 | CFLAGS   : ${CFLAGS}
 | CXX      : ${CXX}
 | CXXFLAGS : ${CXXFLAGS}
+| CPP      : ${CPP}
+| CPPFLAGS : ${CPPFLAGS}
+| FC       : ${FC}
+| FCFLAGS  : ${FCFLAGS}
+| FCLIBS   : ${FCLIBS}
+| FFLAGS   : ${FFLAGS}
 | LDFLAGS  : ${LDFLAGS}
 | LIBS     : ${LIBS}
-| CPPFLAGS : ${CPPFLAGS}
-| CPP      : ${CPP}
-| FC       : ${FC}
-| FFLAGS   : ${FFLAGS}
 
 EOF
