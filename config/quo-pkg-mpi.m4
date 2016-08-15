@@ -1,7 +1,8 @@
 #
 # SYNOPSIS
 #
-#   AX_PROGS_MPICOMPS()
+#   AX_PROG_MPICC()
+#   AX_PROG_MPIFC()
 #
 # DESCRIPTION
 # checks for MPI wrapper compiler support.
@@ -11,19 +12,22 @@
 #                         All rights reserved.
 #
 
-AC_DEFUN([AX_PROGS_MPICOMPS], [dnl
+AC_DEFUN([AX_PROG_MPICC], [dnl
     dnl MPI CC support
     AC_LANG_PUSH([C])
-    AX_PROGS_MPICOMPS_HAVE_MPICC=0
+    AX_PROG_MPICC_HAVE_MPICC=0
     AC_CHECK_FUNC([MPI_Init],
-                  [AX_PROGS_MPICOMPS_HAVE_MPICC=1], [])
+                  [AX_PROG_MPICC_HAVE_MPICC=1], [])
     AC_LANG_POP([C])
+])
+
+AC_DEFUN([AX_PROG_MPIFC], [dnl
     dnl MPI Fortran support
     AC_LANG_PUSH([Fortran])
-    AX_PROGS_MPICOMPS_HAVE_MPIFC=0
+    AX_PROG_MPIFC_HAVE_MPIFC=0
     AC_MSG_CHECKING([if FC can compile MPI applications])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([],[      call MPI_INIT])],dnl
-                    [AX_PROGS_MPICOMPS_HAVE_MPIFC=1
+                    [AX_PROG_MPIFC_HAVE_MPIFC=1
                      AC_MSG_RESULT([yes])],dnl
                     [AC_MSG_RESULT([no])])
     AC_LANG_POP([Fortran])

@@ -60,10 +60,25 @@ AC_PROG_CC_C99
 AC_PROG_CC_C_O
 AC_PROG_CPP
 
-AX_PROGS_MPICOMPS
-AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPICC" != "x1"],dnl
+AX_PROG_MPICC
+
+AS_IF([test "x$AX_PROG_MPICC_HAVE_MPICC" != "x1"],dnl
       [AC_MSG_ERROR(
        [*** CC cannot compile MPI apps. set CC to something that can. ***])])
+
+################################################################################
+# Fortran Language
+################################################################################
+AC_PROG_FC
+AC_PROG_FC_C_O
+
+AX_PROG_MPIFC
+# determine whether or not we have a fortran wrapper compiler that can deal with
+# mpi apps.  if not disable fortran support.
+AS_IF([test "x$AX_PROG_MPIFC_HAVE_MPIFC" != "x1"],dnl
+      [AC_MSG_WARN(
+       [*** FC cannot compile MPI apps. set FC to something that can. ***])])
+AM_CONDITIONAL(QUO_WITH_MPIFC, test "x$AX_PROG_MPIFC_HAVE_MPIFC" = "x1")
 
 # for hwloc - must be in between AC_INIT and AM_INIT_AUTOMAKE
 AC_CANONICAL_HOST
@@ -84,7 +99,7 @@ AM_PROG_AR
 # Libtool things
 ################################################################################
 LT_PREREQ([2.4.2])
-LT_INIT()
+LT_INIT
 
 ################################################################################
 # C++ Language
@@ -92,19 +107,6 @@ LT_INIT()
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_CXX_C_O
-
-################################################################################
-# Fortran Language
-################################################################################
-AC_PROG_FC
-AC_PROG_FC_C_O
-
-# determine whether or not we have a fortran wrapper compiler that can deal with
-# mpi apps.  if not disable fortran support.
-AS_IF([test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" != "x1"],dnl
-      [AC_MSG_WARN(
-       [*** FC cannot compile MPI apps. set FC to something that can. ***])])
-AM_CONDITIONAL(QUO_WITH_MPIFC, test "x$AX_PROGS_MPICOMPS_HAVE_MPIFC" = "x1")
 
 # checks for header files.
 AC_CHECK_HEADERS([\
