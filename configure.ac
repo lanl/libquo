@@ -211,20 +211,49 @@ AC_OUTPUT
 cat << EOF
 
 +-------------------------------------------------------------------------------
-| libquo configuration :::::::::::::::::::::::::::::::::::::::::::::::::::::::
+| libQUO Configuration :::::::::::::::::::::::::::::::::::::::::::::::::::::::
 +-------------------------------------------------------------------------------
-| version  : ${VERSION}
-| target   : ${target}
-| CC       : ${CC}
-| CFLAGS   : ${CFLAGS}
-| CXX      : ${CXX}
-| CXXFLAGS : ${CXXFLAGS}
-| CPP      : ${CPP}
-| CPPFLAGS : ${CPPFLAGS}
-| FC       : ${FC}
-| FCFLAGS  : ${FCFLAGS}
-| FCLIBS   : ${FCLIBS}
-| LDFLAGS  : ${LDFLAGS}
-| LIBS     : ${LIBS}
+| version     : ${VERSION}
+| target      : ${target}
+| CC          : ${CC}
+| CFLAGS      : ${CFLAGS}
+| CPP         : ${CPP}
+| CPPFLAGS    : ${CPPFLAGS}
+| LDFLAGS     : ${LDFLAGS}
+| LIBS        : ${LIBS}
++-------------------------------------------------------------------------------
+| C++ Support Configuration ::::::::::::::::::::::::::::::::::::::::::::::::::
++-------------------------------------------------------------------------------
+EOF
 
+if test "x$AX_PROG_MPICXX_HAVE_MPICXX" = "x1"; then
+cat << EOF
+| CXX         : ${CXX}
+| CXXFLAGS    : ${CXXFLAGS}
+EOF
+else
+cat << EOF
+| Not Enabled
+EOF
+fi
+
+cat << EOF
++-------------------------------------------------------------------------------
+| Fortran Support Configuration ::::::::::::::::::::::::::::::::::::::::::::::
++-------------------------------------------------------------------------------
+EOF
+
+if test "x$AX_PROG_MPIFC_HAVE_MPIFC" = "x1"; then
+cat << EOF
+| FC          : ${FC}
+| FCFLAGS     : ${FCFLAGS}
+| FCLIBS      : ${FCLIBS}
+EOF
+else
+cat << EOF
+| Not Enabled
+EOF
+fi
+cat << EOF
++-------------------------------------------------------------------------------
 EOF
