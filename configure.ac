@@ -48,14 +48,31 @@ AC_INIT([libquo],
         [libquo],
         [http://losalamos.github.io/libquo/])
 
-AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([config])
+AC_CONFIG_SRCDIR([src])
 
-AC_USE_SYSTEM_EXTENSIONS
+################################################################################
+# AC_CANONICAL_*
+################################################################################
+# for hwloc - must be in between AC_INIT and AM_INIT_AUTOMAKE
+AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+
+################################################################################
+# Automake things
+################################################################################
+# note: -Wall -Werror are automake options.  they are NOT compiler flags
+AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign])
+# Build using AM_SILENT_RULES
+AM_SILENT_RULES([yes])
+AM_CONFIG_HEADER([config.h])
 
 ################################################################################
 # C Language
 ################################################################################
+AC_USE_SYSTEM_EXTENSIONS
+
 AC_PROG_CC_C99
 AC_PROG_CC_C_O
 AC_PROG_CPP
@@ -67,7 +84,7 @@ AS_IF([test "x$AX_PROG_MPICC_HAVE_MPICC" != "x1"],dnl
        [*** CC cannot compile MPI apps. set CC to something that can. ***])])
 
 ################################################################################
-# Fortran Language
+# Fortran Language Support
 ################################################################################
 AC_PROG_FC
 AC_PROG_FC_C_O
@@ -80,29 +97,16 @@ AS_IF([test "x$AX_PROG_MPIFC_HAVE_MPIFC" != "x1"],dnl
        [*** FC cannot compile MPI apps. set FC to something that can. ***])])
 AM_CONDITIONAL(QUO_WITH_MPIFC, test "x$AX_PROG_MPIFC_HAVE_MPIFC" = "x1")
 
-# for hwloc - must be in between AC_INIT and AM_INIT_AUTOMAKE
-AC_CANONICAL_HOST
-AC_CANONICAL_TARGET
-
-################################################################################
-# Automake things
-################################################################################
-# note: -Wall -Werror are automake options.  they are NOT compiler flags
-AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign])
-# Check If AM_SILENT_RULES Rule Are Supported
-# If So, Build Using AM_SILENT_RULES
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
-AM_CONFIG_HEADER([config.h])
-AM_PROG_AR
-
 ################################################################################
 # Libtool things
 ################################################################################
+AM_PROG_AR
+
 LT_PREREQ([2.4.2])
 LT_INIT
 
 ################################################################################
-# C++ Language
+# C++ Language Support
 ################################################################################
 # Delay this bit until now. There is some weird libtool linker interaction that
 # I don't understand that is causing some link-time errors in our distro. This
