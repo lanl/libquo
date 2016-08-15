@@ -3,6 +3,7 @@
 #
 #   AX_PROG_MPICC()
 #   AX_PROG_MPIFC()
+#   AX_PROG_MPICXX()
 #
 # DESCRIPTION
 # checks for MPI wrapper compiler support.
@@ -31,4 +32,16 @@ AC_DEFUN([AX_PROG_MPIFC], [dnl
                      AC_MSG_RESULT([yes])],dnl
                     [AC_MSG_RESULT([no])])
     AC_LANG_POP([Fortran])
+])
+
+AC_DEFUN([AX_PROG_MPICXX], [dnl
+    dnl MPI C++ support
+    AC_LANG_PUSH([C++])
+    AX_PROG_MPICXX_HAVE_MPICXX=0
+    AC_MSG_CHECKING([if CXX can compile MPI applications])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <mpi.h>]],[[MPI_Finalize()]])],dnl
+                    [AX_PROG_MPICXX_HAVE_MPICXX=1
+                     AC_MSG_RESULT([yes])],dnl
+                    [AC_MSG_RESULT([no])])
+    AC_LANG_POP([C++])
 ])

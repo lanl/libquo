@@ -104,9 +104,20 @@ LT_INIT
 ################################################################################
 # C++ Language
 ################################################################################
+# Delay this bit until now. There is some weird libtool linker interaction that
+# I don't understand that is causing some link-time errors in our distro. This
+# ordering seems to "fix" things, but I still don't understand why...
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_CXX_C_O
+
+AX_PROG_MPICXX
+# determine whether or not we have a C++ wrapper compiler that can deal with
+# mpi apps.  if not disable C++ support.
+AS_IF([test "x$AX_PROG_MPICXX_HAVE_MPICXX" != "x1"],dnl
+      [AC_MSG_WARN(
+       [*** CXX cannot compile MPI apps. set CXX to something that can. ***])])
+AM_CONDITIONAL(QUO_WITH_MPICXX, test "x$AX_PROG_MPICXX_HAVE_MPICXX" = "x1")
 
 # checks for header files.
 AC_CHECK_HEADERS([\
@@ -213,7 +224,6 @@ cat << EOF
 | FC       : ${FC}
 | FCFLAGS  : ${FCFLAGS}
 | FCLIBS   : ${FCLIBS}
-| FFLAGS   : ${FFLAGS}
 | LDFLAGS  : ${LDFLAGS}
 | LIBS     : ${LIBS}
 
