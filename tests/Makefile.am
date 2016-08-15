@@ -83,7 +83,7 @@ quo_time_LDADD   = $(top_builddir)/src/libquo.la
 ### fortran interface test
 if QUO_WITH_MPIFC
 quofort_SOURCES = quofort.f90
-quofort_FCFLAGS  = -I$(top_srcdir)/src/fortran
+quofort_FCFLAGS  = -I$(top_builddir)/src/fortran
 quofort_LDADD = \
 $(top_builddir)/src/fortran/libquo-usequo.la \
 $(top_builddir)/src/libquo.la
