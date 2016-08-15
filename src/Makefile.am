@@ -15,17 +15,12 @@
 ################################################################################
 
 SUBDIRS = \
-hwloc \
-tools
+hwloc
 
 LIBVINFO = "4:0:0"
 
 lib_LTLIBRARIES = \
 libquo.la
-
-if QUO_WITH_MPIFC
-lib_LTLIBRARIES += libquo-usequo.la
-endif
 
 include_HEADERS = \
 quo.h
@@ -41,30 +36,8 @@ quo.h quo.c
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libquo.pc
 
-if QUO_WITH_MPIFC
-libquo_usequo_la_SOURCES = \
-quof.f90
-libquo_usequo_la_FCFLAGS = -I$(top_srcdir)/src
-libquo_usequo_la_LDFLAGS = -L$(top_srcdir)/src -version-info $(LIBVINFO)
-libquo_usequo_la_LIBADD = libquo.la
-endif
-
 # these are generated
-MOSTLYCLEANFILES = *.mod $(pkgconfig_DATA)
-
-# install the generated .mod files.  unfortunately, each f90 compiler
-# may generate different filenames, so we have to use a glob.  :-(
-install-exec-hook:
-	@ for file in `ls *.mod`; do \
-	  echo $(INSTALL) $$file $(DESTDIR)$(libdir); \
-	  $(INSTALL) $$file $(DESTDIR)$(libdir); \
-	done
-
-uninstall-local:
-	@ for file in `ls *.mod`; do \
-	  echo rm -f $(DESTDIR)$(libdir)/$$file; \
-	  rm -f $(DESTDIR)$(libdir)/$$file; \
-	done
+MOSTLYCLEANFILES = $(pkgconfig_DATA)
 
 libquo_la_CFLAGS =
 # From: http://www.sourceware.org/autobook/autobook/autobook_91.html

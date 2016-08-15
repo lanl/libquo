@@ -12,6 +12,9 @@
 bin_PROGRAMS = \
 quo-info
 
+quo_info_SOURCES = \
+quo-info.c
+
 quo_info_CPPFLAGS = \
 -I${top_srcdir}/src \
 -DQUO_BUILD_USER="\"$$USER\"" \
@@ -37,6 +40,3 @@ endif
 quo_info_CPPFLAGS += \
 -DQUO_BUILD_LDFLAGS="\"@LDFLAGS@\"" \
 -DQUO_BUILD_LIBS="\"@LIBS@\""
-
-quo_info_SOURCES = \
-quo-info.c

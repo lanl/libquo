@@ -45,6 +45,8 @@ ACLOCAL_AMFLAGS = -Iconfig -Isrc/hwloc/config
 
 SUBDIRS = \
 src \
+src/fortran \
+src/tools \
 tests \
 demos
 

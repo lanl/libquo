@@ -186,6 +186,7 @@ AC_SUBST([LIBS])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+                 src/fortran/Makefile
                  src/tools/Makefile
                  tests/Makefile
                  demos/Makefile
