@@ -31,7 +31,7 @@ libquo_usequo_la_LIBADD = $(top_builddir)/src/libquo.la
 endif
 
 # these are generated
-MOSTLYCLEANFILES = *.mod
+MOSTLYCLEANFILES = `ls *.mod`
 
 # install the generated .mod files.  unfortunately, each f90 compiler
 # may generate different filenames, so we have to use a glob.  :-(

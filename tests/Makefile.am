@@ -88,6 +88,3 @@ quofort_LDADD = \
 $(top_builddir)/src/fortran/libquo-usequo.la \
 $(top_builddir)/src/libquo.la
 endif
-
-# these are generated
-MOSTLYCLEANFILES = *.mod
