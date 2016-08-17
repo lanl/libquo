@@ -133,7 +133,6 @@ print_comm_ranks(MPI_Comm comm)
     }
 
     int grp_size = 0;
-
     if (MPI_SUCCESS != MPI_Group_size(grp, &grp_size)) {
         bad_func = "MPI_Group_size";
         goto out;
@@ -155,9 +154,14 @@ print_comm_ranks(MPI_Comm comm)
 
     free(ranks); free(world_ranks);
 
-    MPI_Group_free(&grp);
-    MPI_Group_free(&world_grp);
-
+    if (MPI_SUCCESS != MPI_Group_free(&grp)) {
+        bad_func = "MPI_Group_free";
+        goto out;
+    }
+    if (MPI_SUCCESS != MPI_Group_free(&world_grp)) {
+        bad_func = "MPI_Group_free";
+        goto out;
+    }
 out:
     if (NULL != bad_func) {
         fprintf(stderr, "xxx %s failure in: %s\n", __FILE__, bad_func);
