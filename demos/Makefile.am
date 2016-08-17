@@ -50,7 +50,8 @@ quodemo-0 \
 quodemo-1 \
 caller-driven-multilib \
 callee-driven-multilib \
-mpi-omp
+mpi-omp \
+quo-mpi-sub-comm
 
 noinst_LTLIBRARIES = \
 libcaller_driven_callee_p1.la \
@@ -102,3 +103,8 @@ libcallee_driven_callee_p1_la_LIBADD = $(top_builddir)/src/libquo.la
 mpi_omp_SOURCES = mpi-omp.c
 mpi_omp_CPPFLAGS = -I$(top_srcdir)/src
 mpi_omp_LDADD = $(top_builddir)/src/libquo.la
+
+###
+quo_mpi_sub_comm_SOURCES = quo-mpi-sub-comm.c
+quo_mpi_sub_comm_CPPFLAGS = -I$(top_srcdir)/src
+quo_mpi_sub_comm_LDADD = $(top_builddir)/src/libquo.la

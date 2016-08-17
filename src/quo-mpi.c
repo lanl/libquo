@@ -773,14 +773,16 @@ quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
     if (!mpi || !out_comm) return QUO_ERR_INVLD_ARG;
 
     switch (target_type) {
-        /* TODO add support for other obj types */
         case QUO_OBJ_MACHINE:
         {
+            /* this case is easy. just return a dup of the smp communicator that
+             * we already maintain internally. */
             if (MPI_SUCCESS != MPI_Comm_dup(mpi->smpcomm, out_comm)) {
                 return QUO_ERR_MPI;
             }
             break;
         }
+        /* TODO add support for other obj types */
         default:
             return QUO_ERR_NOT_SUPPORTED;
     }
