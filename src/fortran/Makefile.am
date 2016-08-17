@@ -14,8 +14,6 @@
 # $HEADER$
 ################################################################################
 
-LIBVINFO = "5:0:0"
-
 lib_LTLIBRARIES =
 
 if QUO_WITH_MPIFC
@@ -26,7 +24,7 @@ if QUO_WITH_MPIFC
 libquo_usequo_la_SOURCES = quof.f90
 
 libquo_usequo_la_FCFLAGS = -I$(top_srcdir)/src
-libquo_usequo_la_LDFLAGS = -version-info $(LIBVINFO)
+libquo_usequo_la_LDFLAGS = -version-info @QUO_LIBVINFO@
 libquo_usequo_la_LIBADD = $(top_builddir)/src/libquo.la
 endif
 
