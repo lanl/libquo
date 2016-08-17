@@ -51,7 +51,7 @@
 #endif
 
 /* library version */
-#define QUO_VER    4
+#define QUO_VER    5
 #define QUO_SUBVER 0
 
 /* ////////////////////////////////////////////////////////////////////////// */

@@ -578,6 +578,19 @@ out:
     return rc;
 }
 
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_get_mpi_comm_by_type(QUO_t *q,
+                         QUO_obj_type_t target_type,
+                         MPI_Comm *out_comm)
+{
+    if (!q || !out_comm) return QUO_ERR_INVLD_ARG;
+    /* make sure we are initialized before we continue */
+    noinit_action(q);
+
+    return quo_mpi_get_comm_by_type(q->mpi, target_type, out_comm);
+}
+
 #if 0 // Disable for now...
 /* ////////////////////////////////////////////////////////////////////////// */
 int

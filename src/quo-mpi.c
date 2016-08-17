@@ -126,9 +126,9 @@ struct quo_mpi_t {
     MPI_Comm smpcomm;
     /* number of nodes in the current job */
     int nnodes;
-    /* my rank */
+    /* my rank in MPI_COMM_WORLD */
     int rank;
-    /* number of ranks in comm world */
+    /* number of ranks in MPI_COMM_WORLD */
     int nranks;
     /* my smp (node) rank */
     int smprank;
@@ -761,5 +761,29 @@ quo_mpi_sm_barrier(const quo_mpi_t *mpi)
     if (!mpi) return QUO_ERR_INVLD_ARG;
     rc = pthread_barrier_wait(&(mpi->bsegp->barrier));
     if (PTHREAD_BARRIER_SERIAL_THREAD != rc && 0 != rc) return QUO_ERR_SYS;
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
+                         QUO_obj_type_t target_type,
+                         MPI_Comm *out_comm)
+{
+    if (!mpi || !out_comm) return QUO_ERR_INVLD_ARG;
+
+    switch (target_type) {
+        /* TODO add support for other obj types */
+        case QUO_OBJ_MACHINE:
+        {
+            if (MPI_SUCCESS != MPI_Comm_dup(mpi->smpcomm, out_comm)) {
+                return QUO_ERR_MPI;
+            }
+            break;
+        }
+        default:
+            return QUO_ERR_NOT_SUPPORTED;
+    }
+
     return QUO_SUCCESS;
 }
