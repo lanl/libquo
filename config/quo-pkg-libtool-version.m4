@@ -78,4 +78,16 @@ AC_DEFUN([AX_QUO_LIBTOOL_VERSION], [dnl
     AC_SUBST([QUO_VERSION_REVISION])
     AC_SUBST([QUO_VERSION_AGE])
     AC_SUBST([QUO_LIBVINFO])
+
+    AC_DEFINE_UNQUOTED([QUO_VERSION_CURRENT],
+                       [$QUO_VERSION_CURRENT],
+                       [Current version.])
+
+    AC_DEFINE_UNQUOTED([QUO_VERSION_REVISION],
+                       [$QUO_VERSION_REVISION],
+                       [Current revision.])
+
+    AC_DEFINE_UNQUOTED([QUO_VERSION_AGE],
+                       [$QUO_VERSION_AGE],
+                       [Current age.])
 ])

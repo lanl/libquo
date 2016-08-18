@@ -44,6 +44,10 @@
 #ifndef QUO_PRIVATE_H_INCLUDED
 #define QUO_PRIVATE_H_INCLUDED
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef HAVE_STDBOOL_H
@@ -51,8 +55,8 @@
 #endif
 
 /* library version */
-#define QUO_VER    5
-#define QUO_SUBVER 0
+#define QUO_VER    QUO_VERSION_CURRENT
+#define QUO_SUBVER QUO_VERSION_REVISION
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* convenience macros                                                         */
