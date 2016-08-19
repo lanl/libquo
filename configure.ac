@@ -151,9 +151,11 @@ dnl AC_SUBST(QUO_IKIND_VAL, $quo_sizeof_voidptr)
 # set some hwloc configure options
 enable_libxml2=no
 enable_xml=yes
-# TODO - allow for this someday (busted on the Crays -- no static lib)
+# TODO - allow for this someday (busted on the Crays -- no static libs)
 enable_pci=no
 enable_libpci=no
+enable_libudev=no
+enable_libnuma=no
 
 HWLOC_SET_SYMBOL_PREFIX(quo_)
 HWLOC_SETUP_CORE([src/hwloc],
