@@ -18,7 +18,7 @@ o Delete $QUO_PREFIX/bin directory
 
 o Build QUO and link against the installed version of libnuma.
 ./configure CC=cc FC=ftn \
-LDFLAGS="-dynamic -Wl,-rpath=/usr/lib/alps -L${QUO_PREFIX}/lib" \
+LDFLAGS="-dynamic -Wl,-rpath=/opt/cray/alps/default -L${QUO_PREFIX}/lib" \
 --prefix=$QUO_PREFIX --enable-static --host x86_64-unknown-linux-gnu
 
 o Install
