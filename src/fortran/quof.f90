@@ -359,6 +359,19 @@ interface
 end interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+interface
+      integer(c_int) &
+      function quo_get_mpi_comm_by_type_c(q, target_type, comm) &
+          bind(c, name='QUO_get_mpi_comm_by_type_f2c')
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
+          implicit none
+          type(c_ptr), value :: q
+          integer(c_int), value :: target_type
+          integer, intent(out):: comm
+      end function quo_get_mpi_comm_by_type_c
+end interface
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !interface
 !      integer(c_int) &
 !      function quo_bind_threads_c(q, type, index) &
@@ -583,6 +596,17 @@ contains
                                     max_qids_per_res_type, iselected)
           oselected = (iselected == 1)
       end subroutine quo_auto_distrib
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine quo_get_mpi_comm_by_type(q, target_type, comm, ierr)
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
+          implicit none
+          type(c_ptr), value :: q
+          integer(c_int), value :: target_type
+          integer, intent(out) :: comm
+          integer(c_int), intent(out) :: ierr
+          ierr = quo_get_mpi_comm_by_type_c(q, target_type, comm)
+      end subroutine quo_get_mpi_comm_by_type
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !subroutine quo_bind_threads(q, type, index, ierr)
