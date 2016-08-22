@@ -60,6 +60,7 @@ program quofort
     integer(c_int) cwrank
     integer(c_int), allocatable, dimension(:) :: sock_qids
     type(c_ptr) quoc
+    integer machine_comm
 
     call quo_version(ver, subver, info)
 
@@ -125,6 +126,14 @@ program quofort
     print *, 'rank, have_res', cwrank, have_res
 
     call quo_barrier(quoc, info)
+
+    call quo_get_mpi_comm_by_type(quoc, QUO_OBJ_MACHINE, machine_comm, info)
+    if (info /= QUO_SUCCESS) then
+        print *, 'QUO_FAILURE DETECTED, info', info
+        stop
+    end if
+
+    call mpi_comm_free(machine_comm, info)
 
     call quo_free(quoc, info)
 
