@@ -101,7 +101,7 @@ interface
       integer(c_int) &
       function quo_ptr_free_c(cptr) &
           bind(c, name='QUO_ptr_free')
-          use, intrinsic :: iso_c_binding, only: c_int, c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: cptr
       end function quo_ptr_free_c
@@ -123,8 +123,7 @@ interface
       integer(c_int) &
       function quo_create_c(q, comm) &
           bind(c, name='QUO_create_f2c')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), intent(out) :: q
           integer(c_int), value :: comm
@@ -136,8 +135,7 @@ interface
       integer(c_int) &
       function quo_free_c(q) &
           bind(c, name='QUO_free')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
       end function quo_free_c
@@ -148,8 +146,7 @@ interface
       integer(c_int) &
       function quo_nobjs_by_type_c(q, target_type, out_nobjs) &
           bind(c, name='QUO_nobjs_by_type')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: target_type
@@ -163,8 +160,7 @@ interface
       function quo_nobjs_in_type_by_type_c(q, in_type, type_index, &
                                            obj_type, oresult) &
           bind(c, name='QUO_nobjs_in_type_by_type')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: in_type, type_index, obj_type
@@ -177,8 +173,7 @@ interface
       integer(c_int) &
       function quo_cpuset_in_type_c(q, obj_type, type_index, oresult) &
           bind(c, name='QUO_cpuset_in_type')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: obj_type, type_index
@@ -206,8 +201,7 @@ interface
       integer(c_int) &
       function quo_nnumanodes_c(q, n) &
           bind(c, name='QUO_nnumanodes')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n
@@ -219,8 +213,7 @@ interface
       integer(c_int) &
       function quo_nsockets_c(q, n) &
           bind(c, name='QUO_nsockets')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n
@@ -232,8 +225,7 @@ interface
       integer(c_int) &
       function quo_ncores_c(q, n) &
           bind(c, name='QUO_ncores')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n
@@ -245,8 +237,7 @@ interface
       integer(c_int) &
       function quo_npus_c(q, n) &
           bind(c, name='QUO_npus')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n
@@ -258,8 +249,7 @@ interface
       integer(c_int) &
       function quo_nnodes_c(q, n) &
           bind(c, name='QUO_nnodes')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n
@@ -271,8 +261,7 @@ interface
       integer(c_int) &
       function quo_nqids_c(q, n) &
           bind(c, name='QUO_nqids')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n
@@ -284,8 +273,7 @@ interface
       integer(c_int) &
       function quo_id_c(q, n) &
           bind(c, name='QUO_id')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n
@@ -297,8 +285,7 @@ interface
       integer(c_int) &
       function quo_bound_c(q, bound) &
           bind(c, name='QUO_bound')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent (out) :: bound
@@ -310,8 +297,7 @@ interface
       integer(c_int) &
       function quo_bind_push_c(q, policy, obj_type, obj_index) &
           bind(c, name='QUO_bind_push')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: policy, obj_type, obj_index
@@ -323,8 +309,7 @@ interface
       integer(c_int) &
       function quo_bind_pop_c(q) &
           bind(c, name='QUO_bind_pop')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
       end function quo_bind_pop_c
@@ -335,8 +320,7 @@ interface
       integer(c_int) &
       function quo_barrier_c(q) &
           bind(c, name='QUO_barrier')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
       end function quo_barrier_c
@@ -348,8 +332,7 @@ interface
       function quo_auto_distrib_c(q, distrib_over_this, &
                                   max_qids_per_res_type, oselected) &
           bind(c, name='QUO_auto_distrib')
-          use, intrinsic :: iso_c_binding, only: c_int
-          import :: c_ptr
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: distrib_over_this
@@ -387,7 +370,7 @@ end interface
 contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_ptr_free(cptr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: cptr
           integer(c_int) :: ierr
@@ -404,7 +387,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_create(q, comm, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), intent(out) :: q
           integer, value :: comm
@@ -414,7 +397,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_free(q, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: ierr
@@ -423,7 +406,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_nobjs_by_type(q, target_type, out_nobjs, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: target_type
@@ -435,7 +418,7 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_nobjs_in_type_by_type(q, in_type, type_index, &
                                            obj_type, oresult, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: in_type, type_index, obj_type
@@ -447,7 +430,7 @@ contains
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_cpuset_in_type(q, obj_type, type_index, &
                                     oresult, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: obj_type, type_index
@@ -460,7 +443,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_qids_in_type(q, obj_type, type_index, qids, ierr)
-          use, intrinsic :: iso_c_binding
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: obj_type, type_index
@@ -479,7 +462,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_nnumanodes(q, n, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n, ierr
@@ -488,7 +471,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_nsockets(q, n, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n, ierr
@@ -497,7 +480,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_ncores(q, n, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n, ierr
@@ -506,7 +489,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_npus(q, n, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n, ierr
@@ -515,7 +498,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_nnodes(q, n, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n, ierr
@@ -524,7 +507,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_nqids(q, n, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n, ierr
@@ -533,7 +516,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_id(q, n, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: n, ierr
@@ -542,7 +525,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_bound(q, bound, ierr)
-          use, intrinsic :: iso_c_binding
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           logical, intent (out) :: bound
@@ -554,7 +537,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_bind_push(q, policy, obj_type, obj_index, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: policy, obj_type, obj_index
@@ -564,7 +547,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_bind_pop(q, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: ierr
@@ -573,7 +556,7 @@ contains
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_barrier(q, ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), intent(out) :: ierr
@@ -584,7 +567,7 @@ contains
       subroutine quo_auto_distrib(q, distrib_over_this, &
                                   max_qids_per_res_type, oselected, &
                                   ierr)
-          use, intrinsic :: iso_c_binding, only: c_int
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: distrib_over_this
