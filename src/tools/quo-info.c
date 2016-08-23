@@ -46,18 +46,55 @@
 #endif
 
 #include "quo-private.h"
+#include "quo.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
 #endif
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+
+enum {
+    SHOWME = 256
+};
+
+#define APP_NAME "quo-info"
+
+/* flag saying whether or not we show info for statically-built apps. */
+static int static_build = 0;
+
+static const char *opt_string = "hsc";
+
+static struct option long_opts[] = {
+    {"help",            no_argument,       NULL         , 'h'},
+    {"static",          no_argument,       &static_build, 's'},
+    {"showme",          no_argument,       NULL         ,  SHOWME},
+    {NULL,              0,                 NULL         ,  0 }
+};
+
+static int
+show_usage(void)
+{
+    static const char *usage =
+    "\nUsage:\n"
+    APP_NAME " [OPTIONS]\n"
+    "Options:\n"
+    "[-h|--help]              "
+    "Show this message and exit\n";
+
+    fprintf(stdout, "%s", usage);
+
+    return QUO_SUCCESS;
+}
 
 /**
  *
  */
-int
-main(void)
+static int
+show_config(void)
 {
     bool with_fort = false;
 #ifdef QUO_WITH_MPIFC
@@ -93,6 +130,42 @@ main(void)
     printf("Report Bugs To: %s\n", PACKAGE_BUGREPORT);
     // For good measure...
     fflush(stdout);
-    //
-    return EXIT_SUCCESS;
+
+    return QUO_SUCCESS;
+}
+
+/**
+ *
+ */
+int
+main(int argc,
+     char **argv)
+{
+    int c = 0;
+    int rc = QUO_SUCCESS;
+
+    while (-1 != (c = getopt_long_only(argc, argv, opt_string,
+                                       long_opts, NULL))) {
+        switch (c) {
+            case 'h': /* help */
+                rc = show_usage();
+                goto out;
+            case SHOWME: /* show me something */
+                rc = show_config();
+                break;
+            default:
+                (void)show_usage();
+                rc = QUO_ERR_INVLD_ARG;
+                goto out;
+        }
+    }
+    if (optind < argc) {
+        fprintf(stderr, "unrecognized input: \"%s\"\n",
+                argv[optind]);
+        show_usage();
+        rc = QUO_ERR_INVLD_ARG;
+    }
+
+out:
+    return (QUO_SUCCESS == rc ? EXIT_SUCCESS : EXIT_FAILURE);
 }
