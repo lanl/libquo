@@ -155,7 +155,7 @@ enable_xml=yes
 enable_pci=no
 enable_libpci=no
 enable_libudev=no
-enable_libnuma=yes
+#enable_libnuma=no
 
 HWLOC_SET_SYMBOL_PREFIX(quo_)
 HWLOC_SETUP_CORE([src/hwloc],
