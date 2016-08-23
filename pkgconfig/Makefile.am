@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013-2016 Los Alamos National Security, LLC
+# Copyright (c)      2016 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Los Alamos National Security, LLC. This software was produced under U.S.
@@ -41,20 +41,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-ACLOCAL_AMFLAGS = -Iconfig -Isrc/hwloc/config
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libquo.pc
 
-SUBDIRS = \
-src \
-src/fortran \
-src/tools \
-tests \
-demos \
-pkgconfig
-
-EXTRA_DIST = \
-AUTHORS README THANKS LICENSE NOTES autogen contrib README.BUILDS \
-BROKEN-COMPILERS
-
-AM_CFLAGS = $(HWLOC_EMBEDDED_CFLAGS)
-
-AM_CPPFLAGS = $(HWLOC_EMBEDDED_CPPFLAGS)
+# these are generated
+MOSTLYCLEANFILES = $(pkgconfig_DATA)

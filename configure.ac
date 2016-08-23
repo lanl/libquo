@@ -211,7 +211,8 @@ AC_CONFIG_FILES([Makefile
                  src/tools/Makefile
                  tests/Makefile
                  demos/Makefile
-                 src/libquo.pc])
+                 pkgconfig/Makefile
+                 pkgconfig/libquo.pc])
 
 AC_OUTPUT
 

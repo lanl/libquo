@@ -31,12 +31,6 @@ quo-hwloc.h quo-hwloc.c \
 quo-mpi.h quo-mpi.c \
 quo.h quo.c
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libquo.pc
-
-# these are generated
-MOSTLYCLEANFILES = $(pkgconfig_DATA)
-
 libquo_la_CFLAGS =
 libquo_la_LDFLAGS = -version-info @QUO_LIBVINFO@
 libquo_la_LIBADD = $(HWLOC_EMBEDDED_LDADD) $(HWLOC_EMBEDDED_LIBS)
