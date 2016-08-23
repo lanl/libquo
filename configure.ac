@@ -155,7 +155,7 @@ enable_xml=yes
 enable_pci=no
 enable_libpci=no
 enable_libudev=no
-enable_libnuma=no
+enable_libnuma=yes
 
 HWLOC_SET_SYMBOL_PREFIX(quo_)
 HWLOC_SETUP_CORE([src/hwloc],
@@ -220,7 +220,7 @@ AC_OUTPUT
 cat << EOF
 
 +-------------------------------------------------------------------------------
-| libQUO Configuration :::::::::::::::::::::::::::::::::::::::::::::::::::::::
+| libquo Configuration :::::::::::::::::::::::::::::::::::::::::::::::::::::::
 +-------------------------------------------------------------------------------
 | version     : ${VERSION}
 | target      : ${target}
