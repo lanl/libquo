@@ -350,7 +350,7 @@ interface
           implicit none
           type(c_ptr), value :: q
           integer(c_int), value :: target_type
-          integer, intent(out):: comm
+          integer(c_int), intent(out):: comm
       end function quo_get_mpi_comm_by_type_c
 end interface
 
