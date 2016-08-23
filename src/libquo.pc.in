@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: @PACKAGE_NAME@
-Description: A library that make run-time tuning of process binding policies easy 
+Description: A library for accommodating thread-level heterogeneity in coupled MPI applications.
 Version: @PACKAGE_VERSION@
 URL: @PACKAGE_URL@
 Libs: -L${libdir} -lquo
