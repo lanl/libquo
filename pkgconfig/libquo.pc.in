@@ -8,4 +8,5 @@ Description: A library for accommodating thread-level heterogeneity in coupled M
 Version: @PACKAGE_VERSION@
 URL: @PACKAGE_URL@
 Libs: -L${libdir} -lquo
+Libs.private: @LIBS@
 Cflags: -I${includedir}
