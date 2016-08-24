@@ -56,26 +56,41 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
 
 enum {
-    SHOWME = 256
+    CFLAGS = 256,
+    LIBS,
+    LIBS_ONLY_L,
+    LIBS_ONLY_LUC,
+    STATIC,
+    CONFIG
 };
 
 #define APP_NAME "quo-info"
 
 /* flag saying whether or not we show info for statically-built apps. */
-static int static_build = 0;
+static bool static_build = false;
 
-static const char *opt_string = "hsc";
+static const char *opt_string = "h";
 
 static struct option long_opts[] = {
-    {"help",            no_argument,       NULL         , 'h'},
-    {"static",          no_argument,       &static_build, 's'},
-    {"showme",          no_argument,       NULL         ,  SHOWME},
-    {NULL,              0,                 NULL         ,  0 }
+    {"help",            no_argument,       NULL         , 'h'           },
+    {"static",          no_argument,       NULL         ,  STATIC       },
+    {"config",          no_argument,       NULL         ,  CONFIG       },
+    {"cflags",          no_argument,       NULL         ,  CFLAGS       },
+    {"libs",            no_argument,       NULL         ,  LIBS         },
+    {"libs-only-l",     no_argument,       NULL         ,  LIBS_ONLY_L  },
+    {"libs-only-L",     no_argument,       NULL         ,  LIBS_ONLY_LUC},
+    {NULL,              0,                 NULL         ,  0            }
 };
 
-static int
+static void
 show_usage(void)
 {
     static const char *usage =
@@ -86,14 +101,65 @@ show_usage(void)
     "Show this message and exit\n";
 
     fprintf(stdout, "%s", usage);
-
-    return QUO_SUCCESS;
 }
 
 /**
  *
  */
-static int
+static const char *
+get_cflags(void)
+{
+    static const char *flags = "-I" QUO_BUILD_PREFIX "/include";
+
+    return flags;
+}
+
+/**
+ *
+ */
+static const char *
+get_libs_only_l(void)
+{
+    static const char *private = QUO_BUILD_LIBS;
+    static const char *lquo = "-lquo";
+    static char flags[PATH_MAX];
+
+    memset(flags, 0, sizeof(flags));
+
+    snprintf(flags, sizeof(flags) - 1, "%s %s",
+             lquo, static_build ? private : "");
+
+    return flags;
+}
+
+/**
+ *
+ */
+static const char *
+get_libs_only_L(void)
+{
+    static const char *flags = "-L" QUO_BUILD_PREFIX "/lib";
+
+    return flags;
+}
+
+/**
+ *
+ */
+static const char *
+get_libs(void)
+{
+    static char flags[PATH_MAX];
+    memset(flags, 0, sizeof(flags));
+    snprintf(flags, sizeof(flags) - 1, "%s %s",
+             get_libs_only_L(), get_libs_only_l());
+    return flags;
+}
+
+/**
+ *
+ */
+void
 show_config(void)
 {
     bool with_fort = false;
@@ -101,7 +167,6 @@ show_config(void)
     with_fort = true;
 #endif
     //
-    setbuf(stdout, NULL);
     //
     printf("Package: %s\n", PACKAGE);
     printf("Version: %s\n", VERSION);
@@ -127,11 +192,9 @@ show_config(void)
 #endif
     printf("Build LDFLAGS: %s\n", QUO_BUILD_LDFLAGS);
     printf("Build LIBS: %s\n", QUO_BUILD_LIBS);
-    printf("Report Bugs To: %s\n", PACKAGE_BUGREPORT);
+    printf("Report Bugs To: %s", PACKAGE_BUGREPORT);
     // For good measure...
     fflush(stdout);
-
-    return QUO_SUCCESS;
 }
 
 /**
@@ -141,20 +204,46 @@ int
 main(int argc,
      char **argv)
 {
+    static const int max_flags = 64;
     int c = 0;
     int rc = QUO_SUCCESS;
+    typedef const char* (*action)(void);
+    action actions[max_flags];
+    memset(actions, 0, sizeof(actions));
+    int flagi = 0;
+
+    setbuf(stdout, NULL);
 
     while (-1 != (c = getopt_long_only(argc, argv, opt_string,
                                        long_opts, NULL))) {
         switch (c) {
             case 'h': /* help */
-                rc = show_usage();
+                show_usage();
                 goto out;
-            case SHOWME: /* show me something */
-                rc = show_config();
+            case CONFIG:
+                show_config();
+                goto out;
+            case CFLAGS: /* show all CFLAGS */
+                actions[flagi % max_flags] = get_cflags;
+                flagi++;
+                break;
+            case LIBS: /* show all of link line */
+                actions[flagi % max_flags] = get_libs;
+                flagi++;
+                break;
+            case LIBS_ONLY_L: /* show only -l */
+                actions[flagi % max_flags] = get_libs_only_l;
+                flagi++;
+                break;
+            case LIBS_ONLY_LUC: /* show only -L */
+                actions[flagi % max_flags] = get_libs_only_L;
+                flagi++;
+                break;
+            case STATIC:
+                static_build = true;
                 break;
             default:
-                (void)show_usage();
+                show_usage();
                 rc = QUO_ERR_INVLD_ARG;
                 goto out;
         }
@@ -164,6 +253,11 @@ main(int argc,
                 argv[optind]);
         show_usage();
         rc = QUO_ERR_INVLD_ARG;
+        goto out;
+    }
+    /* display all requested flags */
+    for (int i = 0; actions[i] && i < max_flags; ++i) {
+        printf("%s%s", i == 0 ? "" : " ", actions[i]());
     }
 
 out:
