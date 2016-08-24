@@ -149,6 +149,7 @@ dnl AC_SUBST(QUO_IKIND_VAL, $quo_sizeof_voidptr)
 # hwloc stuff
 ################################################################################
 # set some hwloc configure options
+enable_embedded_mode=yes
 enable_libxml2=no
 enable_xml=yes
 # TODO - allow for this someday (busted on the Crays -- no static libs)
