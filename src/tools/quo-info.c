@@ -65,6 +65,7 @@
 
 enum {
     CFLAGS = 256,
+    CFLAGS_ONLY_I,
     LIBS,
     LIBS_ONLY_L,
     LIBS_ONLY_LUC,
@@ -84,6 +85,7 @@ static struct option long_opts[] = {
     {"static",          no_argument,       NULL         ,  STATIC       },
     {"config",          no_argument,       NULL         ,  CONFIG       },
     {"cflags",          no_argument,       NULL         ,  CFLAGS       },
+    {"cflags-only-I",   no_argument,       NULL         ,  CFLAGS_ONLY_I},
     {"libs",            no_argument,       NULL         ,  LIBS         },
     {"libs-only-l",     no_argument,       NULL         ,  LIBS_ONLY_L  },
     {"libs-only-L",     no_argument,       NULL         ,  LIBS_ONLY_LUC},
@@ -107,12 +109,27 @@ show_usage(void)
  *
  */
 static const char *
-get_cflags(void)
+get_cflags_only_I(void)
 {
     static const char *flags = "-I" QUO_BUILD_PREFIX "/include";
 
     return flags;
 }
+
+/**
+ *
+ */
+static const char *
+get_cflags(void)
+{
+    static char flags[PATH_MAX];
+
+    memset(flags, 0, sizeof(flags));
+    snprintf(flags, sizeof(flags) - 1, "%s", get_cflags_only_I());
+
+    return flags;
+}
+
 
 /**
  *
@@ -150,9 +167,11 @@ static const char *
 get_libs(void)
 {
     static char flags[PATH_MAX];
+
     memset(flags, 0, sizeof(flags));
     snprintf(flags, sizeof(flags) - 1, "%s %s",
              get_libs_only_L(), get_libs_only_l());
+
     return flags;
 }
 
@@ -172,7 +191,7 @@ show_config(void)
     printf("Version: %s\n", VERSION);
     printf("API Version: %d.%d\n", QUO_VER, QUO_SUBVER);
     printf("Package URL: %s\n", PACKAGE_URL);
-    printf("HWLOC Version: %s\n", HWLOC_VERSION);
+    printf("hwloc Version: %s\n", HWLOC_VERSION);
     printf("Build User: %s\n", QUO_BUILD_USER);
     printf("Build Host: %s\n", QUO_BUILD_HOST);
     printf("Build Date: %s\n", QUO_BUILD_DATE);
@@ -227,6 +246,10 @@ main(int argc,
                 actions[flagi % max_flags] = get_cflags;
                 flagi++;
                 break;
+            case CFLAGS_ONLY_I: /* show -I */
+                actions[flagi % max_flags] = get_cflags_only_I;
+                flagi++;
+                break;
             case LIBS: /* show all of link line */
                 actions[flagi % max_flags] = get_libs;
                 flagi++;
@@ -249,8 +272,7 @@ main(int argc,
         }
     }
     if (optind < argc) {
-        fprintf(stderr, "unrecognized input: \"%s\"\n",
-                argv[optind]);
+        fprintf(stderr, "unrecognized input: \"%s\"\n", argv[optind]);
         show_usage();
         rc = QUO_ERR_INVLD_ARG;
         goto out;
