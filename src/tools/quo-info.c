@@ -64,16 +64,29 @@
 #endif
 
 enum {
-    CFLAGS = 256,
+    FLOOR = 256,
+
+    CFLAGS,
     CFLAGS_ONLY_I,
     LIBS,
-    LIBS_ONLY_L,
     LIBS_ONLY_LUC,
+    LIBS_ONLY_L,
     STATIC,
-    CONFIG
+    CONFIG,
+    HELP,
+
+    CEILING
 };
 
+/* number of options that we support */
+#define N_OPTIONS (CEILING - FLOOR - 1)
+
 #define APP_NAME "quo-info"
+
+typedef struct option_help_t {
+    const char *option;
+    const char *help;
+} option_help_t;
 
 /* flag saying whether or not we show info for statically-built apps. */
 static bool static_build = false;
@@ -81,28 +94,45 @@ static bool static_build = false;
 static const char *opt_string = "h";
 
 static struct option long_opts[] = {
-    {"help",            no_argument,       NULL         , 'h'           },
-    {"static",          no_argument,       NULL         ,  STATIC       },
-    {"config",          no_argument,       NULL         ,  CONFIG       },
     {"cflags",          no_argument,       NULL         ,  CFLAGS       },
     {"cflags-only-I",   no_argument,       NULL         ,  CFLAGS_ONLY_I},
     {"libs",            no_argument,       NULL         ,  LIBS         },
-    {"libs-only-l",     no_argument,       NULL         ,  LIBS_ONLY_L  },
     {"libs-only-L",     no_argument,       NULL         ,  LIBS_ONLY_LUC},
+    {"libs-only-l",     no_argument,       NULL         ,  LIBS_ONLY_L  },
+    {"static",          no_argument,       NULL         ,  STATIC       },
+    {"config",          no_argument,       NULL         ,  CONFIG       },
+    {"help",            no_argument,       NULL         ,  HELP         },
     {NULL,              0,                 NULL         ,  0            }
 };
 
+static const option_help_t option_help[N_OPTIONS] = {
+    {"[--cflags]       ", "Output all pre-processor and compiler flags."},
+    {"[--cflags-only-I]", "Output -I flags."                            },
+    {"[--libs]         ", "Output all linker flags."                    },
+    {"[--libs-only-L]  ", "Output -L flags."                            },
+    {"[--libs-only-l]  ", "Output -l flags."                            },
+    {"[--static]       ", "Output linker flags for static linking."     },
+    {"[--config]       ", "Output " PACKAGE " configuration."           },
+    {"[--help]         ", "Show this message and exit."                 },
+};
+
+/**
+ *
+ */
 static void
 show_usage(void)
 {
     static const char *usage =
     "\nUsage:\n"
     APP_NAME " [OPTIONS]\n"
-    "Options:\n"
-    "[-h|--help]              "
-    "Show this message and exit\n";
-
+    "Options:\n";
     fprintf(stdout, "%s", usage);
+
+    for (int opidx = 0; opidx < N_OPTIONS; ++opidx) {
+        const char *option = option_help[opidx].option;
+        const char *help   = option_help[opidx].help;
+        fprintf(stdout, "  %s %s\n", option, help);
+    }
 }
 
 /**
@@ -236,7 +266,7 @@ main(int argc,
     while (-1 != (c = getopt_long_only(argc, argv, opt_string,
                                        long_opts, NULL))) {
         switch (c) {
-            case 'h': /* help */
+            case HELP: /* help */
                 show_usage();
                 goto out;
             case CONFIG:
