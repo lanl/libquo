@@ -91,6 +91,7 @@ enum {
     LANG_FORTRAN
 };
 
+/* Buffer to hold input language string. */
 static char lang_str[64];
 
 /* Defaults ///////////////////////////////////////////////////////////////// */
@@ -321,6 +322,8 @@ main(int argc,
             case LANG: /* set target Language */
                 actions[flagi % max_flags] = set_lang;
                 flagi++;
+                /* last one wins */
+                (void)snprintf(lang_str, sizeof(lang_str), "%s", optarg);
                 break;
             case STATIC:
                 static_build = true;
