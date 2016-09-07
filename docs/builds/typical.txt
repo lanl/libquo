@@ -23,4 +23,3 @@ make install
 
 # NOTE: a Fortran wrapper compiler is needed only if you wish to build with
 # Fortran support.
-
