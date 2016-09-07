@@ -52,6 +52,7 @@ demos \
 pkgconfig
 
 EXTRA_DIST = \
+docs \
 AUTHORS README THANKS LICENSE NOTES autogen contrib README.BUILDS \
 BROKEN-COMPILERS
 

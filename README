@@ -25,22 +25,7 @@ QUO -- LA-CC-13-076
 # hwloc (http://www.open-mpi.org/projects/hwloc). hwloc is included within
 # libquo, so the only external dependency is an MPI library.
 
-# Configure libquo
-./configure CC=[MPICC] [FC=[MPIFC]] [--prefix=INSTALL-PATH]
-# For available configure options, ./configure --help
-
-# Build libquo
-make
-make install
-
-# Where: MPICC is your system's MPI CC wrapper compiler.
-#        MPIFC is your system's MPI Fortran wrapper compiler (Optional).
-
-# Example Configure and Build
-./configure CC=mpicc FC=mpif90 && make && make install
-
-# NOTE: a Fortran wrapper compiler is needed only if you wish to build with
-# Fortran support.
+# Please see documentation located in docs/builds.
 
 ################################################################################
 ################################################################################
@@ -54,7 +39,7 @@ See src/quo.h for more information.
 # Fortran Interface Users
 See src/quof.f90 and src/quo.h for more information.
 
-o Some Fortran interfaces differ slightly from their C counterpart.
+NOTE: Some Fortran interfaces differ slightly from their C counterpart.
 
 # Interface Examples
 o In tests and demos.
@@ -71,7 +56,7 @@ export LD_LIBRARY_PATH=[QUO-PREFIX]/lib:$LD_LIBRARY_PATH
 mpicc myquoapp.c -o myquoapp -I[QUO-PREFIX]/include \
 -L[QUO-PREFIX]/lib -lquo -Wl,-rpath=[QUO-PREFIX]/lib
 
-# Example 2
+# Example 2 with pkg-config
 mpicc myquoapp.c -o myquoapp `pkg-config --cflags --libs libquo`
 
 ################################################################################
