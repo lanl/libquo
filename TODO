@@ -1,5 +1,6 @@
 libquo TODO
 
+o add EXTRA_* flags in configury.
 o add C++ API
 o report to hwloc devel slowdown in init between v 1.11.2 and 1.11.3.
 o add broken compiler check for fortran at configure time.
