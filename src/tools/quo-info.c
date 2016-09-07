@@ -63,6 +63,8 @@
 #include <limits.h>
 #endif
 
+#define APP_NAME "quo-info"
+
 enum {
     FLOOR = 256,
 
@@ -71,6 +73,7 @@ enum {
     LIBS,
     LIBS_ONLY_LUC,
     LIBS_ONLY_L,
+    LANG,
     STATIC,
     CONFIG,
     HELP,
@@ -81,17 +84,28 @@ enum {
 /* number of options that we support */
 #define N_OPTIONS (CEILING - FLOOR - 1)
 
-#define APP_NAME "quo-info"
+/* Language options */
+enum {
+    LANG_C = 0,
+    LANG_CPLUSPLUS,
+    LANG_FORTRAN
+};
+
+static char lang_str[64];
+
+/* Defaults ///////////////////////////////////////////////////////////////// */
+/* Default language output is C. */
+static int target_lang = LANG_C;
+
+/* Flag indicating whether or not we show info for statically-built apps. */
+static bool static_build = false;
 
 typedef struct option_help_t {
     const char *option;
     const char *help;
 } option_help_t;
 
-/* flag saying whether or not we show info for statically-built apps. */
-static bool static_build = false;
-
-static const char *opt_string = "h";
+static const char *opt_string = "";
 
 static struct option long_opts[] = {
     {"cflags",          no_argument,       NULL         ,  CFLAGS       },
@@ -99,6 +113,7 @@ static struct option long_opts[] = {
     {"libs",            no_argument,       NULL         ,  LIBS         },
     {"libs-only-L",     no_argument,       NULL         ,  LIBS_ONLY_LUC},
     {"libs-only-l",     no_argument,       NULL         ,  LIBS_ONLY_L  },
+    {"lang"       ,     required_argument, NULL         ,  LANG         },
     {"static",          no_argument,       NULL         ,  STATIC       },
     {"config",          no_argument,       NULL         ,  CONFIG       },
     {"help",            no_argument,       NULL         ,  HELP         },
@@ -106,14 +121,16 @@ static struct option long_opts[] = {
 };
 
 static const option_help_t option_help[N_OPTIONS] = {
-    {"[--cflags]       ", "Output all pre-processor and compiler flags."},
-    {"[--cflags-only-I]", "Output -I flags."                            },
-    {"[--libs]         ", "Output all linker flags."                    },
-    {"[--libs-only-L]  ", "Output -L flags."                            },
-    {"[--libs-only-l]  ", "Output -l flags."                            },
-    {"[--static]       ", "Output linker flags for static linking."     },
-    {"[--config]       ", "Output " PACKAGE " configuration."           },
-    {"[--help]         ", "Show this message and exit."                 },
+    {"[--cflags]       ", "Output all pre-processor and compiler flags."      },
+    {"[--cflags-only-I]", "Output -I flags."                                  },
+    {"[--libs]         ", "Output all linker flags."                          },
+    {"[--libs-only-L]  ", "Output -L flags."                                  },
+    {"[--libs-only-l]  ", "Output -l flags."                                  },
+    {"[--lang LANG]    ", "Set language (C, C++, Fortran) "
+                          "for output [Default=C]"                            },
+    {"[--static]       ", "Output linker flags for static linking."           },
+    {"[--config]       ", "Output " PACKAGE " configuration."                 },
+    {"[--help]         ", "Show this message and exit."                       }
 };
 
 /**
@@ -208,6 +225,15 @@ get_libs(void)
 /**
  *
  */
+static const char *
+set_lang(void)
+{
+    return "";
+}
+
+/**
+ *
+ */
 void
 show_config(void)
 {
@@ -290,6 +316,10 @@ main(int argc,
                 break;
             case LIBS_ONLY_LUC: /* show only -L */
                 actions[flagi % max_flags] = get_libs_only_L;
+                flagi++;
+                break;
+            case LANG: /* set target Language */
+                actions[flagi % max_flags] = set_lang;
                 flagi++;
                 break;
             case STATIC:
