@@ -59,6 +59,9 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
@@ -229,6 +232,18 @@ get_libs(void)
 static const char *
 set_lang(void)
 {
+    if (!strcasecmp("C", lang_str)) {
+        target_lang = LANG_C;
+    }
+    else if (!strcasecmp("C++", lang_str)) {
+        target_lang = LANG_CPLUSPLUS;
+    }
+    else if (!strcasecmp("Fortran", lang_str)) {
+        target_lang = LANG_FORTRAN;
+    }
+    else {
+        fprintf(stderr, "WARNING: lang \'%s\' not recognized...\n", lang_str);
+    }
     return "";
 }
 
