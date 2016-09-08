@@ -48,11 +48,6 @@ dist-work \
 barrier-subset \
 quo-time
 
-if QUO_WITH_MPIFC
-noinst_PROGRAMS += \
-quofort
-endif
-
 ### test 0
 rebind_SOURCES = rebind.c
 rebind_CPPFLAGS  =
@@ -79,12 +74,3 @@ barrier_subset_LDADD   =
 quo_time_SOURCES = quo-time.c
 quo_time_CFLAGS  = -I$(top_srcdir)/src
 quo_time_LDADD   = $(top_builddir)/src/libquo.la
-
-### fortran interface test
-if QUO_WITH_MPIFC
-quofort_SOURCES = quofort.f90
-quofort_FCFLAGS  = -I$(top_builddir)/src/fortran
-quofort_LDADD = \
-$(top_builddir)/src/fortran/libquo-usequo.la \
-$(top_builddir)/src/libquo.la
-endif
