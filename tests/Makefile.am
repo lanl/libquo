@@ -75,7 +75,7 @@ barrier_subset_CFLAGS  =
 barrier_subset_LDFLAGS =
 barrier_subset_LDADD   =
 
-### test 4
+### test 4 (times quo operations)
 quo_time_SOURCES = quo-time.c
 quo_time_CFLAGS  = -I$(top_srcdir)/src
 quo_time_LDADD   = $(top_builddir)/src/libquo.la

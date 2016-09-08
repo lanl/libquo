@@ -79,6 +79,7 @@ enum {
     LIBS,
     LIBS_ONLY_LUC,
     LIBS_ONLY_L,
+    LIBS_ONLY_OTHER,
     LANG,
     CONFIG,
     HELP,
@@ -111,29 +112,31 @@ typedef struct option_help_t {
 static const char *opt_string = "";
 
 static struct option long_opts[] = {
-    {"prefix",          no_argument,       NULL         ,  PREFIX       },
-    {"cflags",          no_argument,       NULL         ,  CFLAGS       },
-    {"cflags-only-I",   no_argument,       NULL         ,  CFLAGS_ONLY_I},
-    {"libs",            no_argument,       NULL         ,  LIBS         },
-    {"libs-only-L",     no_argument,       NULL         ,  LIBS_ONLY_LUC},
-    {"libs-only-l",     no_argument,       NULL         ,  LIBS_ONLY_L  },
-    {"lang"       ,     required_argument, NULL         ,  LANG         },
-    {"config",          no_argument,       NULL         ,  CONFIG       },
-    {"help",            no_argument,       NULL         ,  HELP         },
-    {NULL,              0,                 NULL         ,  0            }
+    {"prefix",           no_argument,       NULL         ,  PREFIX          },
+    {"cflags",           no_argument,       NULL         ,  CFLAGS          },
+    {"cflags-only-I",    no_argument,       NULL         ,  CFLAGS_ONLY_I   },
+    {"libs",             no_argument,       NULL         ,  LIBS            },
+    {"libs-only-L",      no_argument,       NULL         ,  LIBS_ONLY_LUC   },
+    {"libs-only-l",      no_argument,       NULL         ,  LIBS_ONLY_L     },
+    {"libs-only-other",  no_argument,       NULL         ,  LIBS_ONLY_OTHER },
+    {"lang",             required_argument, NULL         ,  LANG            },
+    {"config",           no_argument,       NULL         ,  CONFIG          },
+    {"help",             no_argument,       NULL         ,  HELP            },
+    {NULL,               0,                 NULL         ,  0               }
 };
 
 static const option_help_t option_help[N_OPTIONS] = {
-    {"[--prefix]       ", "Output installation prefix."                       },
-    {"[--cflags]       ", "Output all pre-processor and compiler flags."      },
-    {"[--cflags-only-I]", "Output -I flags."                                  },
-    {"[--libs]         ", "Output all linker flags."                          },
-    {"[--libs-only-L]  ", "Output -L flags."                                  },
-    {"[--libs-only-l]  ", "Output -l flags."                                  },
-    {"[--lang LANG]    ", "Set language (C, C++, Fortran) "
-                          "for output [Default=C]"                            },
-    {"[--config]       ", "Output " PACKAGE " configuration."                 },
-    {"[--help]         ", "Show this message and exit."                       }
+    {"[--prefix]           ", "Output installation prefix."                 },
+    {"[--cflags]           ", "Output all pre-processor and compiler flags."},
+    {"[--cflags-only-I]    ", "Output -I flags."                            },
+    {"[--libs]             ", "Output all linker flags."                    },
+    {"[--libs-only-L]      ", "Output -L flags."                            },
+    {"[--libs-only-l]      ", "Output -l flags."                            },
+    {"[--libs-only-other]  ", "Output other -l flags."                      },
+    {"[--lang LANG]        ", "Set language (C, C++, Fortran) "
+                              "for output [Default=C]"                      },
+    {"[--config]           ", "Output " PACKAGE " configuration."           },
+    {"[--help]             ", "Show this message and exit."                 }
 };
 
 /**
@@ -183,12 +186,8 @@ get_cflags_only_I(void)
 static const char *
 get_cflags(void)
 {
-    static char flags[FLAG_MAX];
-
-    memset(flags, 0, sizeof(flags));
-    snprintf(flags, sizeof(flags) - 1, "%s", get_cflags_only_I());
-
-    return flags;
+    /* The same (for now). */
+    return get_cflags_only_I();
 }
 
 
@@ -199,13 +198,8 @@ static const char *
 get_libs_only_l(void)
 {
     static const char *lquo = "-lquo";
-    static char flags[FLAG_MAX];
 
-    memset(flags, 0, sizeof(flags));
-
-    snprintf(flags, sizeof(flags) - 1, "%s", lquo);
-
-    return flags;
+    return lquo;
 }
 
 /**
@@ -215,6 +209,17 @@ static const char *
 get_libs_only_L(void)
 {
     static const char *flags = "-L" QUO_BUILD_LIBDIR;
+
+    return flags;
+}
+
+/**
+ *
+ */
+static const char *
+get_libs_only_other(void)
+{
+    static const char *flags = QUO_BUILD_LIBS;
 
     return flags;
 }
@@ -338,6 +343,10 @@ main(int argc,
                 break;
             case LIBS_ONLY_LUC: /* show only -L */
                 actions[flagi % max_flags] = get_libs_only_L;
+                flagi++;
+                break;
+            case LIBS_ONLY_OTHER: /* show only other -l */
+                actions[flagi % max_flags] = get_libs_only_other;
                 flagi++;
                 break;
             case LANG: /* set target Language */
