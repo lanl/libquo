@@ -175,9 +175,14 @@ get_prefix(void)
 static const char *
 get_cflags_only_I(void)
 {
-    static const char *flags = "-I" QUO_BUILD_INCLUDEDIR;
+    static const char *c_cflags = "-I" QUO_BUILD_INCLUDEDIR;
+    static const char *f_cflags = "-I" QUO_BUILD_LIBDIR;
 
-    return flags;
+    switch(target_lang) {
+        case LANG_C: return c_cflags;
+        case LANG_FORTRAN: return f_cflags;
+        default: return "";
+    }
 }
 
 /**
@@ -190,14 +195,26 @@ get_cflags(void)
     return get_cflags_only_I();
 }
 
-
 /**
  *
  */
 static const char *
 get_libs_only_l(void)
 {
+    static char flags[FLAG_MAX];
+    static const char *lquo_usequo = "-lquo-usequo";
     static const char *lquo = "-lquo";
+
+    switch (target_lang) {
+        case LANG_C:
+            return lquo;
+        case LANG_FORTRAN: {
+            snprintf(flags, sizeof(flags), "%s %s", lquo_usequo, lquo);
+            return flags;
+        }
+        default:
+            return "";
+    }
 
     return lquo;
 }
@@ -233,7 +250,7 @@ get_libs(void)
     static char flags[FLAG_MAX];
 
     memset(flags, 0, sizeof(flags));
-    snprintf(flags, sizeof(flags) - 1, "%s %s",
+    snprintf(flags, sizeof(flags), "%s %s",
              get_libs_only_L(), get_libs_only_l());
 
     return flags;
@@ -252,10 +269,18 @@ set_lang(void)
         target_lang = LANG_CPLUSPLUS;
     }
     else if (!strcasecmp("Fortran", lang_str)) {
+#ifdef QUO_WITH_MPIFC
         target_lang = LANG_FORTRAN;
+#else
+        fprintf(stderr, APP_NAME ": %s support not enabled. "
+                "Aborting...\n", lang_str);
+        exit(EXIT_FAILURE);
+#endif
     }
     else {
-        fprintf(stderr, "WARNING: lang \'%s\' not recognized...\n", lang_str);
+        fprintf(stderr, APP_NAME ": lang \'%s\' not recognized. "
+                "Aborting...\n", lang_str);
+        exit(EXIT_FAILURE);
     }
     return "";
 }
@@ -297,8 +322,6 @@ show_config(void)
     printf("Build LDFLAGS: %s\n", QUO_BUILD_LDFLAGS);
     printf("Build LIBS: %s\n", QUO_BUILD_LIBS);
     printf("Report Bugs To: %s", PACKAGE_BUGREPORT);
-    // For good measure...
-    fflush(stdout);
 }
 
 /**
