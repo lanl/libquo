@@ -68,16 +68,18 @@
 
 #define APP_NAME "quo-info"
 
+#define FLAG_MAX (PATH_MAX + 16)
+
 enum {
     FLOOR = 256,
 
+    PREFIX,
     CFLAGS,
     CFLAGS_ONLY_I,
     LIBS,
     LIBS_ONLY_LUC,
     LIBS_ONLY_L,
     LANG,
-    STATIC,
     CONFIG,
     HELP,
 
@@ -101,9 +103,6 @@ static char lang_str[64];
 /* Default language output is C. */
 static int target_lang = LANG_C;
 
-/* Flag indicating whether or not we show info for statically-built apps. */
-static bool static_build = false;
-
 typedef struct option_help_t {
     const char *option;
     const char *help;
@@ -112,19 +111,20 @@ typedef struct option_help_t {
 static const char *opt_string = "";
 
 static struct option long_opts[] = {
+    {"prefix",          no_argument,       NULL         ,  PREFIX       },
     {"cflags",          no_argument,       NULL         ,  CFLAGS       },
     {"cflags-only-I",   no_argument,       NULL         ,  CFLAGS_ONLY_I},
     {"libs",            no_argument,       NULL         ,  LIBS         },
     {"libs-only-L",     no_argument,       NULL         ,  LIBS_ONLY_LUC},
     {"libs-only-l",     no_argument,       NULL         ,  LIBS_ONLY_L  },
     {"lang"       ,     required_argument, NULL         ,  LANG         },
-    {"static",          no_argument,       NULL         ,  STATIC       },
     {"config",          no_argument,       NULL         ,  CONFIG       },
     {"help",            no_argument,       NULL         ,  HELP         },
     {NULL,              0,                 NULL         ,  0            }
 };
 
 static const option_help_t option_help[N_OPTIONS] = {
+    {"[--prefix]       ", "Output installation prefix."                       },
     {"[--cflags]       ", "Output all pre-processor and compiler flags."      },
     {"[--cflags-only-I]", "Output -I flags."                                  },
     {"[--libs]         ", "Output all linker flags."                          },
@@ -132,7 +132,6 @@ static const option_help_t option_help[N_OPTIONS] = {
     {"[--libs-only-l]  ", "Output -l flags."                                  },
     {"[--lang LANG]    ", "Set language (C, C++, Fortran) "
                           "for output [Default=C]"                            },
-    {"[--static]       ", "Output linker flags for static linking."           },
     {"[--config]       ", "Output " PACKAGE " configuration."                 },
     {"[--help]         ", "Show this message and exit."                       }
 };
@@ -160,9 +159,20 @@ show_usage(void)
  *
  */
 static const char *
+get_prefix(void)
+{
+    static const char *prefix = QUO_BUILD_PREFIX;
+
+    return prefix;
+}
+
+/**
+ *
+ */
+static const char *
 get_cflags_only_I(void)
 {
-    static const char *flags = "-I" QUO_BUILD_PREFIX "/include";
+    static const char *flags = "-I" QUO_BUILD_INCLUDEDIR;
 
     return flags;
 }
@@ -173,7 +183,7 @@ get_cflags_only_I(void)
 static const char *
 get_cflags(void)
 {
-    static char flags[PATH_MAX];
+    static char flags[FLAG_MAX];
 
     memset(flags, 0, sizeof(flags));
     snprintf(flags, sizeof(flags) - 1, "%s", get_cflags_only_I());
@@ -188,14 +198,12 @@ get_cflags(void)
 static const char *
 get_libs_only_l(void)
 {
-    static const char *private = QUO_BUILD_LIBS;
     static const char *lquo = "-lquo";
-    static char flags[PATH_MAX];
+    static char flags[FLAG_MAX];
 
     memset(flags, 0, sizeof(flags));
 
-    snprintf(flags, sizeof(flags) - 1, "%s %s",
-             lquo, static_build ? private : "");
+    snprintf(flags, sizeof(flags) - 1, "%s", lquo);
 
     return flags;
 }
@@ -206,7 +214,7 @@ get_libs_only_l(void)
 static const char *
 get_libs_only_L(void)
 {
-    static const char *flags = "-L" QUO_BUILD_PREFIX "/lib";
+    static const char *flags = "-L" QUO_BUILD_LIBDIR;
 
     return flags;
 }
@@ -217,7 +225,7 @@ get_libs_only_L(void)
 static const char *
 get_libs(void)
 {
-    static char flags[PATH_MAX];
+    static char flags[FLAG_MAX];
 
     memset(flags, 0, sizeof(flags));
     snprintf(flags, sizeof(flags) - 1, "%s %s",
@@ -308,12 +316,10 @@ main(int argc,
     while (-1 != (c = getopt_long_only(argc, argv, opt_string,
                                        long_opts, NULL))) {
         switch (c) {
-            case HELP: /* help */
-                show_usage();
-                goto out;
-            case CONFIG:
-                show_config();
-                goto out;
+            case PREFIX: /* show all CFLAGS */
+                actions[flagi % max_flags] = get_prefix;
+                flagi++;
+                break;
             case CFLAGS: /* show all CFLAGS */
                 actions[flagi % max_flags] = get_cflags;
                 flagi++;
@@ -340,9 +346,12 @@ main(int argc,
                 /* last one wins */
                 (void)snprintf(lang_str, sizeof(lang_str), "%s", optarg);
                 break;
-            case STATIC:
-                static_build = true;
-                break;
+            case CONFIG:
+                show_config();
+                goto out;
+            case HELP: /* help */
+                show_usage();
+                goto out;
             default:
                 show_usage();
                 rc = QUO_ERR_INVLD_ARG;
