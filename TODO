@@ -1,5 +1,6 @@
 libquo TODO
 
+o add "is the process distribution on my node sane?" example.
 o add EXTRA_* flags in configury.
 o add C++ API
 o report to hwloc devel slowdown in init between v 1.11.2 and 1.11.3.
