@@ -11,7 +11,5 @@ o Make hwloc (Intel) valgrind clean and send upstream.
 o add better error messages.
 o implement global placement api.
 o add support query.
-o auto set library version (api call and so).
 o Expose memory API?
 o Return popped CPU set to caller (API)?
-o expose HWLOC flags.
