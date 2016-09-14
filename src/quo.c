@@ -589,7 +589,7 @@ QUO_get_mpi_comm_by_type(QUO_t *q,
     /* make sure we are initialized before we continue */
     noinit_action(q);
 
-    return quo_mpi_get_comm_by_type(q->mpi, target_type, index, out_comm);
+    return quo_mpi_get_comm_by_type(q->mpi, q->hwloc, target_type, q->pid, index, out_comm);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
