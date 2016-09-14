@@ -768,24 +768,28 @@ quo_mpi_sm_barrier(const quo_mpi_t *mpi)
 int
 quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
                          QUO_obj_type_t target_type,
+                         int index,
                          MPI_Comm *out_comm)
 {
-    if (!mpi || !out_comm) return QUO_ERR_INVLD_ARG;
+  if (!mpi || !out_comm) return QUO_ERR_INVLD_ARG;
 
-    switch (target_type) {
-        case QUO_OBJ_MACHINE:
-        {
-            /* this case is easy. just return a dup of the smp communicator that
-             * we already maintain internally. */
-            if (MPI_SUCCESS != MPI_Comm_dup(mpi->smpcomm, out_comm)) {
-                return QUO_ERR_MPI;
-            }
-            break;
-        }
-        /* TODO add support for other obj types */
-        default:
-            return QUO_ERR_NOT_SUPPORTED;
+  switch (target_type) {
+  case QUO_OBJ_MACHINE:
+    {
+      /* this case is easy. just return a dup of the smp communicator that
+      o * we already maintain internally. */
+      if (MPI_SUCCESS != MPI_Comm_dup(mpi->smpcomm, out_comm)) {
+        return QUO_ERR_MPI;
+      }
+      break;
     }
+  case QUO_OBJ_NODE:
+  case QUO_OBJ_SOCKET:
+  case QUO_OBJ_CORE:
+  case QUO_OBJ_PU:
+  default:
+    return QUO_ERR_NOT_SUPPORTED;
+  }
 
-    return QUO_SUCCESS;
+  return QUO_SUCCESS;
 }
