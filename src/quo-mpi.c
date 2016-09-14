@@ -795,14 +795,18 @@ quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
          to MPI_COMM_NULL (behavior of MPI_Comm_split for color = MPI_UNDEFINED).
       */
       int in_resource;
-
-      quo_hwloc_is_in_cpuset_by_type_id(hwloc, target_type, pid,
-                                        (unsigned)index,
-                                        &in_resource);
+      int rc;
+      if(QUO_SUCCESS != (rc = quo_hwloc_is_in_cpuset_by_type_id(hwloc, target_type, pid,
+                                                                (unsigned)index,
+                                                                &in_resource))) {
+        return rc;
+      }
 
       const int color = in_resource ? 0 : MPI_UNDEFINED;
 
-      MPI_Comm_split(mpi->smpcomm, color, mpi->smprank, out_comm);
+      if (MPI_SUCCESS != MPI_Comm_split(mpi->smpcomm, color, mpi->smprank, out_comm)) {
+        return QUO_ERR_MPI;
+      }
     }
     break;
   default:
