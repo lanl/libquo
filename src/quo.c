@@ -600,10 +600,11 @@ QUO_get_mpi_comm_by_type(QUO_t *q,
 int
 QUO_get_mpi_comm_by_type_f2c(QUO_t *q,
                              QUO_obj_type_t target_type,
+                             int index,
                              MPI_Fint *out_comm)
 {
     MPI_Comm c_comm;
-    int rc = QUO_get_mpi_comm_by_type(q, target_type, &c_comm);
+    int rc = QUO_get_mpi_comm_by_type(q, target_type, index, &c_comm);
     *out_comm = MPI_Comm_c2f(c_comm);
 
     return rc;

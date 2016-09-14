@@ -182,7 +182,7 @@ test_QUO_get_mpi_comm_by_type(QUO_context quoc,
     //
     MPI_Comm quo_node_comm;
     if (QUO_SUCCESS != (qrc =
-        QUO_get_mpi_comm_by_type(quoc, QUO_OBJ_MACHINE, &quo_node_comm))) {
+                        QUO_get_mpi_comm_by_type(quoc, QUO_OBJ_MACHINE, 0, &quo_node_comm))) {
         bad_func = "QUO_get_mpi_comm_by_type";
         goto out;
     }
