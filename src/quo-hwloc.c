@@ -358,8 +358,17 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
     int qrc = QUO_SUCCESS;
     int rc = 0;
     quo_hwloc_t *hwloc = NULL;
-    /* flags that influence hwloc's behavior */
+    /* set flags that influence hwloc's behavior */
+    /* Detect the whole system, ignore reservations and offline settings */
     unsigned int flags = HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM;
+    /* don't detect PCI devices. */
+    flags &= ~HWLOC_TOPOLOGY_FLAG_IO_DEVICES;
+    /* don't detect PCI bridges. */
+    flags &= ~HWLOC_TOPOLOGY_FLAG_IO_BRIDGES;
+    /* don't detect the whole PCI hierarchy. */
+    flags &= ~HWLOC_TOPOLOGY_FLAG_WHOLE_IO;
+    /* don't detect instruction caches. */
+    flags &= ~HWLOC_TOPOLOGY_FLAG_ICACHES;
 
     if (NULL == nhwloc) return QUO_ERR_INVLD_ARG;
 
