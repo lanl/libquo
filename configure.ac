@@ -158,7 +158,7 @@ enable_libpci=no
 enable_libudev=no
 #enable_libnuma=no
 
-HWLOC_SET_SYMBOL_PREFIX(quo_)
+HWLOC_SET_SYMBOL_PREFIX(quo_internal_)
 HWLOC_SETUP_CORE([src/hwloc],
                  [],
                  [AC_MSG_ERROR([*** hwloc configure failure. ***])],

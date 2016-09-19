@@ -55,12 +55,12 @@
 #include <sys/types.h>
 #endif
 
-#include <hwloc.h>
+#include "hwloc/include/hwloc.h"
 
 struct quo_hwloc_t;
 typedef struct quo_hwloc_t quo_hwloc_t;
 
-typedef hwloc_const_cpuset_t quo_const_nodeset_t;
+typedef quo_internal_hwloc_const_cpuset_t quo_const_nodeset_t;
 
 int
 quo_hwloc_construct(quo_hwloc_t **nhwloc);

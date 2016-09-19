@@ -70,15 +70,15 @@ typedef struct bind_stack_t {
     /* top of the stack */
     int top;
     /* bind stack */
-    hwloc_cpuset_t bind_stack[BIND_STACK_SIZE];
+    quo_internal_hwloc_cpuset_t bind_stack[BIND_STACK_SIZE];
 } bind_stack_t;
 
 /* quo_hwloc_t type definition */
 struct quo_hwloc_t {
     /* the system's topology */
-    hwloc_topology_t topo;
+    quo_internal_hwloc_topology_t topo;
     /* the widest cpu set. primarily used for "is bound?" tests. */
-    hwloc_cpuset_t widest_cpuset;
+    quo_internal_hwloc_cpuset_t widest_cpuset;
     /* the bind stack */
     bind_stack_t bstack;
     /* my pid */
@@ -105,7 +105,7 @@ valid_bind_policy(QUO_bind_push_policy_t policy)
  */
 static int
 ext2intobj(QUO_obj_type_t external,
-           hwloc_obj_type_t *internal)
+           quo_internal_hwloc_obj_type_t *internal)
 {
     if (!internal) return QUO_ERR_INVLD_ARG;
     /* convert from ours to hwloc's. if you ever need more types, add them here
@@ -142,22 +142,22 @@ ext2intobj(QUO_obj_type_t external,
 static int
 get_cur_bind(const quo_hwloc_t *hwloc,
              pid_t who_pid,
-             hwloc_cpuset_t *out_cpuset)
+             quo_internal_hwloc_cpuset_t *out_cpuset)
 {
     int rc = QUO_SUCCESS;
-    hwloc_cpuset_t cur_bind = NULL;
+    quo_internal_hwloc_cpuset_t cur_bind = NULL;
 
     if (!hwloc || !out_cpuset) return QUO_ERR_INVLD_ARG;
 
-    if (NULL == (cur_bind = hwloc_bitmap_alloc())) {
+    if (NULL == (cur_bind = quo_internal_hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
         rc = QUO_ERR_OOR;
         goto out;
     }
-    if (hwloc_get_proc_cpubind(hwloc->topo,
-                               who_pid,
-                               cur_bind,
-                               HWLOC_CPUBIND_PROCESS)) {
+    if (quo_internal_hwloc_get_proc_cpubind(hwloc->topo,
+                                            who_pid,
+                                            cur_bind,
+                                            HWLOC_CPUBIND_PROCESS)) {
         int err = errno;
         fprintf(stderr, QUO_ERR_PREFIX"%s failure in %s: %d (%s)\n",
                 "hwloc_get_proc_cpubind", __func__, err, strerror(err));
@@ -169,7 +169,7 @@ get_cur_bind(const quo_hwloc_t *hwloc,
 out:
     /* cleanup on failure */
     if (QUO_SUCCESS != rc) {
-        if (cur_bind) hwloc_bitmap_free(cur_bind);
+        if (cur_bind) quo_internal_hwloc_bitmap_free(cur_bind);
         *out_cpuset = NULL;
     }
     return rc;
@@ -180,17 +180,17 @@ static int
 get_obj_by_type(const quo_hwloc_t *hwloc,
                 QUO_obj_type_t type,
                 unsigned type_index,
-                hwloc_obj_t *out_obj)
+                quo_internal_hwloc_obj_t *out_obj)
 {
     int rc = QUO_ERR;
-    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+    quo_internal_hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
 
     if (!hwloc || !out_obj) return QUO_ERR_INVLD_ARG;
     *out_obj = NULL;
     if (QUO_SUCCESS != (rc = ext2intobj(type, &real_type))) return rc;
-    if (NULL == (*out_obj = hwloc_get_obj_by_type(hwloc->topo,
-                                                  real_type,
-                                                  type_index))) {
+    if (NULL == (*out_obj = quo_internal_hwloc_get_obj_by_type(hwloc->topo,
+                                                               real_type,
+                                                               type_index))) {
         /* there are a couple of reasons why target_obj may be NULL. if this
          * ever happens and the specified type and obj index should be valid,
          * then read the hwloc documentation and make this code mo betta. */
@@ -203,25 +203,27 @@ get_obj_by_type(const quo_hwloc_t *hwloc,
 static int
 get_obj_covering_cur_bind(const quo_hwloc_t *hwloc,
                           QUO_obj_type_t type,
-                          hwloc_obj_t *out_obj)
+                          quo_internal_hwloc_obj_t *out_obj)
 {
     int rc = QUO_ERR;
-    hwloc_cpuset_t curbind = NULL;
-    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+    quo_internal_hwloc_cpuset_t curbind = NULL;
+    quo_internal_hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
 
     if (!hwloc || !out_obj) return QUO_ERR_INVLD_ARG;
     if (QUO_SUCCESS != (rc = ext2intobj(type, &real_type))) return rc;
     if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, hwloc->mypid, &curbind))) {
         return rc;
     }
-    *out_obj = hwloc_get_next_obj_covering_cpuset_by_type(hwloc->topo, curbind,
-                                                          real_type, NULL);
+    *out_obj = quo_internal_hwloc_get_next_obj_covering_cpuset_by_type(
+                   hwloc->topo, curbind,
+                   real_type, NULL
+               );
     if (!*out_obj) {
         rc = QUO_ERR_NOT_FOUND;
         goto out;
     }
 out:
-    if (curbind) hwloc_bitmap_free(curbind);
+    if (curbind) quo_internal_hwloc_bitmap_free(curbind);
     return rc;
 }
 
@@ -235,7 +237,7 @@ bind_stack_full(const quo_hwloc_t *hwloc)
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 bind_stack_push(quo_hwloc_t *hwloc,
-                hwloc_cpuset_t cpuset)
+                quo_internal_hwloc_cpuset_t cpuset)
 {
     unsigned top = hwloc->bstack.top;
 
@@ -243,12 +245,13 @@ bind_stack_push(quo_hwloc_t *hwloc,
     /* stack is full - we are out of resources */
     if (bind_stack_full(hwloc)) return QUO_ERR_OOR;
     /* pop will cleanup after this call */
-    if (NULL == (hwloc->bstack.bind_stack[top] = hwloc_bitmap_alloc())) {
+    if (NULL == (hwloc->bstack.bind_stack[top] =
+                 quo_internal_hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
     /* copy the thing */
-    hwloc_bitmap_copy(hwloc->bstack.bind_stack[top], cpuset);
+    quo_internal_hwloc_bitmap_copy(hwloc->bstack.bind_stack[top], cpuset);
     /* update top */
     hwloc->bstack.top++;
     return QUO_SUCCESS;
@@ -257,7 +260,7 @@ bind_stack_push(quo_hwloc_t *hwloc,
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 bind_stack_pop(quo_hwloc_t *hwloc,
-               hwloc_cpuset_t *popped)
+               quo_internal_hwloc_cpuset_t *popped)
 {
     if (!hwloc) return QUO_ERR_INVLD_ARG;
     /* stack is empty -- nothing to do */
@@ -266,35 +269,41 @@ bind_stack_pop(quo_hwloc_t *hwloc,
     hwloc->bstack.top--;
     /* if the caller wants a copy, give it to them */
     if (popped) {
-        if (NULL == (*popped = hwloc_bitmap_alloc())) {
+        if (NULL == (*popped = quo_internal_hwloc_bitmap_alloc())) {
             QUO_OOR_COMPLAIN();
             /* restore top's val in error path */
             hwloc->bstack.top++;
             return QUO_ERR_OOR;
         }
-        hwloc_bitmap_copy(*popped, hwloc->bstack.bind_stack[hwloc->bstack.top]);
+        quo_internal_hwloc_bitmap_copy(
+            *popped,
+            hwloc->bstack.bind_stack[hwloc->bstack.top]
+        );
     }
     /* free the top */
-    hwloc_bitmap_free(hwloc->bstack.bind_stack[hwloc->bstack.top]);
+    quo_internal_hwloc_bitmap_free(hwloc->bstack.bind_stack[hwloc->bstack.top]);
     return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 bind_stack_top(quo_hwloc_t *hwloc,
-               hwloc_cpuset_t *top_copy)
+               quo_internal_hwloc_cpuset_t *top_copy)
 {
     if (!hwloc || !top_copy) return QUO_ERR_INVLD_ARG;
     /* stack is empty -- nothing to do */
     if (hwloc->bstack.top <= 0) return QUO_ERR_POP;
-    if (NULL == (*top_copy = hwloc_bitmap_alloc())) {
+    if (NULL == (*top_copy = quo_internal_hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
     /* remember top is the next empty slot, so decrement first */
     hwloc->bstack.top--;
     /* copy */
-    hwloc_bitmap_copy(*top_copy, hwloc->bstack.bind_stack[hwloc->bstack.top]);
+    quo_internal_hwloc_bitmap_copy(
+        *top_copy,
+        hwloc->bstack.bind_stack[hwloc->bstack.top]
+    );
     /* restore top */
     hwloc->bstack.top++;
     return QUO_SUCCESS;
@@ -308,7 +317,7 @@ static int
 push_cur_bind(quo_hwloc_t *hwloc)
 {
     int rc = QUO_SUCCESS;
-    hwloc_cpuset_t cur_bind = NULL;
+    quo_internal_hwloc_cpuset_t cur_bind = NULL;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
 
@@ -318,7 +327,7 @@ push_cur_bind(quo_hwloc_t *hwloc)
     if (QUO_SUCCESS != (rc = bind_stack_push(hwloc, cur_bind))) goto out;
 out:
     /* push copies, so free the one we created */
-    if (cur_bind) hwloc_bitmap_free(cur_bind);
+    if (cur_bind) quo_internal_hwloc_bitmap_free(cur_bind);
     return rc;
 }
 
@@ -330,14 +339,14 @@ init_cached_attrs(quo_hwloc_t *qh)
 
     /* stash our pid */
     qh->mypid = getpid();
-    if (NULL == (qh->widest_cpuset = hwloc_bitmap_alloc())) {
+    if (NULL == (qh->widest_cpuset = quo_internal_hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
     /* get the top-level obj -- the system */
-    hwloc_obj_t sysobj = hwloc_get_root_obj(qh->topo);
+    quo_internal_hwloc_obj_t sysobj = quo_internal_hwloc_get_root_obj(qh->topo);
     /* stash the system's cpuset */
-    hwloc_bitmap_copy(qh->widest_cpuset, sysobj->cpuset);
+    quo_internal_hwloc_bitmap_copy(qh->widest_cpuset, sysobj->cpuset);
     /* push our current binding */
     return push_cur_bind(qh);
 }
@@ -357,13 +366,13 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
         qrc = QUO_ERR_OOR;
         goto out;
     }
-    if (0 != (rc = hwloc_topology_init(&(hwloc->topo)))) {
+    if (0 != (rc = quo_internal_hwloc_topology_init(&(hwloc->topo)))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
                 "Cannot continue.\n", "hwloc_topology_init", rc);
         qrc = QUO_ERR_TOPO;
         goto out;
     }
-    if (0 != (rc = hwloc_topology_load(hwloc->topo))) {
+    if (0 != (rc = quo_internal_hwloc_topology_load(hwloc->topo))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
                 "Cannot continue.\n", "hwloc_topology_load", rc);
         qrc = QUO_ERR_TOPO;
@@ -394,8 +403,8 @@ quo_hwloc_destruct(quo_hwloc_t *hwloc)
 {
     if (NULL == hwloc) return QUO_ERR_INVLD_ARG;
 
-    hwloc_topology_destroy(hwloc->topo);
-    hwloc_bitmap_free(hwloc->widest_cpuset);
+    quo_internal_hwloc_topology_destroy(hwloc->topo);
+    quo_internal_hwloc_bitmap_free(hwloc->widest_cpuset);
     /* pop initial binding to free up resources */
     bind_stack_pop(hwloc, NULL);
     free(hwloc);
@@ -411,9 +420,9 @@ quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
                                     int *out_result)
 {
     int rc = QUO_ERR;
-    hwloc_obj_t obj = NULL;
-    hwloc_cpuset_t cpu_set = NULL;
-    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+    quo_internal_hwloc_obj_t obj = NULL;
+    quo_internal_hwloc_cpuset_t cpu_set = NULL;
+    quo_internal_hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
     int nobjs = 0;
 
     if (!hwloc || !out_result) return QUO_ERR_INVLD_ARG;
@@ -427,25 +436,27 @@ quo_hwloc_get_nobjs_in_type_by_type(const quo_hwloc_t *hwloc,
                                              &obj))) {
         return rc;
     }
-    if (NULL == (cpu_set = hwloc_bitmap_alloc())) {
+    if (NULL == (cpu_set = quo_internal_hwloc_bitmap_alloc())) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
     /* copy the cpuset of the in target -- do we need this? */
-    hwloc_bitmap_copy(cpu_set, obj->cpuset);
+    quo_internal_hwloc_bitmap_copy(cpu_set, obj->cpuset);
     if (QUO_SUCCESS != (rc = ext2intobj(type, &real_type))) goto out;
     /* set to NULL so the next call works properly */
     obj = NULL;
     /* now count */
-    while ((obj = hwloc_get_next_obj_inside_cpuset_by_type(hwloc->topo,
-                                                           cpu_set,
-                                                           real_type,
-                                                           obj))) {
+    while ((obj = quo_internal_hwloc_get_next_obj_inside_cpuset_by_type(
+                      hwloc->topo,
+                      cpu_set,
+                      real_type,
+                      obj
+                  ))) {
         ++nobjs;
     }
     *out_result = nobjs;
 out:
-    if (cpu_set) hwloc_bitmap_free(cpu_set);
+    if (cpu_set) quo_internal_hwloc_bitmap_free(cpu_set);
     if (QUO_SUCCESS != rc) *out_result = 0;
     return rc;
 }
@@ -460,17 +471,17 @@ quo_hwloc_get_nobjs_by_type(const quo_hwloc_t *hwloc,
                             int *out_nobjs)
 {
     int depth = 0, rc = QUO_ERR;
-    hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
+    quo_internal_hwloc_obj_type_t real_type = HWLOC_OBJ_MACHINE;
 
     if (!hwloc || !out_nobjs) return QUO_ERR_INVLD_ARG;
     if (QUO_SUCCESS != (rc = ext2intobj(target_type, &real_type))) return rc;
-    depth = hwloc_get_type_depth(hwloc->topo, real_type);
+    depth = quo_internal_hwloc_get_type_depth(hwloc->topo, real_type);
     if (HWLOC_TYPE_DEPTH_UNKNOWN == depth) {
         /* hwloc can't determine the number of x, so just return 0 */
         *out_nobjs = 0;
     }
     else {
-        *out_nobjs = hwloc_get_nbobjs_by_depth(hwloc->topo, depth);
+        *out_nobjs = quo_internal_hwloc_get_nbobjs_by_depth(hwloc->topo, depth);
     }
     return QUO_SUCCESS;
 }
@@ -484,16 +495,16 @@ quo_hwloc_is_in_cpuset_by_type_id(const quo_hwloc_t *hwloc,
                                   int *out_result)
 {
     int rc = QUO_ERR;
-    hwloc_obj_t obj = NULL;
-    hwloc_cpuset_t cur_bind = NULL;
+    quo_internal_hwloc_obj_t obj = NULL;
+    quo_internal_hwloc_cpuset_t cur_bind = NULL;
 
     if (!hwloc || !out_result) return QUO_ERR_INVLD_ARG;
     if (QUO_SUCCESS != (rc = get_obj_by_type(hwloc, type, type_index, &obj))) {
         return rc;
     }
     if (QUO_SUCCESS != (rc = get_cur_bind(hwloc, pid, &cur_bind))) return rc;
-    *out_result = hwloc_bitmap_intersects(cur_bind, obj->cpuset);
-    hwloc_bitmap_free(cur_bind);
+    *out_result = quo_internal_hwloc_bitmap_intersects(cur_bind, obj->cpuset);
+    quo_internal_hwloc_bitmap_free(cur_bind);
     return QUO_SUCCESS;
 }
 
@@ -504,7 +515,7 @@ quo_hwloc_bound(const quo_hwloc_t *hwloc,
                 bool *out_bound)
 {
     int rc = 0;
-    hwloc_cpuset_t cur_bind = NULL;
+    quo_internal_hwloc_cpuset_t cur_bind = NULL;
 
     if (NULL == hwloc || NULL == out_bound) return QUO_ERR_INVLD_ARG;
 
@@ -514,9 +525,10 @@ quo_hwloc_bound(const quo_hwloc_t *hwloc,
     /* if our current binding isn't equal to the widest, then we are bound to
      * something smaller than the widest. so, at least as far as we are
      * concerned, the process is "bound." */
-    *out_bound = !hwloc_bitmap_isequal(hwloc->widest_cpuset, cur_bind);
+    *out_bound = !quo_internal_hwloc_bitmap_isequal(hwloc->widest_cpuset,
+                                                    cur_bind);
 out:
-    if (cur_bind) hwloc_bitmap_free(cur_bind);
+    if (cur_bind) quo_internal_hwloc_bitmap_free(cur_bind);
     return rc;
 }
 
@@ -527,7 +539,7 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
                           char **out_str)
 {
     int rc = QUO_SUCCESS;
-    hwloc_cpuset_t cur_bind = NULL;
+    quo_internal_hwloc_cpuset_t cur_bind = NULL;
 
     if (!hwloc || !out_str) return QUO_ERR_INVLD_ARG;
 
@@ -536,12 +548,12 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
         return rc;
     }
     /* caller is responsible for freeing returned resources */
-    hwloc_bitmap_asprintf(out_str, cur_bind);
+    quo_internal_hwloc_bitmap_asprintf(out_str, cur_bind);
     if (!out_str) {
         QUO_OOR_COMPLAIN();
         rc = QUO_ERR_OOR;
     }
-    if (cur_bind) hwloc_bitmap_free(cur_bind);
+    if (cur_bind) quo_internal_hwloc_bitmap_free(cur_bind);
     return rc;
 }
 
@@ -553,8 +565,8 @@ rebind(const quo_hwloc_t *hwloc,
        unsigned obj_index)
 {
     int rc = QUO_SUCCESS;
-    hwloc_obj_t target_obj = NULL;
-    hwloc_cpuset_t cpuset = NULL;
+    quo_internal_hwloc_obj_t target_obj = NULL;
+    quo_internal_hwloc_cpuset_t cpuset = NULL;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
     /* now get the appropriate object based on the given policy */
@@ -570,16 +582,20 @@ rebind(const quo_hwloc_t *hwloc,
     }
     if (QUO_SUCCESS != rc) goto out;
     /* now allocate and copy the given obj's cpuset */
-    if (NULL == (cpuset = hwloc_bitmap_alloc())) return QUO_ERR_OOR;
+    if (NULL == (cpuset = quo_internal_hwloc_bitmap_alloc())) {
+        return QUO_ERR_OOR;
+    }
     /* make a copy of the obj's cpuset */
-    hwloc_bitmap_copy(cpuset, target_obj->cpuset);
+    quo_internal_hwloc_bitmap_copy(cpuset, target_obj->cpuset);
     /* set the policy */
-    if (-1 == hwloc_set_cpubind(hwloc->topo, cpuset, HWLOC_CPUBIND_PROCESS)) {
+    if (-1 == quo_internal_hwloc_set_cpubind(hwloc->topo,
+                                             cpuset,
+                                             HWLOC_CPUBIND_PROCESS)) {
         rc = QUO_ERR_NOT_SUPPORTED;
         goto out;
     }
 out:
-    if (cpuset) hwloc_bitmap_free(cpuset);
+    if (cpuset) quo_internal_hwloc_bitmap_free(cpuset);
     return rc;
 }
 
@@ -612,19 +628,19 @@ int
 quo_hwloc_bind_pop(quo_hwloc_t *hwloc)
 {
     int rc = QUO_SUCCESS;
-    hwloc_cpuset_t topbind = NULL;
+    quo_internal_hwloc_cpuset_t topbind = NULL;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
     if (QUO_SUCCESS != (rc = bind_stack_pop(hwloc, NULL))) return rc;
     /* revert to the top binding after pop (the previous binding) */
     if (QUO_SUCCESS != (rc = bind_stack_top(hwloc, &topbind))) goto out;
-    if (-1 == hwloc_set_cpubind(hwloc->topo, topbind,
-                                HWLOC_CPUBIND_PROCESS)) {
+    if (-1 == quo_internal_hwloc_set_cpubind(hwloc->topo, topbind,
+                                             HWLOC_CPUBIND_PROCESS)) {
         rc = QUO_ERR_NOT_SUPPORTED;
         goto out;
     }
 out:
-    if (topbind) hwloc_bitmap_free(topbind);
+    if (topbind) quo_internal_hwloc_bitmap_free(topbind);
     return rc;
 }
 
