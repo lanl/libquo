@@ -358,6 +358,8 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
     int qrc = QUO_SUCCESS;
     int rc = 0;
     quo_hwloc_t *hwloc = NULL;
+    /* flags that influence hwloc's behavior */
+    unsigned int flags = HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM;
 
     if (NULL == nhwloc) return QUO_ERR_INVLD_ARG;
 
@@ -369,6 +371,12 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
     if (0 != (rc = quo_internal_hwloc_topology_init(&(hwloc->topo)))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
                 "Cannot continue.\n", "hwloc_topology_init", rc);
+        qrc = QUO_ERR_TOPO;
+        goto out;
+    }
+    if (0 != (rc = quo_internal_hwloc_topology_set_flags(hwloc->topo, flags))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
+                "Cannot continue.\n", "hwloc_topology_set_flags", rc);
         qrc = QUO_ERR_TOPO;
         goto out;
     }
