@@ -100,7 +100,7 @@ stringify_type(QUO_obj_type_t typ)
 {
     switch (typ) {
         case QUO_OBJ_MACHINE: return "machine";
-        case QUO_OBJ_NODE: return "numa node";
+        case QUO_OBJ_NUMANODE: return "numa node";
         case QUO_OBJ_SOCKET: return "socket";
         case QUO_OBJ_CORE: return "core";
         case QUO_OBJ_PU: return "processing unit";
@@ -193,7 +193,7 @@ sys_grok(context_t *c)
     if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(c->quo,
                                                  QUO_OBJ_MACHINE,
                                                  0,
-                                                 QUO_OBJ_NODE,
+                                                 QUO_OBJ_NUMANODE,
                                                  &c->nnuma)) {
         bad_func = "QUO_nobjs_in_type_by_type";
         goto out;
@@ -429,7 +429,7 @@ all_ranks_some_res(context_t *context)
     QUO_obj_type_t what_to_bindup_to = QUO_OBJ_MACHINE;
     /* pick some resource to "bind up" to. */
     if (0 != context->nnuma) {
-        what_to_bindup_to = QUO_OBJ_NODE;
+        what_to_bindup_to = QUO_OBJ_NUMANODE;
     }
     else if (0 != context->nsockets) {
         what_to_bindup_to = QUO_OBJ_SOCKET;

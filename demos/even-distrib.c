@@ -172,7 +172,7 @@ main(void)
     /* now evenly distribute over a target resource. this will round-robin over
      * the target resource. */
     ////////////////////////////////////////////////////////////////////////////
-    QUO_obj_type_t target_res = QUO_OBJ_NODE;
+    QUO_obj_type_t target_res = QUO_OBJ_NUMANODE;
     if (nnumas == 0) {
         target_res = QUO_OBJ_SOCKET;
     }

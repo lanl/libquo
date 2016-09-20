@@ -307,7 +307,9 @@ QUO_nnumanodes(QUO_t *q,
     if (!q || !out_nnumanodes) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     noinit_action(q);
-    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_NODE, out_nnumanodes);
+    return quo_hwloc_get_nobjs_by_type(q->hwloc,
+                                       QUO_OBJ_NUMANODE,
+                                       out_nnumanodes);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

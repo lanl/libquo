@@ -139,7 +139,7 @@ main(int argc, char **argv)
     info_t info;
     int work_member = 0, max_members_per_res = 2;
     int nres = 0, rc = EXIT_SUCCESS;
-    info.tres = QUO_OBJ_NODE;
+    info.tres = QUO_OBJ_NUMANODE;
 
     assert(MPI_SUCCESS == MPI_Init(&argc, &argv));
     assert(QUO_SUCCESS == QUO_create(&info.q, MPI_COMM_WORLD));

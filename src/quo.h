@@ -100,7 +100,7 @@ typedef enum {
     /* the machine */
     QUO_OBJ_MACHINE = 0,
     /* NUMA node */
-    QUO_OBJ_NODE,
+    QUO_OBJ_NUMANODE,
     /* socket */
     QUO_OBJ_SOCKET,
     /* core */
