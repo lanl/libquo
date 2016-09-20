@@ -341,6 +341,12 @@ main(int argc,
 
     setbuf(stdout, NULL);
 
+    if (1 == argc) {
+        show_usage();
+        rc = QUO_ERR_INVLD_ARG;
+        goto out;
+    }
+
     while (-1 != (c = getopt_long_only(argc, argv, opt_string,
                                        long_opts, NULL))) {
         switch (c) {
