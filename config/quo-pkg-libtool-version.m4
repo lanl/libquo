@@ -68,7 +68,7 @@
 # 2:0:0. This release has a new, but backwards incompatible interface.
 
 AC_DEFUN([AX_QUO_LIBTOOL_VERSION], [dnl
-    QUO_VERSION_CURRENT=5
+    QUO_VERSION_CURRENT=6
     QUO_VERSION_REVISION=0
     QUO_VERSION_AGE=0
 
