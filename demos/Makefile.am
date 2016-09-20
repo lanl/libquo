@@ -44,7 +44,7 @@
 #SUBDIRS = openmp
 
 noinst_PROGRAMS = \
-quoinfo \
+basic-info \
 even-distrib \
 quodemo-0 \
 quodemo-1 \
@@ -63,9 +63,9 @@ libcaller_driven_callee_p1.la \
 libcallee_driven_callee_p1.la
 
 ###
-quoinfo_SOURCES = quoinfo.c
-quoinfo_CPPFLAGS = -I$(top_srcdir)/src
-quoinfo_LDADD = $(top_builddir)/src/libquo.la
+basic_info_SOURCES = basic-info.c 
+basic_info_CPPFLAGS = -I$(top_srcdir)/src
+basic_info_LDADD = $(top_builddir)/src/libquo.la
 
 ###
 even_distrib_SOURCES = even-distrib.c
