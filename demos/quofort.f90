@@ -139,4 +139,6 @@ program quofort
 
     call mpi_finalize(info)
 
+    call exit(0)
+
 end program quofort
