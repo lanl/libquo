@@ -15,7 +15,8 @@ o Delete $QUO_PREFIX/bin directory
 
 o Build QUO and link against the installed version of libnuma.
 ./configure CC=cc FC=ftn \
-LDFLAGS="-dynamic" --prefix=$QUO_PREFIX --enable-static
+LDFLAGS="-dynamic -L${QUO_PREFIX}/lib" \
+--prefix=$QUO_PREFIX --enable-static
 
 o Install
 make && make install
