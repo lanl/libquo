@@ -339,8 +339,8 @@ int
 QUO_npus(QUO_t *q,
          int *out_npus)
 {
-    /* make sure we are initialized before we continue */
     if (!q || !out_npus) return QUO_ERR_INVLD_ARG;
+    /* make sure we are initialized before we continue */
     noinit_action(q);
     return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_PU, out_npus);
 }
@@ -352,8 +352,8 @@ QUO_bound(QUO_t *q,
 {
     int rc = QUO_ERR;
     bool bound_b = false;
-    if (!q || !bound) return QUO_ERR_INVLD_ARG;
 
+    if (!q || !bound) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     noinit_action(q);
     if (QUO_SUCCESS != (rc = quo_hwloc_bound(q->hwloc, q->pid, &bound_b))) {
