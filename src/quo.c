@@ -173,6 +173,11 @@ QUO_create(QUO_t **q,
                 "quo_mpi_init", PACKAGE);
         goto out;
     }
+    if (QUO_SUCCESS != (rc = quo_hwloc_init(tq->hwloc))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
+                "quo_hwloc_init", PACKAGE);
+        goto out;
+    }
     tq->initialized = true;
 out:
     if (QUO_SUCCESS != rc) *q = NULL;

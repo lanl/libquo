@@ -356,8 +356,25 @@ int
 quo_hwloc_construct(quo_hwloc_t **nhwloc)
 {
     int qrc = QUO_SUCCESS;
-    int rc = 0;
     quo_hwloc_t *hwloc = NULL;
+
+    if (NULL == nhwloc) return QUO_ERR_INVLD_ARG;
+
+    if (NULL == (hwloc = calloc(1, sizeof(*hwloc)))) {
+        QUO_OOR_COMPLAIN();
+        qrc = QUO_ERR_OOR;
+    }
+
+    *nhwloc = hwloc;
+    return qrc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_init(quo_hwloc_t *hwloc)
+{
+    int qrc = QUO_SUCCESS;
+    int rc = 0;
     /* set flags that influence hwloc's behavior */
     /* Detect the whole system, ignore reservations and offline settings */
     unsigned int flags = HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM;
@@ -370,13 +387,8 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
     /* don't detect instruction caches. */
     flags &= ~HWLOC_TOPOLOGY_FLAG_ICACHES;
 
-    if (NULL == nhwloc) return QUO_ERR_INVLD_ARG;
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
 
-    if (NULL == (hwloc = calloc(1, sizeof(*hwloc)))) {
-        QUO_OOR_COMPLAIN();
-        qrc = QUO_ERR_OOR;
-        goto out;
-    }
     if (0 != (rc = quo_internal_hwloc_topology_init(&(hwloc->topo)))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
                 "Cannot continue.\n", "hwloc_topology_init", rc);
@@ -406,10 +418,6 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
 out:
     if (qrc != QUO_SUCCESS) {
         (void)quo_hwloc_destruct(hwloc);
-        *nhwloc = NULL;
-    }
-    else {
-        *nhwloc = hwloc;
     }
     return qrc;
 }
