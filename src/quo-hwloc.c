@@ -376,8 +376,7 @@ quo_hwloc_init(quo_hwloc_t *hwloc)
     int qrc = QUO_SUCCESS;
     int rc = 0;
     /* set flags that influence hwloc's behavior */
-    /* Detect the whole system, ignore reservations and offline settings */
-    unsigned int flags = HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM;
+    unsigned int flags = 0;
     /* don't detect PCI devices. */
     flags &= ~HWLOC_TOPOLOGY_FLAG_IO_DEVICES;
     /* don't detect PCI bridges. */
