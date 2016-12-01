@@ -184,9 +184,18 @@ AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
 #FFLAGS="$FFLAGS $OPENMP_FFLAGS"
 
 ################################################################################
+# For docs target support
+################################################################################
+AC_CHECK_PROGS([QUO_HAVE_PROG_DOXYGEN], [doxygen])
+if test "x$QUO_HAVE_PROG_DOXYGEN" = "x"; then
+    AC_MSG_WARN([Doxygen not found. Continuing without Doxygen support])
+fi
+AM_CONDITIONAL(QUO_HAVE_DOXYGEN_DOCS_SUPPORT,
+               test "x$QUO_HAVE_PROG_DOXYGEN" != "x")
+
+################################################################################
 # For package info (quo-info)
 ################################################################################
-
 QUO_WHICH_CC=`which \`echo "$CC" | tr -s ' ' | cut -f1 -d' '\``
 QUO_WHICH_FC=`which \`echo "$FC" | tr -s ' ' | cut -f1 -d' '\``
 if test "x$QUO_WHICH_FC" = x; then
@@ -264,6 +273,13 @@ cat << EOF
 | Not Enabled
 EOF
 fi
+cat << EOF
++-------------------------------------------------------------------------------
+| Other Configury ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
++-------------------------------------------------------------------------------
+EOF
+printf "| Doxygen docs Target Available: %s\n" \
+    $( test "x$QUO_HAVE_PROG_DOXYGEN" = "x" && printf "no" || printf "yes" )
 cat << EOF
 +-------------------------------------------------------------------------------
 EOF
