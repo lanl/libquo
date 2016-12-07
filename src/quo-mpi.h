@@ -49,6 +49,7 @@
 #endif
 
 #include "quo-private.h"
+#include "quo-hwloc.h"
 #include "quo.h"
 
 #include "mpi.h"
@@ -93,6 +94,9 @@ quo_mpi_sm_barrier(const quo_mpi_t *mpi);
 
 int
 quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
+                         const quo_hwloc_t *hwloc,
                          QUO_obj_type_t target_type,
+                         int pid,
+                         int index,
                          MPI_Comm *out_comm);
 #endif

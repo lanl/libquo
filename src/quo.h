@@ -611,6 +611,8 @@ QUO_auto_distrib(QUO_context q,
  *
  * @param target_type - target hardware object type. (IN)
  *
+ * @param indes - the ressource index
+ *
  * @param out_comm - MPI_Comm_dup'd communicator containing processes that match
  *                   the target request. Returned resources must be freed with a
  *                   call to MPI_Comm_free.
@@ -620,6 +622,7 @@ QUO_auto_distrib(QUO_context q,
 int
 QUO_get_mpi_comm_by_type(QUO_context q,
                          QUO_obj_type_t target_type,
+                         int index,
                          MPI_Comm *out_comm);
 
 /**
