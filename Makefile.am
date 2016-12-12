@@ -51,6 +51,11 @@ tests \
 demos \
 pkgconfig
 
+
+if QUO_HAVE_DOXYGEN_DOCS_SUPPORT
+SUBDIRS += docs
+endif
+
 EXTRA_DIST = \
 docs \
 AUTHORS README THANKS LICENSE autogen contrib BROKEN-COMPILERS

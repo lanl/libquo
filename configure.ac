@@ -186,12 +186,12 @@ AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
 ################################################################################
 # For docs target support
 ################################################################################
-AC_CHECK_PROGS([QUO_HAVE_PROG_DOXYGEN], [doxygen])
-if test "x$QUO_HAVE_PROG_DOXYGEN" = "x"; then
+AC_CHECK_PROGS([DOXYGEN], [doxygen])
+if test "x$DOXYGEN" = "x"; then
     AC_MSG_WARN([Doxygen not found. Continuing without Doxygen support])
 fi
 AM_CONDITIONAL([QUO_HAVE_DOXYGEN_DOCS_SUPPORT],
-               [test "x$QUO_HAVE_PROG_DOXYGEN" != "x"])
+               [test "x$DOXYGEN" != "x"])
 
 AM_COND_IF(
     [QUO_HAVE_DOXYGEN_DOCS_SUPPORT],
@@ -284,7 +284,7 @@ cat << EOF
 +-------------------------------------------------------------------------------
 EOF
 printf "| Doxygen docs Target Available: %s\n" \
-    $( test "x$QUO_HAVE_PROG_DOXYGEN" = "x" && printf "no" || printf "yes" )
+    $( test "x$DOXYGEN" = "x" && printf "no" || printf "yes" )
 cat << EOF
 +-------------------------------------------------------------------------------
 EOF
