@@ -190,8 +190,12 @@ AC_CHECK_PROGS([QUO_HAVE_PROG_DOXYGEN], [doxygen])
 if test "x$QUO_HAVE_PROG_DOXYGEN" = "x"; then
     AC_MSG_WARN([Doxygen not found. Continuing without Doxygen support])
 fi
-AM_CONDITIONAL(QUO_HAVE_DOXYGEN_DOCS_SUPPORT,
-               test "x$QUO_HAVE_PROG_DOXYGEN" != "x")
+AM_CONDITIONAL([QUO_HAVE_DOXYGEN_DOCS_SUPPORT],
+               [test "x$QUO_HAVE_PROG_DOXYGEN" != "x"])
+
+AM_COND_IF(
+    [QUO_HAVE_DOXYGEN_DOCS_SUPPORT],
+    [AC_CONFIG_FILES([docs/Doxyfile])])
 
 ################################################################################
 # For package info (quo-info)
