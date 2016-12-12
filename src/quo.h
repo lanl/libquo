@@ -41,12 +41,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* i do a pretty terrible job explaining the interface. play around with the
- * demo codes; they are simple and pretty clearly illustrate how to use QUO. */
-
 /**
  * @file quo.h
  */
+
+/* i do a pretty terrible job explaining the interface. play around with the
+ * demo codes; they are simple and pretty clearly illustrate how to use QUO. */
 
 #ifndef QUO_H_INCLUDED
 #define QUO_H_INCLUDED
@@ -58,66 +58,66 @@
 extern "C" {
 #endif
 
-/* in case you need this */
+/** Convenience definition (in case you need this). */
 #define LIBQUO 1
 
-/** opaque quo context */
+/** Opaque quo context. */
 struct QUO_t;
 typedef struct QUO_t QUO_t;
-/* external QUO context type */
+/** External QUO context type. */
 typedef QUO_t * QUO_context;
 
-/** quo return codes */
 /**
+ * QUO return codes:
  * fatal = libquo can no longer function.
  * not fatal = libquo can continue functioning, but an error occurred.
  */
 enum {
-    /* success */
+    /** Success. */
     QUO_SUCCESS = 0,
-    /* success, but already done */
+    /** Success, but already done. */
     QUO_SUCCESS_ALREADY_DONE,
-    /* general error -- fatal */
+    /** General error -- fatal. */
     QUO_ERR,
-    /* system error -- fatal */
+    /** System error -- fatal. */
     QUO_ERR_SYS,
-    /* out of resources error  -- fatal */
+    /** Out of resources error  -- fatal. */
     QUO_ERR_OOR,
-    /* invalid argument provided to library -- usually fatal */
+    /** Invalid argument provided to library -- usually fatal. */
     QUO_ERR_INVLD_ARG,
-    /* library call before QUO_init was called -- improper use of library */
+    /** Library call before QUO_init was called -- improper use of library. */
     QUO_ERR_CALL_BEFORE_INIT,
-    /* topology error -- fatal */
+    /** Topology error -- fatal. */
     QUO_ERR_TOPO,
-    /* mpi error -- fatal */
+    /** MPI error -- fatal. */
     QUO_ERR_MPI,
-    /* action not supported -- usually not fatal */
+    /** Action not supported -- usually not fatal. */
     QUO_ERR_NOT_SUPPORTED,
-    /* *pop error -- not fatal, but usually indicates improper use */
+    /** Pop error -- not fatal, but usually indicates improper use. */
     QUO_ERR_POP,
-    /* the thing that you were looking for wasn't found -- not fatal */
+    /** The thing that you were looking for wasn't found -- not fatal. */
     QUO_ERR_NOT_FOUND
 };
 
-/** hardware resource types */
+/** Hardware resource types. */
 typedef enum {
-    /* the machine */
+    /** The machine. */
     QUO_OBJ_MACHINE = 0,
-    /* NUMA node */
+    /** NUMA node. */
     QUO_OBJ_NUMANODE,
-    /* socket */
+    /** Socket. */
     QUO_OBJ_SOCKET,
-    /* core */
+    /** Core. */
     QUO_OBJ_CORE,
-    /* processing unit (e.g. hardware thread) */
+    /** Processing unit (e.g. hardware thread). */
     QUO_OBJ_PU
 } QUO_obj_type_t;
 
-/** push policies that influence QUO_bind_push behavior. */
+/** Push policies that influence QUO_bind_push behavior. */
 typedef enum {
-    /* push the exact binding policy that was provided */
+    /** Push the exact binding policy that was provided. */
     QUO_BIND_PUSH_PROVIDED = 0,
-    /* push to the enclosing QUO_obj_type_t provided. */
+    /** Push to the enclosing QUO_obj_type_t provided. */
     QUO_BIND_PUSH_OBJ
 } QUO_bind_push_policy_t;
 
