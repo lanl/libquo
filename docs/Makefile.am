@@ -15,7 +15,7 @@ $(directory)/man_page_2.3: doxyfile.stamp
 
 doxyfile.stamp:
 	$(DOXYGEN) Doxyfile
-	echo Timestamp > doxyfile.stamp
+	@echo Timestamp > doxyfile.stamp@
 
 CLEANFILES = doxyfile.stamp
 
