@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013-2016 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
@@ -41,6 +41,10 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @file quo-set.c
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -59,10 +63,10 @@
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /**
- * this is a naive algorithm to compute the intersection of k sets. if this
+ * This is a naive algorithm to compute the intersection of k sets. if this
  * approach ever becomes a performance bottleneck, then implement Baeza-Yates.
  *
- * caller is responsible for freeing returned resources.
+ * Caller is responsible for freeing returned resources.
  */
 int
 quo_set_get_k_set_intersection(int nsets,

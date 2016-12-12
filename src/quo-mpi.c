@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013-2016 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
@@ -39,6 +39,10 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * @file quo-mpi.c
  */
 
 #ifdef HAVE_CONFIG_H
@@ -106,7 +110,7 @@ typedef struct quo_shmem_barrier_segment_t {
 } quo_shmem_barrier_segment_t;
 
 /**
- * maintains pid to smprank mapping.
+ * Maintains pid to smprank mapping.
  */
 typedef struct pid_smprank_map_t {
     long pid;

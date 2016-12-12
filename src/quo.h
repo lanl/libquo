@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013-2016 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
