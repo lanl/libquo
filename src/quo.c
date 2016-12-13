@@ -66,18 +66,17 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#if 0 // Disable for now...
-#ifdef HAVE_OMP_H
-#include <omp.h>
-#endif
-#endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* QUO_t type definition */
+/** QUO_t type definition */
 struct QUO_t {
+    /** Whether or not a context has been initialized. */
     bool initialized;
+    /** PID of initializer. */
     pid_t pid;
+    /** Handle to hwloc instance. */
     quo_hwloc_t *hwloc;
+    /** Handle to MPI instance. */
     quo_mpi_t *mpi;
 };
 

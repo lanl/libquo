@@ -146,8 +146,8 @@ QUO_version(int *version,
 /**
  * libquo context handle construction and initialization routine.
  *
- * @param comm Initializing MPI communicator. (IN)
- * @param q Reference to a new QUO_context. (OUT)
+ * @param[in] comm Initializing MPI communicator.
+ * @param[out] Reference to a new QUO_context.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -170,7 +170,7 @@ QUO_create(QUO_context *q,
 /**
  * libquo context handle destruction routine.
  *
- * @param q Constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -193,12 +193,12 @@ QUO_free(QUO_context q);
  * libquo context query routine that returns the total number of hardware
  * resource objects that are on the caller's system.
  *
- * @param q Constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param target_type Hardware object type that is being queried. (IN)
+ * @param[in] target_type Hardware object type that is being queried.
  *
- * @param out_nobjs Total number of hardware object types found on the
- *                  system. (OUT)
+ * @param[out] out_nobjs Total number of hardware object types found on the
+ *             system.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -219,16 +219,15 @@ QUO_nobjs_by_type(QUO_context q,
  * resource objects that are in another hardware resource (e.g. cores in a
  * socket).
  *
- * @param q Constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param in_type Container hardware object type. (IN)
+ * @param[in] in_type Container hardware object type.
  *
- * @param in_type_index in_type's ID (base 0). (IN)
+ * @param[in] in_type_index in_type's ID (base 0).
  *
- * @param type Target hardware object found in in_type[in_type_index]. (IN)
+ * @param[in] type Target hardware object found in in_type[in_type_index].
  *
- * @param out_result Total number of hardware object types found by the query.
- *                   (OUT)
+ * @param[out] out_result Total number of hardware object types found by the query.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -253,14 +252,14 @@ QUO_nobjs_in_type_by_type(QUO_context q,
  * binding policy falls within a particular system hardware resource (is
  * enclosed).
  *
- * @param q Constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param type Hardware object type. (IN)
+ * @param[in] type Hardware object type.
  *
- * @param in_type_index type's ID (base 0). (IN)
+ * @param[in] in_type_index type's ID (base 0).
  *
- * @param out_result Flag indicating whether or not my current binding policy
- *                   falls within type[in_type_index]. (OUT)
+ * @param[out] out_result Flag indicating whether or not my current binding policy
+ *             falls within type[in_type_index].
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -285,17 +284,17 @@ QUO_cpuset_in_type(QUO_context q,
  * Similar to QUO_cpuset_in_type, but returns the "SMP_COMM_WORLD" QUO IDs that
  * met the query criteria.
  *
- * @param q Constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param type Hardware object type. (IN)
+ * @param[in] type Hardware object type.
  *
- * @param in_type_index type's ID (base 0). (IN)
+ * @param[in] in_type_index type's ID (base 0).
  *
- * @param out_nqids Total number of node (job) processes that satisfy the
- *                  query criteria. (OUT)
+ * @param[out] out_nqids Total number of node (job) processes that satisfy the
+ *             query criteria.
  *
- * @param out_qids An array of "SMP_COMM_WORLD ranks" that met the query
- *                 criteria. *out_qids must be freed by a call to free(3). (OUT)
+ * @param[out] out_qids An array of "SMP_COMM_WORLD ranks" that met the query
+ *             criteria. *out_qids must be freed by a call to free(3).
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -321,9 +320,9 @@ QUO_qids_in_type(QUO_context q,
  * libquo query routine that returns the total number of NUMA nodes that are
  * present on the caller's system.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param out_nnumanodes - total number of NUMA nodes on the system. (OUT)
+ * @param[out] out_nnumanodes Total number of NUMA nodes on the system.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -356,7 +355,7 @@ QUO_ncores(QUO_context q,
 
 /**
  * Similar to QUO_nnumanodes, but returns the total number of processing units
- * (PUs) (e.g. hardware threads) present on the caller's system.
+ * (PUs) (e.g., hardware threads) present on the caller's system.
  */
 int
 QUO_npus(QUO_context q,
@@ -364,14 +363,14 @@ QUO_npus(QUO_context q,
 
 /**
  * Similar to QUO_nnumanodes, but returns the total number of compute nodes
- * (i.e. servers) in the current job.
+ * (i.e., servers) in the current job.
  */
 int
 QUO_nnodes(QUO_context q,
            int *out_nodes);
 
 /**
- * similar to QUO_nnumanodes, but returns the total number of job processes that
+ * Similar to QUO_nnumanodes, but returns the total number of job processes that
  * are on the caller's compute node.
  *
  * \note
@@ -386,9 +385,9 @@ QUO_nqids(QUO_context q,
 /**
  * libquo query routine that returns the caller's compute node QUO node ID.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param out_qid - the caller's node ID, as assigned by libquo. (OUT)
+ * @param[out] out_qid The caller's node ID, as assigned by libquo.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -412,15 +411,15 @@ QUO_id(QUO_context q,
  * libquo query routine that returns whether or not the caller is currently
  * "bound" to a CPU resource.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param bound - flag indicating whether or not the caller is currently bound.
- *                (OUT)
+ * @param[out] bound Flag indicating whether or not the caller is currently bound.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * NOTES: if the caller's current cpuset is equal to the widest available
- * cpuset, then the caller is not bound as far as libquo is concerned. for
+ * \note
+ * If the caller's current cpuset is equal to the widest available
+ * cpuset, then the caller is not bound as far as libquo is concerned. For
  * example, if your system has only one core and the calling process is "bound"
  * to that one core, then as far as we are concerned, the caller is not bound.
  *
@@ -443,10 +442,10 @@ QUO_bound(QUO_context q,
  * libquo query routine that returns a string representation of the caller's
  * current binding policy (cpuset) in a hexadecimal format. @see CPUSET(7).
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param cbind_str - the caller's current CPU binding policy in string form.
- *                    *cbind_str must be freed by call to free(3). (OUT)
+ * @param cbind_str[out] The caller's current CPU binding policy in string form.
+ *                       *cbind_str must be freed by call to free(3). (OUT)
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -465,24 +464,25 @@ QUO_stringify_cbind(QUO_context q,
 
 
 /**
- * libquo routine that changes the caller's process binding policy. the policy
+ * libquo routine that changes the caller's process binding policy. The policy
  * is maintained in the current context's stack.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param policy - policy that influence the behavior of this routine. if
- *                 QUO_BIND_PUSH_PROVIDED is provided, then the type and
- *                 obj_index are used as the new policy.  if QUO_BIND_PUSH_OBJ
- *                 is provided, then obj_index is ignored and the "closest" type
- *                 is used. (IN)
+ * @param[in] policy Policy that influence the behavior of this routine. If
+ *                   QUO_BIND_PUSH_PROVIDED is provided, then the type and
+ *                   obj_index are used as the new policy.  If QUO_BIND_PUSH_OBJ
+ *                   is provided, then obj_index is ignored and the "closest"
+ *                   type is used.
  *
- * @param type - the hardware resource to bind to. (IN)
+ * @param[in] type The hardware resource to bind to.
  *
- * @param obj_index - when not ignored, type's index (base 0). (IN)
+ * @param[in] obj_index When not ignored, type's index (base 0).
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * NOTES: to revert to the previous binding policy call QUO_bind_pop.
+ * \note
+ * To revert to the previous binding policy call QUO_bind_pop.
  *
  * \code{.c}
  * // in this example we will bind to socket 0 //
@@ -494,7 +494,6 @@ QUO_stringify_cbind(QUO_context q,
  * if (QUO_SUCCESS != QUO_bind_pop(q)) {
  *     // error handling //
  * }
- *
  * // EXAMPLE 2
  * // in this example we will bind to the "closest" socket //
  * if (QUO_SUCCESS != QUO_bind_push(q, QUO_BIND_PUSH_OBJ,
@@ -517,7 +516,7 @@ QUO_bind_push(QUO_context q,
  * libquo routine that changes the caller's process binding policy by replacing
  * it with the policy at the top of the provided context's process bind stack.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -537,11 +536,11 @@ int
 QUO_bind_pop(QUO_context q);
 
 /**
- * libquo routine that acts as a compute node barrier. all context-initializing
+ * libquo routine that acts as a compute node barrier. All context-initializing
  * processes on a node MUST call this in order for everyone to proceed past the
- * barrier. see demos for examples.
+ * barrier. See demos for examples.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -566,29 +565,30 @@ QUO_barrier(QUO_context q);
 
 /**
  * libquo routine that helps evenly distribute processes across hardware
- * resources.  the total number of processes assigned to a particular resource
+ * resources.  The total number of processes assigned to a particular resource
  * will not exceed max_qids_per_res_type.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param distrib_over_this - the target hardware resource on which processes
- *                            will be evenly distributed.
+ * @param[in] distrib_over_this The target hardware resource on which processes
+ *                              will be evenly distributed.
  *
- * @param max_qids_per_res_type - the maximum number of processes that will be
- *                                assigned to the provided resources. for
- *                                example, if your system has two sockets and
- *                                max_qids_per_res_type is 2, then a max of 4
- *                                processes will be chosen (max 2 per socket).
- *                                this routine doesn't modify the calling
- *                                processes' affinities, but is used as a
- *                                helper for evenly distributing processes over
- *                                hardware resources given a global view of all
- *                                the affinities within a job. i'm doing a
- *                                terrible job explaining this, so look at the
- *                                demos. believe me, this routine is useful...
+ * @param[in] max_qids_per_res_type The maximum number of processes that will be
+ *                                  assigned to the provided resources. For
+ *                                  example, if your system has two sockets and
+ *                                  max_qids_per_res_type is 2, then a max of 4
+ *                                  processes will be chosen (max 2 per socket).
+ *                                  this routine doesn't modify the calling
+ *                                  processes' affinities, but is used as a
+ *                                  helper for evenly distributing processes over
+ *                                  hardware resources given a global view of all
+ *                                  the affinities within a job. i'm doing a
+ *                                  terrible job explaining this, so look at the
+ *                                  demos. Believe me, this routine is useful...
  *
- * @param out_selected - flag indicating whether or not i was chosen in the work
- *                       distribution. 1 means I was chosen, 0 otherwise. (OUT)
+ * @param[out] out_selected Flag indicating whether or not i was chosen in the
+ *                          work distribution. 1 means I was chosen, 0
+ *                          otherwise.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -607,13 +607,13 @@ QUO_auto_distrib(QUO_context q,
                  int *out_selected);
 
 /**
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param[in] q Constructed and initialized QUO_context.
  *
- * @param target_type - target hardware object type. (IN)
+ * @param[in] target_type Target hardware object type.
  *
- * @param out_comm - MPI_Comm_dup'd communicator containing processes that match
- *                   the target request. Returned resources must be freed with a
- *                   call to MPI_Comm_free.
+ * @param[out] out_comm MPI_Comm_dup'd communicator containing processes that
+ *                      match the target request. Returned resources must be
+ *                      freed with a call to MPI_Comm_free.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  */
