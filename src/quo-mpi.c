@@ -113,38 +113,42 @@ typedef struct quo_shmem_barrier_segment_t {
  * Maintains pid to smprank mapping.
  */
 typedef struct pid_smprank_map_t {
+    /** PID */
     long pid;
+    /** Node-local ID. */
     int smprank;
 } pid_smprank_map_t;
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* quo_mpi_t type definition */
 struct quo_mpi_t {
-    /* whether or not mpi is initialized */
+    /** Whether or not MPI is initialized. */
     int mpi_inited;
-    /* my host's name */
+    /** My host's name. */
     char hostname[MPI_MAX_PROCESSOR_NAME];
-    /* communication channel for libquo mpi bits - dup of initializing comm */
+    /**
+     * Communication channel for libquo MPI bits.
+     * A dup of initializing comm.
+     */
     MPI_Comm commchan;
-    /* node communicator */
+    /** Node communicator. */
     MPI_Comm smpcomm;
-    /* number of nodes in the current job */
+    /** Number of nodes in the current job. */
     int nnodes;
-    /* my rank in MPI_COMM_WORLD */
+    /** My rank in MPI_COMM_WORLD. */
     int rank;
-    /* number of ranks in MPI_COMM_WORLD */
+    /** Number of ranks in MPI_COMM_WORLD. */
     int nranks;
-    /* my smp (node) rank */
+    /** My smp (node) rank. */
     int smprank;
-    /* number of ranks that share a node with me - |pid_smprank_map| */
+    /** Number of ranks that share a node with me - |pid_smprank_map|. */
     int nsmpranks;
-    /* pid to smprank map for all ranks that share a node with me */
+    /** PID to smprank map for all ranks that share a node with me. */
     pid_smprank_map_t *pid_smprank_map;
-    /* array of comm world ranks that share a node with me (includes me) */
+    /** Array of comm world ranks that share a node with me (includes me). */
     int *node_ranks;
-    /* sm barrier segment path */
+    /** Shared-memory barrier segment path. */
     char *bseg_path;
-    /* base address of the shared memory segment used for our barrier */
+    /** Base address of the shared memory segment used for our barrier. */
     quo_shmem_barrier_segment_t *bsegp;
 };
 

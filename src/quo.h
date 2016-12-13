@@ -623,7 +623,8 @@ QUO_get_mpi_comm_by_type(QUO_context q,
                          MPI_Comm *out_comm);
 
 /**
- * TODO add documentation.
+ * \note
+ * Experimental.
  */
 int
 QUO_bind_threads(QUO_context q,
