@@ -123,20 +123,21 @@ typedef enum {
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /* ////////////////////////////////////////////////////////////////////////// */
-/* quo api */
+/* QUO API */
 /* ////////////////////////////////////////////////////////////////////////// */
 /* ////////////////////////////////////////////////////////////////////////// */
 
 /**
  * libquo version query routine.
  *
- * @param version - major version (OUT)
+ * @param version Major version (OUT)
  *
- * @param subversion - subversion (OUT)
+ * @param subversion Subversion (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * NOTES: this routine can be called before QUO_init.
+ * \note
+ * This routine can be called before QUO_init.
  */
 int
 QUO_version(int *version,
@@ -145,22 +146,23 @@ QUO_version(int *version,
 /**
  * libquo context handle construction and initialization routine.
  *
- * @param comm - initializing MPI communicator. (IN)
- * @param q - reference to a new QUO_context. (OUT)
+ * @param comm Initializing MPI communicator. (IN)
+ * @param q Reference to a new QUO_context. (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * NOTES: this is typically the first "real" call into the library. a
- * relatively expensive routine that must be called AFTER MPI_Init. call
- * QUO_free to free returned resources.
+ * \note
+ * This is typically the first "real" call into the library. A relatively
+ * expensive routine that must be called AFTER MPI_Init. Call QUO_free to free
+ * returned resources.
  *
- * EXAMPLE (c):
+ * \code{.c}
  * QUO_context quo = NULL;
  * if (QUO_SUCCESS != QUO_create(&quo, MPI_COMM_WORLD)) {
  *     // error handling //
  * }
+ * \endcode
  */
-
 int
 QUO_create(QUO_context *q,
            MPI_Comm comm);
@@ -168,20 +170,21 @@ QUO_create(QUO_context *q,
 /**
  * libquo context handle destruction routine.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param q Constructed and initialized QUO_context. (IN)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * NOTES: this is typically the last "real" call into the library.  a relatively
- * inexpensive routine that must be called BEFORE MPI_Finalize.  once a call to
+ * \note
+ * This is typically the last "real" call into the library.  A relatively
+ * inexpensive routine that must be called BEFORE MPI_Finalize.  Once a call to
  * this routine is made, it is an error to use any libquo services associated
  * with the freed libquo context from any other participating process.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * if (QUO_SUCCESS != QUO_free(quo)) {
  *     // error handling //
  * }
+ * \endcode
  */
 int
 QUO_free(QUO_context q);
@@ -190,21 +193,21 @@ QUO_free(QUO_context q);
  * libquo context query routine that returns the total number of hardware
  * resource objects that are on the caller's system.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param q Constructed and initialized QUO_context. (IN)
  *
- * @param target_type - hardware object type that is being queried. (IN)
+ * @param target_type Hardware object type that is being queried. (IN)
  *
- * @param out_nobjs - total number of hardware object types found on the
- *                    system. (OUT)
+ * @param out_nobjs Total number of hardware object types found on the
+ *                  system. (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * int nsockets = 0;
  * if (QUO_SUCCESS != QUO_nobjs_by_type(q, QUO_OBJ_SOCKET, &nsockets)) {
  *     // error handling //
  * }
+ * \endcode
  */
 int
 QUO_nobjs_by_type(QUO_context q,
@@ -216,27 +219,27 @@ QUO_nobjs_by_type(QUO_context q,
  * resource objects that are in another hardware resource (e.g. cores in a
  * socket).
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param q Constructed and initialized QUO_context. (IN)
  *
- * @param in_type - container hardware object type. (IN)
+ * @param in_type Container hardware object type. (IN)
  *
- * @param in_type_index - in_type's ID (base 0). (IN)
+ * @param in_type_index in_type's ID (base 0). (IN)
  *
- * @param type - target hardware object found in in_type[in_type_index]. (IN)
+ * @param type Target hardware object found in in_type[in_type_index]. (IN)
  *
- * @param out_result- total number of hardware object types found by the query.
- *                    (OUT)
+ * @param out_result Total number of hardware object types found by the query.
+ *                   (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * int ncores_in_first_socket = 0;
  * if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(q, QUO_OBJ_SOCKET, 0
  *                                              QUO_OBJ_CORE,
  *                                              &ncores_in_first_socket)) {
  *     // error handling //
  * }
+ * \endcode
  */
 int
 QUO_nobjs_in_type_by_type(QUO_context q,
@@ -250,19 +253,18 @@ QUO_nobjs_in_type_by_type(QUO_context q,
  * binding policy falls within a particular system hardware resource (is
  * enclosed).
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param q Constructed and initialized QUO_context. (IN)
  *
- * @param type - hardware object type. (IN)
+ * @param type Hardware object type. (IN)
  *
- * @param in_type_index - type's ID (base 0). (IN)
+ * @param in_type_index type's ID (base 0). (IN)
  *
- * @param out_result- flag indicating whether or not my current binding policy
- *                    falls within type[in_type_index]. (OUT)
+ * @param out_result Flag indicating whether or not my current binding policy
+ *                   falls within type[in_type_index]. (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * int cur_bind_covers_sock3 = 0;
  * if (QUO_SUCCESS != QUO_cpuset_in_type(q, QUO_OBJ_SOCKET, 2
  *                                       &cur_bind_enclosed_in_sock3)) {
@@ -271,6 +273,7 @@ QUO_nobjs_in_type_by_type(QUO_context q,
  * if (cur_bind_enclosed_in_sock3) {
  *     // do stuff //
  * }
+ * \endcode
  */
 int
 QUO_cpuset_in_type(QUO_context q,
@@ -279,26 +282,24 @@ QUO_cpuset_in_type(QUO_context q,
                    int *out_result);
 
 /**
- * similar to QUO_cpuset_in_type, but returns the "SMP_COMM_WORLD" QUO IDs that
+ * Similar to QUO_cpuset_in_type, but returns the "SMP_COMM_WORLD" QUO IDs that
  * met the query criteria.
  *
- * @param q - constructed and initialized QUO_context. (IN)
+ * @param q Constructed and initialized QUO_context. (IN)
  *
- * @param type - hardware object type. (IN)
+ * @param type Hardware object type. (IN)
  *
- * @param in_type_index - type's ID (base 0). (IN)
+ * @param in_type_index type's ID (base 0). (IN)
  *
- * @param out_nqids - total number of node (job) processes that satisfy the
- *                    query criteria. (OUT)
+ * @param out_nqids Total number of node (job) processes that satisfy the
+ *                  query criteria. (OUT)
  *
- * @param out_qids - an array of "SMP_COMM_WORLD ranks" that met the query
- *                   criteria. *out_qids must be freed by a call to
- *                   free(3). (OUT)
+ * @param out_qids An array of "SMP_COMM_WORLD ranks" that met the query
+ *                 criteria. *out_qids must be freed by a call to free(3). (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * int nqids_enclosed_in_socket0 = 0;
  * int *qids_enclosed_in_socket0 = NULL;
  * if (QUO_SUCCESS != QUO_qids_in_type(q, QUO_OBJ_SOCKET, 0
@@ -306,8 +307,8 @@ QUO_cpuset_in_type(QUO_context q,
  *                                     &qids_enclosed_in_socket0)) {
  *     // error handling //
  * }
- * // ... //
  * free(qids_enclosed_in_socket0);
+ * \endcode
  */
 int
 QUO_qids_in_type(QUO_context q,
@@ -324,22 +325,21 @@ QUO_qids_in_type(QUO_context q,
  *
  * @param out_nnumanodes - total number of NUMA nodes on the system. (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * int nnumanodes = 0;
  * if (QUO_SUCCESS != QUO_nnumanodes(q, &nnumanodes)) {_
  *     // error handling //
  * }
- * // ... //
+ * \endcode
  */
 int
 QUO_nnumanodes(QUO_context q,
                int *out_nnumanodes);
 
 /**
- * similar to QUO_nnumanodes, but returns the total number of sockets present on
+ * Similar to QUO_nnumanodes, but returns the total number of sockets present on
  * the caller's system.
  */
 int
@@ -347,7 +347,7 @@ QUO_nsockets(QUO_context q,
              int *out_nsockets);
 
 /**
- * similar to QUO_nnumanodes, but returns the total number of cores present on
+ * Similar to QUO_nnumanodes, but returns the total number of cores present on
  * the caller's system.
  */
 int
@@ -355,7 +355,7 @@ QUO_ncores(QUO_context q,
            int *out_ncores);
 
 /**
- * similar to QUO_nnumanodes, but returns the total number of processing units
+ * Similar to QUO_nnumanodes, but returns the total number of processing units
  * (PUs) (e.g. hardware threads) present on the caller's system.
  */
 int
@@ -363,7 +363,7 @@ QUO_npus(QUO_context q,
          int *out_npus);
 
 /**
- * similar to QUO_nnumanodes, but returns the total number of compute nodes
+ * Similar to QUO_nnumanodes, but returns the total number of compute nodes
  * (i.e. servers) in the current job.
  */
 int
@@ -374,9 +374,10 @@ QUO_nnodes(QUO_context q,
  * similar to QUO_nnumanodes, but returns the total number of job processes that
  * are on the caller's compute node.
  *
- * NOTES: *out_nqids includes the caller. for example, if there are 3 MPI
- * processes on rank 0's (MPI_COMM_WORLD) node, then rank 0's call to this
- * routine will result in *out_nqids being set to 3.
+ * \note
+ * *out_nqids includes the caller. For example, if there are 3 MPI processes on
+ * rank 0's (MPI_COMM_WORLD) node, then rank 0's call to this routine will
+ * result in *out_nqids being set to 3.
  */
 int
 QUO_nqids(QUO_context q,
@@ -389,12 +390,11 @@ QUO_nqids(QUO_context q,
  *
  * @param out_qid - the caller's node ID, as assigned by libquo. (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
  * NOTES: QIDs start at 0 and go to NNODERANKS - 1.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * int mynodeqid = 0;
  * if (QUO_SUCCESS != QUO_id(q, &mynodeqid)) {_
  *     // error handling //
@@ -402,6 +402,7 @@ QUO_nqids(QUO_context q,
  * if (0 == mynodeqid) {
  *     // node id 0 do stuff //
  * }
+ * \endcode
  */
 int
 QUO_id(QUO_context q,
@@ -416,15 +417,14 @@ QUO_id(QUO_context q,
  * @param bound - flag indicating whether or not the caller is currently bound.
  *                (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
  * NOTES: if the caller's current cpuset is equal to the widest available
  * cpuset, then the caller is not bound as far as libquo is concerned. for
  * example, if your system has only one core and the calling process is "bound"
  * to that one core, then as far as we are concerned, the caller is not bound.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * int bound = 0;
  * if (QUO_SUCCESS != QUO_bound(q, &bound)) {_
  *     // error handling //
@@ -432,6 +432,7 @@ QUO_id(QUO_context q,
  * if (!bound) {
  *     // take action //
  * }
+ * \endcode
  */
 
 int
@@ -447,16 +448,16 @@ QUO_bound(QUO_context q,
  * @param cbind_str - the caller's current CPU binding policy in string form.
  *                    *cbind_str must be freed by call to free(3). (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * char *cbindstr = NULL;
  * if (QUO_SUCCESS != QUO_stringify_cbind(q, &cbindstr)) {
  *     // error handling //
  * }
  * printf("%s\n", cbindstr);
  * free(cbindstr);
+ * \endcode
  */
 int
 QUO_stringify_cbind(QUO_context q,
@@ -479,12 +480,11 @@ QUO_stringify_cbind(QUO_context q,
  *
  * @param obj_index - when not ignored, type's index (base 0). (IN)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
  * NOTES: to revert to the previous binding policy call QUO_bind_pop.
  *
- * EXAMPLE 1 (c):
- * // ... //
+ * \code{.c}
  * // in this example we will bind to socket 0 //
  * if (QUO_SUCCESS != QUO_bind_push(q, QUO_BIND_PUSH_PROVIDED,
  *                                  QUO_OBJ_SOCKET, 0)) {
@@ -494,10 +494,8 @@ QUO_stringify_cbind(QUO_context q,
  * if (QUO_SUCCESS != QUO_bind_pop(q)) {
  *     // error handling //
  * }
- * // ... //
  *
- * EXAMPLE 2 (c):
- * // ... //
+ * // EXAMPLE 2
  * // in this example we will bind to the "closest" socket //
  * if (QUO_SUCCESS != QUO_bind_push(q, QUO_BIND_PUSH_OBJ,
  *                                  QUO_OBJ_SOCKET, -1)) {
@@ -507,7 +505,7 @@ QUO_stringify_cbind(QUO_context q,
  * if (QUO_SUCCESS != QUO_bind_pop(q)) {
  *     // error handling //
  * }
- * // ... //
+ * \endcode
  */
 int
 QUO_bind_push(QUO_context q,
@@ -521,10 +519,9 @@ QUO_bind_push(QUO_context q,
  *
  * @param q - constructed and initialized QUO_context. (IN)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * // in this example we will bind to socket 0 //
  * if (QUO_SUCCESS != QUO_bind_push(q, QUO_BIND_PUSH_PROVIDED,
  *                                  QUO_OBJ_SOCKET, 0)) {
@@ -534,7 +531,7 @@ QUO_bind_push(QUO_context q,
  * if (QUO_SUCCESS != QUO_bind_pop(q)) {
  *     // error handling //
  * }
- * // ... //
+ * \endcode
  */
 int
 QUO_bind_pop(QUO_context q);
@@ -546,9 +543,9 @@ QUO_bind_pop(QUO_context q);
  *
  * @param q - constructed and initialized QUO_context. (IN)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c): // ... //
+ * \code{.c}
  *  // time for p1 to do some work with some of the ranks //
  *  if (working) {
  *      // *** do work *** //
@@ -562,7 +559,7 @@ QUO_bind_pop(QUO_context q);
  *          // error handling //
  *      }
  *  }
- *  // ... ///
+ *  \endcode
  */
 int
 QUO_barrier(QUO_context q);
@@ -593,16 +590,15 @@ QUO_barrier(QUO_context q);
  * @param out_selected - flag indicating whether or not i was chosen in the work
  *                       distribution. 1 means I was chosen, 0 otherwise. (OUT)
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  *
- * EXAMPLE (c):
- * // ... //
+ * \code{.c}
  * int res_assigned = 0;
  * if (QUO_SUCCESS != QUO_auto_distrib(q, QUO_OBJ_SOCKET,
  *                                     2, &res_assigned)) {
  *     // error handling //
  * }
- * // ... //
+ * \endcode
  */
 int
 QUO_auto_distrib(QUO_context q,
@@ -619,7 +615,7 @@ QUO_auto_distrib(QUO_context q,
  *                   the target request. Returned resources must be freed with a
  *                   call to MPI_Comm_free.
  *
- * @returnvalue QUO_SUCCESS if the operation completed successfully.
+ * @retval QUO_SUCCESS if the operation completed successfully.
  */
 int
 QUO_get_mpi_comm_by_type(QUO_context q,
