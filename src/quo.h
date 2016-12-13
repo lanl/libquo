@@ -147,7 +147,7 @@ QUO_version(int *version,
  * libquo context handle construction and initialization routine.
  *
  * @param[in] comm Initializing MPI communicator.
- * @param[out] Reference to a new QUO_context.
+ * @param[out] q Reference to a new QUO_context.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *
@@ -444,7 +444,7 @@ QUO_bound(QUO_context q,
  *
  * @param[in] q Constructed and initialized QUO_context.
  *
- * @param cbind_str[out] The caller's current CPU binding policy in string form.
+ * @param[out] cbind_str The caller's current CPU binding policy in string form.
  *                       *cbind_str must be freed by call to free(3). (OUT)
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
