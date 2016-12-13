@@ -193,11 +193,6 @@ fi
 AM_CONDITIONAL([QUO_HAVE_DOXYGEN_DOCS_SUPPORT],
                [test "x$DOXYGEN" != "x"])
 
-AM_COND_IF(
-    [QUO_HAVE_DOXYGEN_DOCS_SUPPORT],
-    [AC_CONFIG_FILES([docs/doxyfile
-                      docs/Makefile])])
-
 ################################################################################
 # For package info (quo-info)
 ################################################################################
@@ -227,7 +222,9 @@ AC_CONFIG_FILES([Makefile
                  tests/Makefile
                  demos/Makefile
                  pkgconfig/Makefile
-                 pkgconfig/libquo.pc])
+                 pkgconfig/libquo.pc
+                 docs/Makefile
+                 docs/doxy.cfg])
 
 AC_OUTPUT
 

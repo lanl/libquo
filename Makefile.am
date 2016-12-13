@@ -49,16 +49,15 @@ src/fortran \
 src/tools \
 tests \
 demos \
-pkgconfig
-
-
-if QUO_HAVE_DOXYGEN_DOCS_SUPPORT
-SUBDIRS += docs
-endif
+pkgconfig \
+docs
 
 EXTRA_DIST = \
-docs \
 AUTHORS README THANKS LICENSE autogen contrib BROKEN-COMPILERS
+
+#if QUO_HAVE_DOXYGEN_DOCS_SUPPORT
+#SUBDIRS += docs
+#endif
 
 AM_CFLAGS = $(HWLOC_EMBEDDED_CFLAGS)
 

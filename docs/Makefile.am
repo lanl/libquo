@@ -3,15 +3,12 @@
 #                         All rights reserved.
 ################################################################################
 
-directory = $(top_builddir)/docs/man/man3
+EXTRA_DIST = \
+builds \
+doxyfile
 
-doxyfile.stamp:
+all-local:
 	$(DOXYGEN) doxyfile
-	@echo Timestamp > doxyfile.stamp@
-
-CLEANFILES = doxyfile.stamp
-
-all-local: doxyfile.stamp
 
 clean-local:
-	rm -rf $(top_builddir)/docs/man
+	rm -rf html latex
