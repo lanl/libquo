@@ -224,7 +224,7 @@ AC_CONFIG_FILES([Makefile
                  pkgconfig/Makefile
                  pkgconfig/libquo.pc
                  docs/Makefile
-                 docs/doxy.cfg])
+                 docs/doxyfile])
 
 AC_OUTPUT
 

@@ -43,6 +43,9 @@
 
 ACLOCAL_AMFLAGS = -Iconfig -Isrc/hwloc/config
 
+EXTRA_DIST = \
+AUTHORS README THANKS LICENSE autogen contrib BROKEN-COMPILERS
+
 SUBDIRS = \
 src \
 src/fortran \
@@ -51,13 +54,6 @@ tests \
 demos \
 pkgconfig \
 docs
-
-EXTRA_DIST = \
-AUTHORS README THANKS LICENSE autogen contrib BROKEN-COMPILERS
-
-#if QUO_HAVE_DOXYGEN_DOCS_SUPPORT
-#SUBDIRS += docs
-#endif
 
 AM_CFLAGS = $(HWLOC_EMBEDDED_CFLAGS)
 

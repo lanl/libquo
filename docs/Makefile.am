@@ -3,10 +3,6 @@
 #                         All rights reserved.
 ################################################################################
 
-EXTRA_DIST = \
-builds \
-doxyfile
-
 all-local:
 	$(DOXYGEN) doxyfile
 
