@@ -6,7 +6,7 @@
 directory = $(top_builddir)/docs/man/man3
 
 doxyfile.stamp:
-	$(DOXYGEN) Doxyfile
+	$(DOXYGEN) doxyfile
 	@echo Timestamp > doxyfile.stamp@
 
 CLEANFILES = doxyfile.stamp

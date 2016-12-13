@@ -195,7 +195,7 @@ AM_CONDITIONAL([QUO_HAVE_DOXYGEN_DOCS_SUPPORT],
 
 AM_COND_IF(
     [QUO_HAVE_DOXYGEN_DOCS_SUPPORT],
-    [AC_CONFIG_FILES([docs/Doxyfile
+    [AC_CONFIG_FILES([docs/doxyfile
                       docs/Makefile])])
 
 ################################################################################
