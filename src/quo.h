@@ -63,6 +63,7 @@ extern "C" {
 
 /** Opaque QUO context. */
 struct QUO_t;
+/** Convenience typedef. */
 typedef struct QUO_t QUO_t;
 /** External QUO context type. */
 typedef QUO_t * QUO_context;

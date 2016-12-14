@@ -105,7 +105,10 @@
  * about checking if everything has been setup before continuing with the
  * operation. */
 
+/** Pthread-based inter-process quiescence structure that is embedded in a
+ * shared-memory segment (one per node per context). */
 typedef struct quo_shmem_barrier_segment_t {
+    /** The barrier structure. */
     pthread_barrier_t barrier;
 } quo_shmem_barrier_segment_t;
 

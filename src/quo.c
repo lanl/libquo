@@ -663,7 +663,12 @@ QUO_bind_threads(QUO_t *q,
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* fortran only. don't include in quo.h. */
+/**
+ * Used to free up allocated memory on the Fortran side - don't include in
+ * quo.h.
+ *
+ * @param[in] p Pointer to allocated memory.
+ * */
 int
 QUO_ptr_free(void *p)
 {

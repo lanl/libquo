@@ -66,26 +66,26 @@
 #include <syscall.h>
 #endif
 
-/* should be plenty */
+/** Constant that dictates the max size of the bind stack - should be plenty. */
 #define BIND_STACK_SIZE 128
 
-/* the almighty bind stack */
+/** The almighty bind stack. */
 typedef struct bind_stack_t {
-    /* top of the stack */
+    /** Index to top of the stack. */
     int top;
-    /* bind stack */
+    /** Array-based bind stack container. */
     quo_internal_hwloc_cpuset_t bind_stack[BIND_STACK_SIZE];
 } bind_stack_t;
 
-/* quo_hwloc_t type definition */
+/** Structure that holds hwloc-related state. */
 struct quo_hwloc_t {
-    /* the system's topology */
+    /** The system's topology. */
     quo_internal_hwloc_topology_t topo;
-    /* the widest cpu set. primarily used for "is bound?" tests. */
+    /** The widest cpuset. Primarily used for "is bound?" tests. */
     quo_internal_hwloc_cpuset_t widest_cpuset;
-    /* the bind stack */
+    /** The bind stack. */
     bind_stack_t bstack;
-    /* my pid */
+    /** Cached PID. */
     pid_t mypid;
 };
 
