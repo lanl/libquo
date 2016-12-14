@@ -130,9 +130,9 @@ typedef enum {
 /**
  * Version query routine.
  *
- * @param version Major version (OUT)
+ * @param[out] version Major version.
  *
- * @param subversion Subversion (OUT)
+ * @param[out] subversion Subversion.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  *

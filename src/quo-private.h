@@ -58,12 +58,12 @@
 #include <stdbool.h>
 #endif
 
-/* library version */
+/** Library version. */
 #define QUO_VER    QUO_VERSION_CURRENT
 #define QUO_SUBVER QUO_VERSION_REVISION
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* convenience macros                                                         */
+/* Convenience macros                                                         */
 /* ////////////////////////////////////////////////////////////////////////// */
 
 #define QUO_STRINGIFY(x) #x
@@ -73,12 +73,20 @@
 #define QUO_ERR_PREFIX   "-["PACKAGE" ERROR: "QUO_ERR_AT"]- "
 #define QUO_WARN_PREFIX  "-["PACKAGE" WARNING]- "
 
+/**
+ * Convenience macro used to print out OOR messages.
+ */
 #define QUO_OOR_COMPLAIN()                                                     \
 do {                                                                           \
     fprintf(stderr, QUO_ERR_PREFIX "out of resources\n");                      \
     fflush(stderr);                                                            \
 } while (0)
 
+/**
+ * Convenience macro used to print out error messages.
+ *
+ * @param[in] whystr Error message string.
+ */
 #define QUO_ERR_MSG(whystr)                                                    \
 do {                                                                           \
     fprintf(stderr, QUO_ERR_PREFIX"%s failed: %s.\n", __func__, (whystr));     \
@@ -86,6 +94,8 @@ do {                                                                           \
 
 /**
  * Convenience macro used to silence warnings about unused variables.
+ *
+ * @param[in] x Unused variable.
  */
 #define QUO_UNUSED(x)                                                          \
 do {                                                                           \
