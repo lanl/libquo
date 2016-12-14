@@ -50,6 +50,8 @@
 #endif
 
 #include "quo-set.h"
+#include "quo-private.h"
+#include "quo.h"
 
 #include <stdlib.h>
 #include <stdio.h>

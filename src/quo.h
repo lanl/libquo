@@ -45,13 +45,13 @@
  * @file quo.h
  */
 
-/* i do a pretty terrible job explaining the interface. play around with the
+/* I do a pretty terrible job explaining the interface. play around with the
  * demo codes; they are simple and pretty clearly illustrate how to use QUO. */
 
 #ifndef QUO_H_INCLUDED
 #define QUO_H_INCLUDED
 
-/* for MPI_Comm type */
+/* For MPI_Comm type */
 #include "mpi.h"
 
 #ifdef __cplusplus
@@ -61,7 +61,7 @@ extern "C" {
 /** Convenience definition (in case you need this). */
 #define LIBQUO 1
 
-/** Opaque quo context. */
+/** Opaque QUO context. */
 struct QUO_t;
 typedef struct QUO_t QUO_t;
 /** External QUO context type. */
@@ -69,8 +69,8 @@ typedef QUO_t * QUO_context;
 
 /**
  * QUO return codes:
- * fatal = libquo can no longer function.
- * not fatal = libquo can continue functioning, but an error occurred.
+ * - fatal = libquo can no longer function.
+ * - not fatal = libquo can continue functioning, but an error occurred.
  */
 enum {
     /** Success. */
@@ -128,7 +128,7 @@ typedef enum {
 /* ////////////////////////////////////////////////////////////////////////// */
 
 /**
- * libquo version query routine.
+ * Version query routine.
  *
  * @param version Major version (OUT)
  *
@@ -144,7 +144,7 @@ QUO_version(int *version,
             int *subversion);
 
 /**
- * libquo context handle construction and initialization routine.
+ * Context handle construction and initialization routine.
  *
  * @param[in] comm Initializing MPI communicator.
  * @param[out] q Reference to a new QUO_context.
@@ -168,7 +168,7 @@ QUO_create(QUO_context *q,
            MPI_Comm comm);
 
 /**
- * libquo context handle destruction routine.
+ * Context handle destruction routine.
  *
  * @param[in] q Constructed and initialized QUO_context.
  *
@@ -190,7 +190,7 @@ int
 QUO_free(QUO_context q);
 
 /**
- * libquo context query routine that returns the total number of hardware
+ * Context query routine that returns the total number of hardware
  * resource objects that are on the caller's system.
  *
  * @param[in] q Constructed and initialized QUO_context.
@@ -215,7 +215,7 @@ QUO_nobjs_by_type(QUO_context q,
                   int *out_nobjs);
 
 /**
- * libquo context query routine that returns the total number of hardware
+ * Context query routine that returns the total number of hardware
  * resource objects that are in another hardware resource (e.g. cores in a
  * socket).
  *
@@ -248,7 +248,7 @@ QUO_nobjs_in_type_by_type(QUO_context q,
                           int *out_result);
 
 /**
- * libquo context handle query routine that returns whether or not my current
+ * Context handle query routine that returns whether or not my current
  * binding policy falls within a particular system hardware resource (is
  * enclosed).
  *
@@ -317,7 +317,7 @@ QUO_qids_in_type(QUO_context q,
                  int **out_qids);
 
 /**
- * libquo query routine that returns the total number of NUMA nodes that are
+ * Query routine that returns the total number of NUMA nodes that are
  * present on the caller's system.
  *
  * @param[in] q Constructed and initialized QUO_context.
@@ -383,7 +383,7 @@ QUO_nqids(QUO_context q,
           int *out_nqids);
 
 /**
- * libquo query routine that returns the caller's compute node QUO node ID.
+ * Query routine that returns the caller's compute node QUO node ID.
  *
  * @param[in] q Constructed and initialized QUO_context.
  *
@@ -408,7 +408,7 @@ QUO_id(QUO_context q,
        int *out_qid);
 
 /**
- * libquo query routine that returns whether or not the caller is currently
+ * Query routine that returns whether or not the caller is currently
  * "bound" to a CPU resource.
  *
  * @param[in] q Constructed and initialized QUO_context.
@@ -439,7 +439,7 @@ QUO_bound(QUO_context q,
           int *bound);
 
 /**
- * libquo query routine that returns a string representation of the caller's
+ * Query routine that returns a string representation of the caller's
  * current binding policy (cpuset) in a hexadecimal format. @see CPUSET(7).
  *
  * @param[in] q Constructed and initialized QUO_context.
@@ -464,7 +464,7 @@ QUO_stringify_cbind(QUO_context q,
 
 
 /**
- * libquo routine that changes the caller's process binding policy. The policy
+ * Routine that changes the caller's process binding policy. The policy
  * is maintained in the current context's stack.
  *
  * @param[in] q Constructed and initialized QUO_context.
@@ -513,7 +513,7 @@ QUO_bind_push(QUO_context q,
               int obj_index);
 
 /**
- * libquo routine that changes the caller's process binding policy by replacing
+ * Routine that changes the caller's process binding policy by replacing
  * it with the policy at the top of the provided context's process bind stack.
  *
  * @param[in] q Constructed and initialized QUO_context.
@@ -536,7 +536,7 @@ int
 QUO_bind_pop(QUO_context q);
 
 /**
- * libquo routine that acts as a compute node barrier. All context-initializing
+ * Routine that acts as a compute node barrier. All context-initializing
  * processes on a node MUST call this in order for everyone to proceed past the
  * barrier. See demos for examples.
  *
@@ -564,7 +564,7 @@ int
 QUO_barrier(QUO_context q);
 
 /**
- * libquo routine that helps evenly distribute processes across hardware
+ * Routine that helps evenly distribute processes across hardware
  * resources.  The total number of processes assigned to a particular resource
  * will not exceed max_qids_per_res_type.
  *
