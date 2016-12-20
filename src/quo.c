@@ -81,21 +81,6 @@ struct QUO_t {
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* public api routines */
-/* ////////////////////////////////////////////////////////////////////////// */
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-QUO_version(int *version,
-            int *subversion)
-{
-    if (!version || !subversion) return QUO_ERR_INVLD_ARG;
-    *version = QUO_VER;
-    *subversion = QUO_SUBVER;
-    return QUO_SUCCESS;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
 static int
 construct_quoc(QUO_t **q)
 {
@@ -128,6 +113,20 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
+/* public api routines */
+/* ////////////////////////////////////////////////////////////////////////// */
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_version(int *version,
+            int *subversion)
+{
+    if (!version || !subversion) return QUO_ERR_INVLD_ARG;
+    *version = QUO_VER;
+    *subversion = QUO_SUBVER;
+    return QUO_SUCCESS;
+}
+
 /**
  * Simply a wrapper for our Fortran interface to C interface. No need to expose
  * in quo.h header at this point, since it is only used by our Fortran module.
