@@ -81,24 +81,6 @@ struct QUO_t {
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* private routines */
-/* ////////////////////////////////////////////////////////////////////////// */
-static void
-noinit_msg_emit(const char *func)
-{
-    fprintf(stderr, QUO_ERR_PREFIX"%s called before %s. Cannot continue.\n",
-            func, "QUO_create");
-}
-
-#define noinit_action(qp)                                                      \
-do {                                                                           \
-    if (!(qp)->initialized) {                                                  \
-        noinit_msg_emit(__func__);                                             \
-        return QUO_ERR_CALL_BEFORE_INIT;                                       \
-    }                                                                          \
-} while (0)
-
-/* ////////////////////////////////////////////////////////////////////////// */
 /* public api routines */
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -216,7 +198,7 @@ QUO_nobjs_in_type_by_type(QUO_t *q,
 {
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_get_nobjs_in_type_by_type(q->hwloc,
                                                in_type,
                                                (unsigned)in_type_index,
@@ -233,7 +215,7 @@ QUO_cpuset_in_type(QUO_t *q,
 {
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_is_in_cpuset_by_type_id(q->hwloc, type, q->pid,
                                              (unsigned)in_type_index,
                                              out_result);
@@ -257,7 +239,7 @@ QUO_qids_in_type(QUO_context q,
 
     if (!q || !out_nqids || !out_qids) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     *out_nqids = 0; *out_qids = NULL;
     /* figure out how many node ranks on the node */
     if (QUO_SUCCESS != (rc = QUO_nqids(q, &tot_smpranks))) return rc;
@@ -303,7 +285,7 @@ QUO_nobjs_by_type(QUO_t *q,
 {
     if (!q || !out_nobjs) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_get_nobjs_by_type(q->hwloc, target_type, out_nobjs);
 }
 
@@ -314,7 +296,7 @@ QUO_nnumanodes(QUO_t *q,
 {
     if (!q || !out_nnumanodes) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_get_nobjs_by_type(q->hwloc,
                                        QUO_OBJ_NUMANODE,
                                        out_nnumanodes);
@@ -327,7 +309,7 @@ QUO_nsockets(QUO_t *q,
 {
     if (!q || !out_nsockets) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_SOCKET, out_nsockets);
 }
 
@@ -338,7 +320,7 @@ QUO_ncores(QUO_t *q,
 {
     if (!q || !out_ncores) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_CORE, out_ncores);
 }
 
@@ -349,7 +331,7 @@ QUO_npus(QUO_t *q,
 {
     if (!q || !out_npus) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_PU, out_npus);
 }
 
@@ -363,7 +345,7 @@ QUO_bound(QUO_t *q,
 
     if (!q || !bound) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     if (QUO_SUCCESS != (rc = quo_hwloc_bound(q->hwloc, q->pid, &bound_b))) {
         return rc;
     }
@@ -377,7 +359,7 @@ QUO_stringify_cbind(QUO_t *q,
                     char **cbind_str)
 {
     if (!q || !cbind_str) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_stringify_cbind(q->hwloc, q->pid, cbind_str);
 }
 
@@ -387,7 +369,7 @@ QUO_nnodes(QUO_t *q,
            int *out_nodes)
 {
     if (!q || !out_nodes) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_mpi_nnodes(q->mpi, out_nodes);
 }
 
@@ -397,7 +379,7 @@ QUO_nqids(QUO_t *q,
           int *out_nqids)
 {
     if (!q || !out_nqids) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_mpi_nnoderanks(q->mpi, out_nqids);
 }
 
@@ -407,7 +389,7 @@ QUO_id(QUO_t *q,
        int *out_qid)
 {
     if (!q || !out_qid) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_mpi_noderank(q->mpi, out_qid);
 }
 
@@ -419,7 +401,7 @@ QUO_bind_push(QUO_t *q,
               int obj_index)
 {
     if (!q) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_bind_push(q->hwloc, policy, type, (unsigned)obj_index);
 }
 
@@ -428,7 +410,7 @@ int
 QUO_bind_pop(QUO_t *q)
 {
     if (!q) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_hwloc_bind_pop(q->hwloc);
 }
 
@@ -437,7 +419,7 @@ int
 QUO_barrier(QUO_t *q)
 {
     if (!q) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     return quo_mpi_sm_barrier(q->mpi);
 }
 
@@ -467,7 +449,7 @@ QUO_auto_distrib(QUO_t *q,
     if (!q || !out_selected || max_qids_per_res_type <= 0) {
         return QUO_ERR_INVLD_ARG;
     }
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
     *out_selected = 0; /* set default */
     if (QUO_SUCCESS != (rc = QUO_nqids(q, &nsmp_ranks))) return rc;
     /* what is my node rank? */
@@ -596,7 +578,7 @@ QUO_get_mpi_comm_by_type(QUO_t *q,
 {
     if (!q || !out_comm) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
 
     return quo_mpi_get_comm_by_type(q->mpi, target_type, out_comm);
 }
@@ -631,7 +613,7 @@ QUO_bind_threads(QUO_t *q,
     int rc = QUO_ERR;
 
     if (!q) return QUO_ERR_INVLD_ARG;
-    noinit_action(q);
+    QUO_NO_INIT_ACTION(q);
 
     thread_num = omp_get_thread_num();
     num_threads = omp_get_num_threads();

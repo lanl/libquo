@@ -102,4 +102,28 @@ do {                                                                           \
     (void)(x);                                                                 \
 } while (0)
 
+/**
+ * Convenience macro used to print out error messages.
+ *
+ * @param[in] func The function name that caused this error.
+ */
+#define QUO_NO_INIT_MSG_EMIT(func)                                             \
+do {                                                                           \
+    fprintf(stderr, QUO_ERR_PREFIX"%s called before %s. Cannot continue.\n",   \
+            (func), "QUO_create");                                             \
+} while (0)
+
+/**
+ * Convenience macro used to check and handle context non-initialization.
+ *
+ * @param[in] qp QUO context pointer.
+ */
+#define QUO_NO_INIT_ACTION(qp)                                                 \
+do {                                                                           \
+    if (!(qp)->initialized) {                                                  \
+        QUO_NO_INIT_MSG_EMIT(__func__);                                        \
+        return QUO_ERR_CALL_BEFORE_INIT;                                       \
+    }                                                                          \
+} while (0)
+
 #endif

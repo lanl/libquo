@@ -379,6 +379,15 @@ quo_hwloc_init(quo_hwloc_t *hwloc)
 {
     int qrc = QUO_SUCCESS;
     int rc = 0;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+
+    if (0 != (rc = quo_internal_hwloc_topology_init(&(hwloc->topo)))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
+                "Cannot continue.\n", "hwloc_topology_init", rc);
+        qrc = QUO_ERR_TOPO;
+        goto out;
+    }
     /* set flags that influence hwloc's behavior */
     unsigned int flags = 0;
     /* don't detect PCI devices. */
@@ -389,15 +398,6 @@ quo_hwloc_init(quo_hwloc_t *hwloc)
     flags &= ~HWLOC_TOPOLOGY_FLAG_WHOLE_IO;
     /* don't detect instruction caches. */
     flags &= ~HWLOC_TOPOLOGY_FLAG_ICACHES;
-
-    if (!hwloc) return QUO_ERR_INVLD_ARG;
-
-    if (0 != (rc = quo_internal_hwloc_topology_init(&(hwloc->topo)))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
-                "Cannot continue.\n", "hwloc_topology_init", rc);
-        qrc = QUO_ERR_TOPO;
-        goto out;
-    }
     if (0 != (rc = quo_internal_hwloc_topology_set_flags(hwloc->topo, flags))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
                 "Cannot continue.\n", "hwloc_topology_set_flags", rc);
