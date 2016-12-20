@@ -29,6 +29,7 @@ quo-utils.h quo-utils.c \
 quo-set.h quo-set.c \
 quo-hwloc.h quo-hwloc.c \
 quo-mpi.h quo-mpi.c \
+quo-auto-distrib.c \
 quo.h quo.c
 
 libquo_la_CFLAGS =

@@ -126,4 +126,23 @@ do {                                                                           \
     }                                                                          \
 } while (0)
 
+/* ////////////////////////////////////////////////////////////////////////// */
+/* Forward declarations. */
+struct quo_hwloc_t;
+typedef struct quo_hwloc_t quo_hwloc_t;
+
+struct quo_mpi_t;
+typedef struct quo_mpi_t quo_mpi_t;
+/** QUO_t type definition. */
+struct QUO_t {
+    /** Whether or not a context has been initialized. */
+    bool initialized;
+    /** PID of initializer. */
+    pid_t pid;
+    /** Handle to hwloc instance. */
+    quo_hwloc_t *hwloc;
+    /** Handle to MPI instance. */
+    quo_mpi_t *mpi;
+};
+
 #endif
