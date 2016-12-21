@@ -81,7 +81,7 @@ quo_utils_whoami(char **whoami)
 
     if (!whoami) return QUO_ERR_INVLD_ARG;
     if (NULL == (me = getenv("USER"))) {
-        me = "f00bAz";
+        me = "JuanPerez";
     }
     if (-1 == asprintf(whoami, "%s", me)) return QUO_ERR_OOR;
     return QUO_SUCCESS;
@@ -111,5 +111,17 @@ quo_utils_path_usable(const char *path, bool *usable, int *errc)
         *errc = errno;
         *usable = false;
     }
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_utils_envvar_set(const char *the_envvar,
+                     bool *set)
+{
+    if (!the_envvar || !set) return QUO_ERR_INVLD_ARG;
+
+    *set = (NULL != getenv(the_envvar));
+
     return QUO_SUCCESS;
 }

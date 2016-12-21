@@ -50,6 +50,7 @@
 #endif
 
 #include "quo-hwloc.h"
+#include "quo-private.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -109,7 +110,7 @@ valid_bind_policy(QUO_bind_push_policy_t policy)
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /**
- * takes a quo obj type and converts it to hwloc's equivalent.
+ * Takes a QUO object type and converts it to hwloc's equivalent.
  */
 static int
 ext2intobj(QUO_obj_type_t external,
@@ -145,7 +146,7 @@ ext2intobj(QUO_obj_type_t external,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 /**
- * caller is responsible for freeing returned resources.
+ * \note Caller is responsible for freeing returned resources.
  */
 static int
 get_cur_bind(const quo_hwloc_t *hwloc,
@@ -374,6 +375,28 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
     }
 
     *nhwloc = hwloc;
+    return qrc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_hwloc_topo_init(quo_hwloc_t *hwloc)
+{
+    int qrc = QUO_SUCCESS;
+    int rc = 0;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+
+    if (0 != (rc = quo_internal_hwloc_topology_init(&(hwloc->topo)))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
+                "Cannot continue.\n", "hwloc_topology_init", rc);
+        qrc = QUO_ERR_TOPO;
+        goto out;
+    }
+out:
+    if (qrc != QUO_SUCCESS) {
+        (void)quo_hwloc_destruct(hwloc);
+    }
     return qrc;
 }
 
@@ -655,7 +678,6 @@ quo_hwloc_bind_push(quo_hwloc_t *hwloc,
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* TODO return popped val? */
 int
 quo_hwloc_bind_pop(quo_hwloc_t *hwloc)
 {

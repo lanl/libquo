@@ -57,9 +57,6 @@
 
 #include "mpi.h"
 
-struct quo_mpi_t;
-typedef struct quo_mpi_t quo_mpi_t;
-
 int
 quo_mpi_construct(quo_mpi_t **nmpi);
 

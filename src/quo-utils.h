@@ -68,4 +68,8 @@ quo_utils_tmpdir(char **tmpdir);
 int
 quo_utils_path_usable(const char *path, bool *usable, int *errc);
 
+int
+quo_utils_envvar_set(const char *the_envvar,
+                     bool *set);
+
 #endif

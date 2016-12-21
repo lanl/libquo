@@ -52,11 +52,13 @@
 #include "config.h"
 #endif
 
-#include "quo-private.h"
 #include "quo.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
 #endif
 
 #include "hwloc/include/hwloc.h"
@@ -71,6 +73,9 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
 int
 quo_hwloc_init(quo_hwloc_t *hwloc);
+
+int
+quo_hwloc_topo_init(quo_hwloc_t *hwloc);
 
 int
 quo_hwloc_destruct(quo_hwloc_t *nhwloc);
@@ -119,14 +124,14 @@ int
 quo_hwloc_bind_pop(quo_hwloc_t *hwloc);
 
 int
-quo_hwloc_bind_threads(quo_hwloc_t *hwloc, 
-		       int qid, 
-		       int qids_in_type, 
-		       int omp_thread, 
+quo_hwloc_bind_threads(quo_hwloc_t *hwloc,
+		       int qid,
+		       int qids_in_type,
+		       int omp_thread,
 		       int num_omp_threads);
 
 int
-quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc, 
-			      int omp_thread, 
+quo_hwloc_bind_nested_threads(quo_hwloc_t *hwloc,
+			      int omp_thread,
 			      int num_omp_threads);
 #endif
