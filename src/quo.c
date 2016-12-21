@@ -118,19 +118,6 @@ QUO_version(int *version,
     return QUO_SUCCESS;
 }
 
-/**
- * Simply a wrapper for our Fortran interface to C interface. No need to expose
- * in quo.h header at this point, since it is only used by our Fortran module.
- */
-int
-QUO_create_f2c(QUO_t **q,
-               MPI_Fint comm)
-{
-    MPI_Comm c_comm = MPI_Comm_f2c(comm);
-    //
-    return QUO_create(q, c_comm);
-}
-
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 QUO_create(QUO_t **q,
@@ -426,23 +413,6 @@ QUO_get_mpi_comm_by_type(QUO_t *q,
     return quo_mpi_get_comm_by_type(q->mpi, target_type, out_comm);
 }
 
-/* ////////////////////////////////////////////////////////////////////////// */
-/**
- * Simply a wrapper for our Fortran interface to C interface. No need to expose
- * in quo.h header at this point, since it is only used by our Fortran module.
- */
-int
-QUO_get_mpi_comm_by_type_f2c(QUO_t *q,
-                             QUO_obj_type_t target_type,
-                             MPI_Fint *out_comm)
-{
-    MPI_Comm c_comm;
-    int rc = QUO_get_mpi_comm_by_type(q, target_type, &c_comm);
-    *out_comm = MPI_Comm_c2f(c_comm);
-
-    return rc;
-}
-
 #if 0 // Disable for now...
 /* ////////////////////////////////////////////////////////////////////////// */
 int
@@ -486,17 +456,3 @@ QUO_bind_threads(QUO_t *q,
     return QUO_ERR;
 }
 #endif
-
-/* ////////////////////////////////////////////////////////////////////////// */
-/**
- * Used to free up allocated memory on the Fortran side - don't include in
- * quo.h.
- *
- * @param[in] p Pointer to allocated memory.
- * */
-int
-QUO_ptr_free(void *p)
-{
-    if (p) free(p);
-    return QUO_SUCCESS;
-}
