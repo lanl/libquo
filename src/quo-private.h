@@ -136,6 +136,7 @@ typedef struct quo_hwloc_t quo_hwloc_t;
 
 struct quo_mpi_t;
 typedef struct quo_mpi_t quo_mpi_t;
+
 /** QUO_t type definition. */
 struct QUO_t {
     /** Whether or not a context has been initialized. */
