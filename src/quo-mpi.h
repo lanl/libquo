@@ -93,6 +93,11 @@ int
 quo_mpi_sm_barrier(const quo_mpi_t *mpi);
 
 int
+quo_mpi_path_xchange(quo_mpi_t *mpi,
+                     const char *module_name,
+                     char **result);
+
+int
 quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
                          QUO_obj_type_t target_type,
                          MPI_Comm *out_comm);

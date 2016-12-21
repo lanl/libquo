@@ -397,6 +397,7 @@ out:
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 get_barrier_segment_name(quo_mpi_t *mpi,
+                         const char *module_name,
                          char **segname)
 {
     int rc = QUO_SUCCESS, err = 0;
@@ -408,7 +409,7 @@ get_barrier_segment_name(quo_mpi_t *mpi,
     srand((unsigned int)time(NULL));
     randn = rand();
 
-    if (!mpi || !segname) return QUO_ERR_INVLD_ARG;
+    if (!mpi || !module_name || !segname) return QUO_ERR_INVLD_ARG;
     /* get base dir */
     if (QUO_SUCCESS != (rc = quo_utils_tmpdir(&tmpdir))) goto out;
     /* get user name */
@@ -425,7 +426,7 @@ get_barrier_segment_name(quo_mpi_t *mpi,
     /* all is well, so build the file name - caller must free this */
     if (-1 == asprintf(segname, "%s/%s-%s-%s-%d-%d.%s",
                        tmpdir, PACKAGE, mpi->hostname, usern,
-                       my_pid, randn, "bseg")) {
+                       my_pid, randn, module_name)) {
         rc = QUO_ERR_OOR;
         goto out;
     }
@@ -508,20 +509,22 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-static int
-bseg_name_xchange(quo_mpi_t *mpi)
+int
+quo_mpi_path_xchange(quo_mpi_t *mpi,
+                     const char *module_name,
+                     char **result)
 {
     int rc = QUO_SUCCESS, plen = 0;
 
-    if (!mpi) return QUO_ERR_INVLD_ARG;
+    if (!mpi || !module_name || !result) return QUO_ERR_INVLD_ARG;
     //
     if (0 == mpi->smprank) {
-        rc = get_barrier_segment_name(mpi, &mpi->bseg_path);
+        rc = get_barrier_segment_name(mpi, module_name, result);
         if (QUO_SUCCESS != rc) {
             plen = -rc; /* indicates an error occurred */
         }
         else {
-            plen = strlen(mpi->bseg_path) + 1;
+            plen = strlen(*result) + 1;
         }
         if (MPI_SUCCESS != MPI_Bcast(&plen, 1, MPI_INT, 0, mpi->smpcomm)) {
             rc = QUO_ERR_MPI;
@@ -529,7 +532,7 @@ bseg_name_xchange(quo_mpi_t *mpi)
         }
         /* an error occurred, so just bail */
         if (QUO_SUCCESS != rc) goto out;
-        if (MPI_SUCCESS != MPI_Bcast(mpi->bseg_path, plen,
+        if (MPI_SUCCESS != MPI_Bcast(*result, plen,
                                      MPI_CHAR, 0, mpi->smpcomm)) {
             rc = QUO_ERR_MPI;
             goto out;
@@ -546,12 +549,12 @@ bseg_name_xchange(quo_mpi_t *mpi)
             goto out;
         }
         /* we are good, recv the path */
-        if (NULL == (mpi->bseg_path = calloc(plen, sizeof(char)))) {
+        if (NULL == (*result = calloc(plen, sizeof(char)))) {
             QUO_OOR_COMPLAIN();
             rc = QUO_ERR_OOR;
             goto out;
         }
-        if (MPI_SUCCESS != MPI_Bcast(mpi->bseg_path, plen,
+        if (MPI_SUCCESS != MPI_Bcast(*result, plen,
                                      MPI_CHAR, 0, mpi->smpcomm)) {
             rc = QUO_ERR_MPI;
             goto out;
@@ -569,7 +572,10 @@ sm_setup(quo_mpi_t *mpi)
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
     /* first exchange segment path information */
-    if (QUO_SUCCESS != (rc = bseg_name_xchange(mpi))) goto out;
+    if (QUO_SUCCESS != (rc =
+            quo_mpi_path_xchange(mpi, "bseg", &mpi->bseg_path))) {
+        goto out;
+    }
     /* node rank 0 sets up the segment */
     if (0 == mpi->smprank) {
         if (QUO_SUCCESS != (rc = bseg_create(mpi))) goto out;
