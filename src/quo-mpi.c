@@ -510,9 +510,9 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_mpi_path_xchange(quo_mpi_t *mpi,
-                     const char *module_name,
-                     char **result)
+quo_mpi_xchange_uniq_path(quo_mpi_t *mpi,
+                          const char *module_name,
+                          char **result)
 {
     int rc = QUO_SUCCESS, plen = 0;
 
@@ -573,7 +573,7 @@ sm_setup(quo_mpi_t *mpi)
     if (!mpi) return QUO_ERR_INVLD_ARG;
     /* first exchange segment path information */
     if (QUO_SUCCESS != (rc =
-            quo_mpi_path_xchange(mpi, "bseg", &mpi->bseg_path))) {
+            quo_mpi_xchange_uniq_path(mpi, "bseg", &mpi->bseg_path))) {
         goto out;
     }
     /* node rank 0 sets up the segment */
