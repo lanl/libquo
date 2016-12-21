@@ -402,6 +402,44 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+quo_hwloc_topo_load(quo_hwloc_t *hwloc)
+{
+    int qrc = QUO_SUCCESS;
+    int rc = 0;
+
+    if (!hwloc) return QUO_ERR_INVLD_ARG;
+    /* set flags that influence hwloc's behavior */
+    unsigned int flags = 0;
+    /* don't detect PCI devices. */
+    flags &= ~HWLOC_TOPOLOGY_FLAG_IO_DEVICES;
+    /* don't detect PCI bridges. */
+    flags &= ~HWLOC_TOPOLOGY_FLAG_IO_BRIDGES;
+    /* don't detect the whole PCI hierarchy. */
+    flags &= ~HWLOC_TOPOLOGY_FLAG_WHOLE_IO;
+    /* don't detect instruction caches. */
+    flags &= ~HWLOC_TOPOLOGY_FLAG_ICACHES;
+
+    if (0 != (rc = quo_internal_hwloc_topology_set_flags(hwloc->topo, flags))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
+                "Cannot continue.\n", "hwloc_topology_set_flags", rc);
+        qrc = QUO_ERR_TOPO;
+        goto out;
+    }
+    if (0 != (rc = quo_internal_hwloc_topology_load(hwloc->topo))) {
+        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
+                "Cannot continue.\n", "hwloc_topology_load", rc);
+        qrc = QUO_ERR_TOPO;
+        goto out;
+    }
+out:
+    if (qrc != QUO_SUCCESS) {
+        (void)quo_hwloc_destruct(hwloc);
+    }
+    return qrc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 quo_hwloc_init(quo_hwloc_t *hwloc)
 {
     int qrc = QUO_SUCCESS;

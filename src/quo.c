@@ -104,38 +104,19 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/* public api routines */
-/* ////////////////////////////////////////////////////////////////////////// */
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-QUO_version(int *version,
-            int *subversion)
-{
-    if (!version || !subversion) return QUO_ERR_INVLD_ARG;
-    *version = QUO_VER;
-    *subversion = QUO_SUBVER;
-    return QUO_SUCCESS;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
 /**
- * hwloc initialization wrapper routine that is meant to abstract away the two
- * types of hwloc topology discovery that we support.
- *
- * The default is meant to improve startup performance on many-core
- * architectures. The old design simply has every process query the hardware in
- * parallel. Now, the overhead to do so is prohibitively high on such
- * architectures, so we implement all this stuff to get around that performance
- * penalty. This is implemented here because we are going to use a combination
- * of hwloc and MPI functionality. Since in our design hwloc and MPI don't cross
- * streams, this is what we are left with.
+ * hwloc initialization wrapper routine that is meant to improve startup times
+ * on many-core architectures. The old design simply had every process query the
+ * hardware in parallel. Now, the overhead to do so is prohibitively high on
+ * such architectures, so we implement all this stuff to get around that
+ * performance penalty. This is implemented here because we are going to use a
+ * combination of hwloc and MPI functionality. Since in our design hwloc and MPI
+ * don't cross streams, this is what we are left with.
  *
  * @param[in] q Constructed QUO_t.
  *
  * @retval QUO_SUCCESS if the operation completed successfully.
  */
-// TODO implement mode switch for timing tests.
 static int
 init_hwloc(QUO_t *q)
 {
@@ -154,13 +135,19 @@ init_hwloc(QUO_t *q)
      * topology and setting up all the bits required to share topology
      * information with other processes on its compute node. */
     bool root = (0 == nid);
-    /* Everyone initialize the topology. */
+    /* Everyone initialize their topology. */
     if (QUO_SUCCESS != (rc = quo_hwloc_topo_init(q->hwloc))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
                 "quo_hwloc_topo_init", PACKAGE);
         goto out;
     }
     if (root) {
+        if (QUO_SUCCESS != (rc = quo_hwloc_topo_load(q->hwloc))) {
+            fprintf(stderr, QUO_ERR_PREFIX"%s failed. "
+                    "Cannot continue with %s.\n",
+                    "quo_hwloc_topo_load", PACKAGE);
+            goto out;
+        }
     }
     else {
     }
@@ -170,9 +157,23 @@ init_hwloc(QUO_t *q)
                 "quo_hwloc_init", PACKAGE);
         goto out;
     }
-
 out:
     return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+/* public api routines */
+/* ////////////////////////////////////////////////////////////////////////// */
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_version(int *version,
+            int *subversion)
+{
+    if (!version || !subversion) return QUO_ERR_INVLD_ARG;
+    *version = QUO_VER;
+    *subversion = QUO_SUBVER;
+    return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */

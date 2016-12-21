@@ -78,6 +78,9 @@ int
 quo_hwloc_topo_init(quo_hwloc_t *hwloc);
 
 int
+quo_hwloc_topo_load(quo_hwloc_t *hwloc);
+
+int
 quo_hwloc_destruct(quo_hwloc_t *nhwloc);
 
 int
