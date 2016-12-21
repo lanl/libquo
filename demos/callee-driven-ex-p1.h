@@ -73,8 +73,6 @@ typedef struct p1_context_t {
     int qsv;
     /* flag indicating whether or not we are initially bound */
     int bound;
-    /* bind state string */
-    char *cbindstr;
     /* dup of initializing communicator */
     MPI_Comm init_comm_dup;
     /* "quo communicator" containing active quo processes (workers ids). */

@@ -122,10 +122,6 @@ sys_grok(p1_context_t *c)
         bad_func = "QUO_bound";
         goto out;
     }
-    if (QUO_SUCCESS != QUO_stringify_cbind(c->quo, &c->cbindstr)) {
-        bad_func = "QUO_stringify_cbind";
-        goto out;
-    }
     if (QUO_SUCCESS != QUO_nnodes(c->quo, &c->nnodes)) {
         bad_func = "QUO_nnodes";
         goto out;
