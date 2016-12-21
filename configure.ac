@@ -130,7 +130,7 @@ AC_CHECK_HEADERS([\
 inttypes.h limits.h stdint.h stdlib.h string.h unistd.h stdbool.h time.h \
 getopt.h ctype.h netdb.h sys/socket.h netinet/in.h arpa/inet.h sys/types.h \
 stddef.h assert.h pthread.h sys/mman.h sys/stat.h fcntl.h syscall.h omp.h \
-sched.h strings.h
+sched.h strings.h stdio.h
 ])
 
 # checks for typedefs, structures, and compiler characteristics.

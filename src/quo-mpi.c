@@ -52,8 +52,12 @@
 #include "quo-mpi.h"
 #include "quo-utils.h"
 
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
 #ifdef HAVE_STDBOOL_H
 #include <stdbool.h>
 #endif
