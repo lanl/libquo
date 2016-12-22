@@ -50,7 +50,10 @@
 #endif
 
 #include "quo-hwloc.h"
+
 #include "quo-private.h"
+#include "quo-sm.h"
+#include "quo-mpi.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -92,6 +95,10 @@ struct quo_hwloc_t {
     bind_stack_t bstack;
     /** Cached PID. */
     pid_t mypid;
+    /** Cached node ID. */
+    int nid;
+    /** Used to store hardware topology information. */
+    quo_sm_t *htopo_sm;
 };
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -372,37 +379,20 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
     if (NULL == (hwloc = calloc(1, sizeof(*hwloc)))) {
         QUO_OOR_COMPLAIN();
         qrc = QUO_ERR_OOR;
+        goto out;
     }
-
+    if (QUO_SUCCESS != (qrc = quo_sm_construct(&(hwloc->htopo_sm)))) {
+        goto out;
+    }
     *nhwloc = hwloc;
-    return qrc;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
-int
-quo_hwloc_topo_init(quo_hwloc_t *hwloc)
-{
-    int qrc = QUO_SUCCESS;
-    int rc = 0;
-
-    if (!hwloc) return QUO_ERR_INVLD_ARG;
-
-    if (0 != (rc = quo_internal_hwloc_topology_init(&(hwloc->topo)))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
-                "Cannot continue.\n", "hwloc_topology_init", rc);
-        qrc = QUO_ERR_TOPO;
-        goto out;
-    }
 out:
-    if (qrc != QUO_SUCCESS) {
-        (void)quo_hwloc_destruct(hwloc);
-    }
+    if (QUO_SUCCESS != qrc) quo_hwloc_destruct(hwloc);
     return qrc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-int
-quo_hwloc_topo_load(quo_hwloc_t *hwloc)
+static int
+topo_load(quo_hwloc_t *hwloc)
 {
     int qrc = QUO_SUCCESS;
     int rc = 0;
@@ -420,67 +410,74 @@ quo_hwloc_topo_load(quo_hwloc_t *hwloc)
     flags &= ~HWLOC_TOPOLOGY_FLAG_ICACHES;
 
     if (0 != (rc = quo_internal_hwloc_topology_set_flags(hwloc->topo, flags))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
-                "Cannot continue.\n", "hwloc_topology_set_flags", rc);
+        QUO_ERR_MSGRC("hwloc_topology_set_flags", qrc);
         qrc = QUO_ERR_TOPO;
         goto out;
     }
     if (0 != (rc = quo_internal_hwloc_topology_load(hwloc->topo))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
-                "Cannot continue.\n", "hwloc_topology_load", rc);
+        QUO_ERR_MSGRC("hwloc_topology_load", qrc);
         qrc = QUO_ERR_TOPO;
         goto out;
     }
 out:
-    if (qrc != QUO_SUCCESS) {
-        (void)quo_hwloc_destruct(hwloc);
-    }
     return qrc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-quo_hwloc_init(quo_hwloc_t *hwloc)
+quo_hwloc_init(quo_hwloc_t *hwloc,
+               quo_mpi_t *mpi)
 {
     int qrc = QUO_SUCCESS;
     int rc = 0;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
-
+    /* Set personality. */
+    if (QUO_SUCCESS != (qrc = quo_mpi_noderank(mpi, &(hwloc->nid)))) {
+        QUO_ERR_MSGRC("quo_mpi_noderank", qrc);
+        goto out;
+    }
+    /* Generate and agree upon a unique (node-local) path name. */
+    char *sm_seg_path = NULL;
+    if (QUO_SUCCESS != (qrc = quo_mpi_xchange_uniq_path(mpi,
+                                                        "htopo",
+                                                        &sm_seg_path))) {
+        QUO_ERR_MSGRC("quo_mpi_xchange_uniq_path", qrc);
+        goto out;
+    }
+    /* Actually do some hwloc setup... */
     if (0 != (rc = quo_internal_hwloc_topology_init(&(hwloc->topo)))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
-                "Cannot continue.\n", "hwloc_topology_init", rc);
+        QUO_ERR_MSGRC("hwloc_topology_init", qrc);
         qrc = QUO_ERR_TOPO;
         goto out;
     }
-    /* set flags that influence hwloc's behavior */
-    unsigned int flags = 0;
-    /* don't detect PCI devices. */
-    flags &= ~HWLOC_TOPOLOGY_FLAG_IO_DEVICES;
-    /* don't detect PCI bridges. */
-    flags &= ~HWLOC_TOPOLOGY_FLAG_IO_BRIDGES;
-    /* don't detect the whole PCI hierarchy. */
-    flags &= ~HWLOC_TOPOLOGY_FLAG_WHOLE_IO;
-    /* don't detect instruction caches. */
-    flags &= ~HWLOC_TOPOLOGY_FLAG_ICACHES;
-    if (0 != (rc = quo_internal_hwloc_topology_set_flags(hwloc->topo, flags))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
-                "Cannot continue.\n", "hwloc_topology_set_flags", rc);
-        qrc = QUO_ERR_TOPO;
-        goto out;
+    if (0 == hwloc->nid) {
+        if (QUO_SUCCESS != (qrc = topo_load(hwloc))) {
+            QUO_ERR_MSGRC("topo_load", qrc);
+            goto out;
+        }
+        /* Export the topology to a shared-memory segment. */
+        char *topo_xml = NULL;
+        int topo_xml_len = 0;
+        rc = quo_internal_hwloc_topology_export_xmlbuffer(hwloc->topo,
+                                                          &topo_xml,
+                                                          &topo_xml_len);
+        if (-1 == rc) {
+            QUO_ERR_MSGRC("hwloc_topology_export_xmlbuffer", rc);
+            qrc = QUO_ERR_TOPO;
+            goto out;
+        }
     }
-    if (0 != (rc = quo_internal_hwloc_topology_load(hwloc->topo))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
-                "Cannot continue.\n", "hwloc_topology_load", rc);
-        qrc = QUO_ERR_TOPO;
-        goto out;
+    else {
+        if (QUO_SUCCESS != (qrc = topo_load(hwloc))) {
+            QUO_ERR_MSGRC("topo_load", qrc);
+            goto out;
+        }
     }
     /* now init some cached attributes that we want to keep around for the
      * duration of the app's life. */
     if (QUO_SUCCESS != (qrc = init_cached_attrs(hwloc))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "
-                "Cannot continue.\n", "init_cached_attrs", qrc);
-        qrc = QUO_ERR;
+        QUO_ERR_MSGRC("init_cached_attrs", qrc);
         goto out;
     }
 out:
@@ -499,7 +496,8 @@ quo_hwloc_destruct(quo_hwloc_t *hwloc)
     quo_internal_hwloc_topology_destroy(hwloc->topo);
     quo_internal_hwloc_bitmap_free(hwloc->widest_cpuset);
     /* pop initial binding to free up resources */
-    bind_stack_pop(hwloc, NULL);
+    (void)bind_stack_pop(hwloc, NULL);
+    (void)quo_sm_destruct(hwloc->htopo_sm);
     free(hwloc);
     return QUO_SUCCESS;
 }

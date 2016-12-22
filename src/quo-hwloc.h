@@ -53,6 +53,7 @@
 #endif
 
 #include "quo.h"
+#include "quo-private.h"
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -63,22 +64,14 @@
 
 #include "hwloc/include/hwloc.h"
 
-struct quo_hwloc_t;
-typedef struct quo_hwloc_t quo_hwloc_t;
-
 typedef quo_internal_hwloc_const_cpuset_t quo_const_nodeset_t;
 
 int
 quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
 int
-quo_hwloc_init(quo_hwloc_t *hwloc);
-
-int
-quo_hwloc_topo_init(quo_hwloc_t *hwloc);
-
-int
-quo_hwloc_topo_load(quo_hwloc_t *hwloc);
+quo_hwloc_init(quo_hwloc_t *hwloc,
+               quo_mpi_t *mpi);
 
 int
 quo_hwloc_destruct(quo_hwloc_t *nhwloc);

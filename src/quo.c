@@ -104,64 +104,6 @@ out:
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-/**
- * hwloc initialization wrapper routine that is meant to improve startup times
- * on many-core architectures. The old design simply had every process query the
- * hardware in parallel. Now, the overhead to do so is prohibitively high on
- * such architectures, so we implement all this stuff to get around that
- * performance penalty. This is implemented here because we are going to use a
- * combination of hwloc and MPI functionality. Since in our design hwloc and MPI
- * don't cross streams, this is what we are left with.
- *
- * @param[in] q Constructed QUO_t.
- *
- * @retval QUO_SUCCESS if the operation completed successfully.
- */
-static int
-init_hwloc(QUO_t *q)
-{
-    int rc = QUO_ERR;
-
-    if (!q) return QUO_ERR_INVLD_ARG;
-#if 0
-    /* Get node ID. */
-    int nid = -1;
-    if (QUO_SUCCESS != (rc = quo_mpi_noderank(q->mpi, &nid))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
-                "quo_mpi_noderank", PACKAGE);
-        goto out;
-    }
-    /* Node rank 0 will be the root responsible for discovering the hardware
-     * topology and setting up all the bits required to share topology
-     * information with other processes on its compute node. */
-    bool root = (0 == nid);
-    /* Everyone initialize their topology. */
-    if (QUO_SUCCESS != (rc = quo_hwloc_topo_init(q->hwloc))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
-                "quo_hwloc_topo_init", PACKAGE);
-        goto out;
-    }
-    if (root) {
-        if (QUO_SUCCESS != (rc = quo_hwloc_topo_load(q->hwloc))) {
-            fprintf(stderr, QUO_ERR_PREFIX"%s failed. "
-                    "Cannot continue with %s.\n",
-                    "quo_hwloc_topo_load", PACKAGE);
-            goto out;
-        }
-    }
-    else {
-    }
-#endif
-    if (QUO_SUCCESS != (rc = quo_hwloc_init(q->hwloc))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
-                "quo_hwloc_init", PACKAGE);
-        goto out;
-    }
-out:
-    return rc;
-}
-
-/* ////////////////////////////////////////////////////////////////////////// */
 /* public api routines */
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -187,15 +129,15 @@ QUO_create(QUO_t **q,
     if (!q) return QUO_ERR_INVLD_ARG;
     /* construct a new context */
     if (QUO_SUCCESS != (rc = construct_quoc(&tq))) goto out;
-    /* We need some MPI bits for hwloc init, so init first. */
+    /* We need some MPI bits for hwloc init, so init MPI first. */
     if (QUO_SUCCESS != (rc = quo_mpi_init(tq->mpi, comm))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
                 "quo_mpi_init", PACKAGE);
         goto out;
     }
-    if (QUO_SUCCESS != (rc = init_hwloc(tq))) {
+    if (QUO_SUCCESS != (rc = quo_hwloc_init(tq->hwloc, tq->mpi))) {
         fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
-                "init_hwloc", PACKAGE);
+                "quo_hwloc_init", PACKAGE);
         goto out;
     }
     tq->initialized = true;

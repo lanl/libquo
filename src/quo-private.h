@@ -72,9 +72,9 @@
 #define QUO_STRINGIFY(x) #x
 #define QUO_TOSTRING(x)  QUO_STRINGIFY(x)
 
-#define QUO_ERR_AT       __FILE__ ": "QUO_TOSTRING(__LINE__)""
-#define QUO_ERR_PREFIX   "-["PACKAGE" ERROR: "QUO_ERR_AT"]- "
-#define QUO_WARN_PREFIX  "-["PACKAGE" WARNING]- "
+#define QUO_ERR_AT       __FILE__ ":"QUO_TOSTRING(__LINE__)""
+#define QUO_ERR_PREFIX   "-["PACKAGE" ERROR @ "QUO_ERR_AT"]- "
+#define QUO_WARN_PREFIX  "-["PACKAGE" WARNING @ "QUO_ERR_AT"]- "
 
 /**
  * Convenience macro used to print out OOR messages.
@@ -93,6 +93,19 @@ do {                                                                           \
 #define QUO_ERR_MSG(whystr)                                                    \
 do {                                                                           \
     fprintf(stderr, QUO_ERR_PREFIX"%s failed: %s.\n", __func__, (whystr));     \
+} while (0)
+
+/**
+ * Convenience macro used to print out error messages.
+ *
+ * @param[in] what The name of the function that returned an error code.
+ *
+ * @param[in] rc The error code.
+ */
+#define QUO_ERR_MSGRC(what, rc)                                                \
+do {                                                                           \
+    fprintf(stderr, QUO_ERR_PREFIX"%s failure: (rc: %d). "                     \
+                "Cannot continue.\n", (what), (rc));                           \
 } while (0)
 
 /**

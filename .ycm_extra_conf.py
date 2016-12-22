@@ -39,7 +39,7 @@ home = os.getenv("HOME")
 # CHANGE THIS LIST OF FLAGS. YES, THIS IS THE DROID YOU HAVE BEEN LOOKING FOR.
 flags = [
 '-Wall',
-'-Werror',
+'-Wextra',
 '-DNDEBUG',
 '-DUSE_CLANG_COMPLETER',
 '-DHAVE_CONFIG_H',
