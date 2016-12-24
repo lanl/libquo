@@ -98,6 +98,17 @@ quo_mpi_xchange_uniq_path(quo_mpi_t *mpi,
                           char **result);
 
 int
+quo_mpi_get_node_comm(quo_mpi_t *mpi,
+                      MPI_Comm *comm);
+
+int
+quo_mpi_bcast(void *buffer,
+              int count,
+              MPI_Datatype datatype,
+              int root,
+              MPI_Comm comm);
+
+int
 quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
                          QUO_obj_type_t target_type,
                          MPI_Comm *out_comm);

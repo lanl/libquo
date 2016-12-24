@@ -792,3 +792,32 @@ quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
 
     return QUO_SUCCESS;
 }
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_bcast(void *buffer,
+              int count,
+              MPI_Datatype datatype,
+              int root,
+              MPI_Comm comm)
+{
+    int rc = QUO_SUCCESS;
+
+    if (MPI_SUCCESS != MPI_Bcast(buffer, count, datatype, root, comm)) {
+        rc = QUO_ERR_MPI;
+    }
+
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+quo_mpi_get_node_comm(quo_mpi_t *mpi,
+                      MPI_Comm *comm)
+{
+    if (!mpi || !comm) return QUO_ERR_INVLD_ARG;
+
+    *comm = mpi->smpcomm;
+
+    return QUO_SUCCESS;
+}

@@ -430,8 +430,14 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
 {
     int qrc = QUO_SUCCESS;
     int rc = 0;
+    MPI_Comm node_comm;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
+    /* Get node communicator so we can chat with our friends. */
+    if (QUO_SUCCESS != (qrc = quo_mpi_get_node_comm(mpi, &node_comm))) {
+        QUO_ERR_MSGRC("quo_mpi_get_node_comm", qrc);
+        goto out;
+    }
     /* Set personality. */
     if (QUO_SUCCESS != (qrc = quo_mpi_noderank(mpi, &(hwloc->nid)))) {
         QUO_ERR_MSGRC("quo_mpi_noderank", qrc);
@@ -467,8 +473,20 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
             qrc = QUO_ERR_TOPO;
             goto out;
         }
+        /* Now that we know the size of the buffer, share that info. */
+        if (QUO_SUCCESS != (qrc = quo_mpi_bcast(&topo_xml_len, 1,
+                                                MPI_INT, 0, node_comm))) {
+            QUO_ERR_MSGRC("quo_mpi_bcast", rc);
+            goto out;
+        }
     }
     else {
+        int sm_seg_size = 0;
+        if (QUO_SUCCESS != (qrc = quo_mpi_bcast(&sm_seg_size, 1,
+                                                MPI_INT, 0, node_comm))) {
+            QUO_ERR_MSGRC("quo_mpi_bcast", rc);
+            goto out;
+        }
         if (QUO_SUCCESS != (qrc = topo_load(hwloc))) {
             QUO_ERR_MSGRC("topo_load", qrc);
             goto out;
