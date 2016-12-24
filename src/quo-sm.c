@@ -152,7 +152,7 @@ quo_sm_segment_create(quo_sm_t *qsm,
         goto out;
     }
     /* size the file */
-    if (0 != ftruncate(fd, sizeof(qsm->seg_size))) {
+    if (0 != ftruncate(fd, qsm->seg_size)) {
         errc = errno;
         badfunc = "ftruncate";
         goto out;

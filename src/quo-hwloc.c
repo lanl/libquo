@@ -382,6 +382,7 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc)
         goto out;
     }
     if (QUO_SUCCESS != (qrc = quo_sm_construct(&(hwloc->htopo_sm)))) {
+        QUO_ERR_MSGRC("quo_sm_construct", qrc);
         goto out;
     }
     *nhwloc = hwloc;
@@ -431,6 +432,8 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
     int qrc = QUO_SUCCESS;
     int rc = 0;
     MPI_Comm node_comm;
+    /* Generate and agree upon a unique (node-local) path name. */
+    char *sm_seg_path = NULL;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
     /* Get node communicator so we can chat with our friends. */
@@ -443,8 +446,6 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
         QUO_ERR_MSGRC("quo_mpi_noderank", qrc);
         goto out;
     }
-    /* Generate and agree upon a unique (node-local) path name. */
-    char *sm_seg_path = NULL;
     if (QUO_SUCCESS != (qrc = quo_mpi_xchange_uniq_path(mpi,
                                                         "htopo",
                                                         &sm_seg_path))) {
@@ -479,6 +480,22 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
             QUO_ERR_MSGRC("quo_mpi_bcast", rc);
             goto out;
         }
+        if (QUO_SUCCESS!= (qrc = quo_sm_segment_create(hwloc->htopo_sm,
+                                                       sm_seg_path,
+                                                       topo_xml_len))) {
+            QUO_ERR_MSGRC("quo_sm_segment_create", rc);
+            goto out;
+        }
+        /* Copy the data into the shared-memory segment. */
+        void *cbasep = quo_sm_get_basep(hwloc->htopo_sm);
+        (void)memmove(cbasep, topo_xml, topo_xml_len);
+        /* We no longer need this buffer. */
+        quo_internal_hwloc_free_xmlbuffer(hwloc->topo, topo_xml);
+        /* Signal completion. */
+        if (QUO_SUCCESS != (qrc = quo_mpi_sm_barrier(mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", rc);
+            goto out;
+        }
     }
     else {
         int sm_seg_size = 0;
@@ -487,6 +504,19 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
             QUO_ERR_MSGRC("quo_mpi_bcast", rc);
             goto out;
         }
+        /* Wait for the data to be published. */
+        if (QUO_SUCCESS != (qrc = quo_mpi_sm_barrier(mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", rc);
+            goto out;
+        }
+        if (QUO_SUCCESS!= (qrc = quo_sm_segment_attach(hwloc->htopo_sm,
+                                                       sm_seg_path,
+                                                       sm_seg_size))) {
+            QUO_ERR_MSGRC("quo_sm_segment_attach", rc);
+            goto out;
+        }
+        /* Get the hardware topology XML string. */
+        char *topo_xml = (char *)quo_sm_get_basep(hwloc->htopo_sm);
         if (QUO_SUCCESS != (qrc = topo_load(hwloc))) {
             QUO_ERR_MSGRC("topo_load", qrc);
             goto out;
@@ -502,6 +532,7 @@ out:
     if (qrc != QUO_SUCCESS) {
         (void)quo_hwloc_destruct(hwloc);
     }
+    if (sm_seg_path) free(sm_seg_path);
     return qrc;
 }
 
