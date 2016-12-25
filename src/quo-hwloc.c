@@ -495,6 +495,13 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
             QUO_ERR_MSGRC("quo_mpi_sm_barrier", qrc);
             goto out;
         }
+        /* Wait for attach completion. */
+        if (QUO_SUCCESS != (qrc = quo_mpi_sm_barrier(mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", qrc);
+            goto out;
+        }
+        /* Cleanup after everyone is done. */
+        (void)quo_sm_unlink(hwloc->htopo_sm);
     }
     else {
         int topo_xml_len = 0;
@@ -512,6 +519,11 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
                                                        sm_seg_path,
                                                        topo_xml_len))) {
             QUO_ERR_MSGRC("quo_sm_segment_attach", qrc);
+            goto out;
+        }
+        /* Signal attach completion. */
+        if (QUO_SUCCESS != (qrc = quo_mpi_sm_barrier(mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", qrc);
             goto out;
         }
         /* Get the hardware topology XML string. */
