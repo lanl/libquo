@@ -52,6 +52,8 @@
 #include "quo.h"
 #include "quo-private.h"
 #include "quo-set.h"
+#include "quo-mpi.h"
+#include "quo-sm.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -79,34 +81,161 @@ get_qids_in_target_type(QUO_t *q,
     if (!q || n_target <= 0 || !out_nranks_in_res || !out_rank_ids_in_res) {
         return QUO_ERR_INVLD_ARG;
     }
-
+    /* Set nice default return values. */
     *out_nranks_in_res = NULL;
     *out_rank_ids_in_res = NULL;
 
     int *nranks_in_res = NULL;
     int **rank_ids_in_res = NULL;
     int rc = QUO_ERR;
+    /* Communication structures. */
+    MPI_Comm node_comm;
+    /* Points to a unique (node-local) path name for inter-process affinity
+     * info. */
+    char *sm_seg_path = NULL;
+    quo_sm_t *smseg;
 
-    /* allocate some memory for our arrays */
+    /* Get node communicator so we can chat with our friends. */
+    if (QUO_SUCCESS != (rc = quo_mpi_get_node_comm(q->mpi, &node_comm))) {
+        QUO_ERR_MSGRC("quo_mpi_get_node_comm", rc);
+        goto out;
+    }
+    /* Generate and agree upon a unique (node-local) path name. */
+    if (QUO_SUCCESS != (rc = quo_mpi_xchange_uniq_path(q->mpi,
+                                                       "qaff",
+                                                       &sm_seg_path))) {
+        QUO_ERR_MSGRC("quo_mpi_xchange_uniq_path", rc);
+        goto out;
+    }
+    /* Build the shared-memory instance. */
+    if (QUO_SUCCESS != (rc = quo_sm_construct(&smseg))) {
+        QUO_ERR_MSGRC("quo_sm_construct", rc);
+        goto out;
+    }
+    /* Allocate some memory for our arrays. */
     nranks_in_res = calloc(n_target, sizeof(*nranks_in_res));
     if (!nranks_in_res) {
         QUO_OOR_COMPLAIN();
         rc = QUO_ERR_OOR;
         goto out;
     }
-    /* allocate pointer array */
+    /* Allocate pointer array. */
     rank_ids_in_res = calloc(n_target, sizeof(*rank_ids_in_res));
     if (!rank_ids_in_res) {
         QUO_OOR_COMPLAIN();
         rc = QUO_ERR_OOR;
         goto out;
     }
-    /* grab the smp ranks (node ranks) that cover each resource. */
-    for (int rid = 0; rid < n_target; ++rid) {
-        rc = QUO_qids_in_type(q, target, rid,
-                              &(nranks_in_res[rid]),
-                              &(rank_ids_in_res[rid]));
-        if (QUO_SUCCESS != rc) goto out;
+    /* Let one process query for QUO_qids_in_type info that will then be shared
+     * via shared-memory. */
+    if (0 == q->qid) {
+        /* Query for the smp ranks (node ranks) that cover each resource. */
+        for (int rid = 0; rid < n_target; ++rid) {
+            rc = QUO_qids_in_type(q, target, rid,
+                                  &(nranks_in_res[rid]),
+                                  &(rank_ids_in_res[rid]));
+            if (QUO_SUCCESS != rc) goto out;
+        }
+        /* Now that we have that info, now calculate how large of a
+         * shared-memory segment is needed (in bytes). */
+        int sm_seg_len = 0;
+        const int header_len = (n_target * sizeof(*nranks_in_res));
+        /* The first bit will be the "header" info. */
+        sm_seg_len += header_len;
+        /* The next bit will be dedicated to the rank_ids_in_res table. We have
+         * enough information in the header to reconstruct the table, which we
+         * are going to store as a flatten 1D array in the shared-memory
+         * segment. */
+        int num_entries = 0;
+        for (int i = 0; i < n_target; ++i) {
+            num_entries += nranks_in_res[i];
+        }
+        sm_seg_len += (num_entries * sizeof(*nranks_in_res));
+        /* Now that we know the size of the buffer, share that info. */
+        if (QUO_SUCCESS != (rc = quo_mpi_bcast(&sm_seg_len, 1,
+                                               MPI_INT, 0, node_comm))) {
+            QUO_ERR_MSGRC("quo_mpi_bcast", rc);
+            goto out;
+        }
+        /* Create the shared-memory segment. */
+        if (QUO_SUCCESS != (rc = quo_sm_segment_create(smseg,
+                                                       sm_seg_path,
+                                                       sm_seg_len))) {
+            QUO_ERR_MSGRC("quo_sm_segment_create", rc);
+            goto out;
+        }
+        /* Get base of the shared-memory segment (starting point for header). */
+        char *headerp = (char *)quo_sm_get_basep(smseg);
+        /* Fill in the header. */
+        (void)memmove(headerp, nranks_in_res, header_len);
+        /* Copy a flattened version of the rank_ids_in_res table into the
+         * shared-memory segment. Note that the tabular data starting point is
+         * offset by header_len bytes. */
+        char *tabp = (headerp + header_len);
+        for (int i = 0; i < n_target; ++i) {
+            const size_t nbytes = nranks_in_res[i] * sizeof(*nranks_in_res);
+            (void)memmove(tabp, rank_ids_in_res[i], nbytes);
+            tabp += nbytes;
+        }
+        /* Signal completion. */
+        if (QUO_SUCCESS != (rc = quo_mpi_sm_barrier(q->mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", rc);
+            goto out;
+        }
+        /* Wait for attach completion. */
+        if (QUO_SUCCESS != (rc = quo_mpi_sm_barrier(q->mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", rc);
+            goto out;
+        }
+        /* Cleanup after everyone is done. */
+        (void)quo_sm_unlink(smseg);
+    }
+    else {
+        int sm_seg_len = 0;
+        /* Get shared-memory segment size. */
+        if (QUO_SUCCESS != (rc = quo_mpi_bcast(&sm_seg_len, 1,
+                                               MPI_INT, 0, node_comm))) {
+            QUO_ERR_MSGRC("quo_mpi_bcast", rc);
+            goto out;
+        }
+        /* Wait for the data to be published. */
+        if (QUO_SUCCESS != (rc = quo_mpi_sm_barrier(q->mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", rc);
+            goto out;
+        }
+        if (QUO_SUCCESS!= (rc = quo_sm_segment_attach(smseg,
+                                                      sm_seg_path,
+                                                      sm_seg_len))) {
+            QUO_ERR_MSGRC("quo_sm_segment_attach", rc);
+            goto out;
+        }
+        /* Signal attach attach completion. */
+        if (QUO_SUCCESS != (rc = quo_mpi_sm_barrier(q->mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", rc);
+            goto out;
+        }
+        /* Reconstruct structures to pass to caller. */
+        /* Get base of the shared-memory segment (starting point for header). */
+        char *headerp = (char *)quo_sm_get_basep(smseg);
+        /* Get first bit of info from the header. */
+        const int header_len = (n_target * sizeof(*nranks_in_res));
+        (void)memmove(nranks_in_res, headerp, header_len);
+        /* Copy from a flattened version of the rank_ids_in_res table into the
+         * "real" 2D table that will be passed to the caller. */
+        char *tabp = (headerp + header_len);
+        for (int i = 0; i < n_target; ++i) {
+            const size_t nranks = nranks_in_res[i];
+            const size_t nbytes = nranks * sizeof(*nranks_in_res);
+            rank_ids_in_res[i] = calloc(nranks, sizeof(*nranks_in_res));
+            if (NULL == rank_ids_in_res[i]) {
+                QUO_OOR_COMPLAIN();
+                rc = QUO_ERR_OOR;
+                goto out;
+            }
+            /* Copy out. */
+            (void)memmove(rank_ids_in_res[i], tabp, nbytes);
+            tabp += nbytes;
+        }
     }
 out:
     if (QUO_SUCCESS != rc) {
@@ -122,6 +251,9 @@ out:
         *out_nranks_in_res = nranks_in_res;
         *out_rank_ids_in_res = rank_ids_in_res;
     }
+    /* General cleanup. */
+    if (sm_seg_path) free(sm_seg_path);
+    (void)quo_sm_destruct(smseg);
 
     return rc;
 }
