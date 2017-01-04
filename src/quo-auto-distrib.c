@@ -94,9 +94,10 @@ QUO_auto_distrib(QUO_t *q,
     }
     QUO_NO_INIT_ACTION(q);
     *out_selected = 0; /* set default */
-    if (QUO_SUCCESS != (rc = QUO_nqids(q, &nsmp_ranks))) return rc;
+    /* get total number of processes that share a node with me (includes me). */
+    nsmp_ranks = q->nqid;
     /* what is my node rank? */
-    if (QUO_SUCCESS != (rc = QUO_id(q, &my_smp_rank))) return rc;
+    my_smp_rank = q->qid;
     /* figure out how many target things are on the system. */
     if (QUO_SUCCESS != (rc = QUO_nobjs_by_type(q, distrib_over_this,
                                                &nres))) {
