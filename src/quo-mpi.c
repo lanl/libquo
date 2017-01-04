@@ -803,6 +803,8 @@ quo_mpi_bcast(void *buffer,
 {
     int rc = QUO_SUCCESS;
 
+    if (!buffer) return QUO_ERR_INVLD_ARG;
+
     if (MPI_SUCCESS != MPI_Bcast(buffer, count, datatype, root, comm)) {
         rc = QUO_ERR_MPI;
     }

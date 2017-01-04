@@ -66,6 +66,66 @@
 #include <string.h>
 #endif
 
+/**
+ * \note Caller is responsible for freeing returned resources.
+ */
+static int
+get_qids_in_target_type(QUO_t *q,
+                        QUO_obj_type_t target,
+                        int n_target,
+                        int **out_nranks_in_res,
+                        int ***out_rank_ids_in_res)
+{
+    if (!q || n_target <= 0 || !out_nranks_in_res || !out_rank_ids_in_res) {
+        return QUO_ERR_INVLD_ARG;
+    }
+
+    *out_nranks_in_res = NULL;
+    *out_rank_ids_in_res = NULL;
+
+    int *nranks_in_res = NULL;
+    int **rank_ids_in_res = NULL;
+    int rc = QUO_ERR;
+
+    /* allocate some memory for our arrays */
+    nranks_in_res = calloc(n_target, sizeof(*nranks_in_res));
+    if (!nranks_in_res) {
+        QUO_OOR_COMPLAIN();
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+    /* allocate pointer array */
+    rank_ids_in_res = calloc(n_target, sizeof(*rank_ids_in_res));
+    if (!rank_ids_in_res) {
+        QUO_OOR_COMPLAIN();
+        rc = QUO_ERR_OOR;
+        goto out;
+    }
+    /* grab the smp ranks (node ranks) that cover each resource. */
+    for (int rid = 0; rid < n_target; ++rid) {
+        rc = QUO_qids_in_type(q, target, rid,
+                              &(nranks_in_res[rid]),
+                              &(rank_ids_in_res[rid]));
+        if (QUO_SUCCESS != rc) goto out;
+    }
+out:
+    if (QUO_SUCCESS != rc) {
+        if (rank_ids_in_res) {
+            for (int i = 0; i < n_target; ++i) {
+                if (rank_ids_in_res[i]) free(rank_ids_in_res[i]);
+            }
+            free(rank_ids_in_res);
+        }
+        if (nranks_in_res) free(nranks_in_res);
+    }
+    else {
+        *out_nranks_in_res = nranks_in_res;
+        *out_rank_ids_in_res = rank_ids_in_res;
+    }
+
+    return rc;
+}
+
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 QUO_auto_distrib(QUO_t *q,
@@ -105,28 +165,14 @@ QUO_auto_distrib(QUO_t *q,
     }
     /* if there are no resources, then return not found */
     if (0 == nres) return QUO_ERR_NOT_FOUND;
-    /* allocate some memory for our arrays */
-    nranks_in_res = calloc(nres, sizeof(*nranks_in_res));
-    if (!nranks_in_res) {
-        QUO_OOR_COMPLAIN();
-        rc = QUO_ERR_OOR;
-        goto out;
+    /* Populate arrays with data required to perform the intersection
+     * calculation. */
+    if (QUO_SUCCESS != (rc = get_qids_in_target_type(q, distrib_over_this, nres,
+                                                     &nranks_in_res,
+                                                     &rank_ids_in_res))) {
+            QUO_ERR_MSGRC("get_qids_in_target_type", rc);
+            goto out;
     }
-    /* allocate pointer array */
-    rank_ids_in_res = calloc(nres, sizeof(*rank_ids_in_res));
-    if (!rank_ids_in_res) {
-        QUO_OOR_COMPLAIN();
-        rc = QUO_ERR_OOR;
-        goto out;
-    }
-    /* grab the smp ranks (node ranks) that cover each resource. */
-    for (int rid = 0; rid < nres; ++rid) {
-        rc = QUO_qids_in_type(q, distrib_over_this, rid,
-                              &(nranks_in_res[rid]),
-                              &(rank_ids_in_res[rid]));
-        if (QUO_SUCCESS != rc) goto out;
-    }
-
     /* calculate the k set intersection of ranks on resources. the returned
      * array will be the set of ranks that currently share a particular
      * resource. */
@@ -202,7 +248,7 @@ QUO_auto_distrib(QUO_t *q,
         if (big_htab) free(big_htab);
     }
 out:
-    /* the resources returned by QUO_qids_in_type must be freed by us */
+    /* the resources returned by get_qids_in_target_type must be freed by us */
     if (rank_ids_in_res) {
         for (int i = 0; i < nres; ++i) {
             if (rank_ids_in_res[i]) free(rank_ids_in_res[i]);
@@ -211,5 +257,6 @@ out:
     }
     if (nranks_in_res) free(nranks_in_res);
     if (k_set_intersection) free(k_set_intersection);
+
     return rc;
 }
