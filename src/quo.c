@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Los Alamos National Security, LLC
+ * Copyright (c) 2013-2017 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * This software was produced under U.S. Government contract DE-AC52-06NA25396
@@ -73,27 +73,47 @@
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
+init_cached_attrs(QUO_t *q)
+{
+    int rc = QUO_SUCCESS;
+
+    if (!q) return QUO_ERR_INVLD_ARG;
+
+    q->pid = getpid();
+
+    if (QUO_SUCCESS != (rc = QUO_nqids(q, &q->nqid))) {
+        QUO_ERR_MSGRC("QUO_nqids", rc);
+        goto out;
+    }
+    if (QUO_SUCCESS != (rc = QUO_id(q, &q->qid))) {
+        QUO_ERR_MSGRC("QUO_id", rc);
+        goto out;
+    }
+out:
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
 construct_quoc(QUO_t **q)
 {
     int qrc = QUO_SUCCESS;
     QUO_t *newq = NULL;
 
     if (!q) return QUO_ERR_INVLD_ARG;
+
     if (NULL == (newq = calloc(1, sizeof(*newq)))) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
     if (QUO_SUCCESS != (qrc = quo_hwloc_construct(&newq->hwloc))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
-                "quo_hwloc_construct");
+        QUO_ERR_MSGRC("quo_hwloc_construct", qrc);
         goto out;
     }
     if (QUO_SUCCESS != (qrc = quo_mpi_construct(&newq->mpi))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue.\n",
-                "quo_mpi_construct");
+        QUO_ERR_MSGRC("quo_mpi_construct", qrc);
         goto out;
     }
-    newq->pid = getpid();
 out:
     if (QUO_SUCCESS != qrc) {
         QUO_free(newq);
@@ -131,16 +151,20 @@ QUO_create(QUO_t **q,
     if (QUO_SUCCESS != (rc = construct_quoc(&tq))) goto out;
     /* We need some MPI bits for hwloc init, so init MPI first. */
     if (QUO_SUCCESS != (rc = quo_mpi_init(tq->mpi, comm))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
-                "quo_mpi_init", PACKAGE);
+        QUO_ERR_MSGRC("quo_mpi_init", rc);
         goto out;
     }
     if (QUO_SUCCESS != (rc = quo_hwloc_init(tq->hwloc, tq->mpi))) {
-        fprintf(stderr, QUO_ERR_PREFIX"%s failed. Cannot continue with %s.\n",
-                "quo_hwloc_init", PACKAGE);
+        QUO_ERR_MSGRC("quo_hwloc_init", rc);
         goto out;
     }
     tq->initialized = true;
+    /* Since we use internal QUO_ calls that require an initialized context, do
+     * this after we set the initialized flag to true. */
+    if (QUO_SUCCESS != (rc = init_cached_attrs(tq))) {
+        QUO_ERR_MSGRC("init_cached_attrs", rc);
+        goto out;
+    }
 out:
     if (QUO_SUCCESS != rc) *q = NULL;
     else *q = tq;
@@ -218,8 +242,8 @@ QUO_qids_in_type(QUO_context q,
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
     *out_nqids = 0; *out_qids = NULL;
-    /* figure out how many node ranks on the node */
-    if (QUO_SUCCESS != (rc = QUO_nqids(q, &tot_smpranks))) return rc;
+    /* set how many node ranks on the node */
+    tot_smpranks = q->nqid;
     /* smp ranks are always monotonically increasing starting at 0 */
     for (int rank = 0; rank < tot_smpranks; ++rank) {
         /* whether or not the particular pid is in the given obj type */

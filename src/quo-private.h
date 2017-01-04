@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Los Alamos National Security, LLC
+ * Copyright (c) 2013-2017 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * This software was produced under U.S. Government contract DE-AC52-06NA25396
@@ -88,11 +88,11 @@ do {                                                                           \
 /**
  * Convenience macro used to print out error messages.
  *
- * @param[in] whystr Error message string.
+ * @param[in] whatstr Error message string.
  */
-#define QUO_ERR_MSG(whystr)                                                    \
+#define QUO_ERR_MSG(whatstr)                                                   \
 do {                                                                           \
-    fprintf(stderr, QUO_ERR_PREFIX"%s failed: %s.\n", __func__, (whystr));     \
+    fprintf(stderr, QUO_ERR_PREFIX"%s failed: %s.\n", __func__, (whatstr));    \
 } while (0)
 
 /**
@@ -160,6 +160,11 @@ struct QUO_t {
     quo_hwloc_t *hwloc;
     /** Handle to MPI instance. */
     quo_mpi_t *mpi;
+    /* Information cache. */
+    /** My unique QUO ID (node-local). */
+    int qid;
+    /** Number of processes that share a node with me. */
+    int nqid;
 };
 
 #endif
