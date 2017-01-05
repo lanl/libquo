@@ -6,10 +6,11 @@ libraries.
 
 ## Current Build Status
 
-[![Build Status](https://travis-ci.org/losalamos/libquo.svg?branch=master)](https://travis-ci.org/losalamos/libquo)
+[![Build Status](https://travis-ci.org/losalamos/libquo.svg?branch=master)
+](https://travis-ci.org/losalamos/libquo)
 
-## Downloads
-http://losalamos.github.io/libquo/
+## Releases
+Distribution tarballs can be found [here](http://losalamos.github.io/libquo/).
 
 ## Building
 ### Prerequisites
@@ -31,19 +32,16 @@ See src/quof.f90 and src/quo.h for more information.
 In tests and demos.
 
 ## Linking to libquo 
-
 ##### Example 1
 ```
 mpicc myquoapp.c -I[QUO-PREFIX]/include -L[QUO-PREFIX]/lib -o myquoapp -lquo
 export LD_LIBRARY_PATH=[QUO-PREFIX]/lib:$LD_LIBRARY_PATH
 ```
-
 ##### Example 2
 ```
 mpicc myquoapp.c -o myquoapp -I[QUO-PREFIX]/include \
 -L[QUO-PREFIX]/lib -lquo -Wl,-rpath=[QUO-PREFIX]/lib
 ```
-
 ##### Example 3 (with [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/))
 ```
 mpicc myquoapp.c -o myquoapp `pkg-config --cflags --libs libquo`
@@ -54,4 +52,4 @@ QUO_TMPDIR - specifies the base directory where temporary QUO files will be
              written.
 
 ## Los Alamos National Laboratory Code Release
-QUO -- LA-CC-13-076
+QUO - LA-CC-13-076
