@@ -406,7 +406,6 @@ get_barrier_segment_name(quo_mpi_t *mpi,
     int randn = 0;
     int my_pid = (int)getpid();
 
-    srand((unsigned int)time(NULL));
     randn = rand();
 
     if (!mpi || !module_name || !segname) return QUO_ERR_INVLD_ARG;
@@ -637,6 +636,9 @@ quo_mpi_construct(quo_mpi_t **nmpi)
                 "quo_sm_construct");
         goto out;
     }
+    /* Set new seed for rand() things. */
+    srand((unsigned int)time(NULL));
+
     *nmpi = m;
 out:
     return rc;
