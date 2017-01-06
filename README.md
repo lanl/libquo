@@ -1,8 +1,8 @@
 # The QUO Runtime Library
 
-QUO is a runtime library that aids in accommodating thread-level heterogeneity
-in dynamic, phased MPI+X applications comprising single- and multi-threaded
-libraries.
+QUO (as in __"status quo"__) is a runtime library that aids in accommodating
+thread-level heterogeneity in dynamic, phased MPI+X applications comprising
+single- and multi-threaded libraries.
 
 [![Build Status](https://travis-ci.org/losalamos/libquo.svg?branch=master)
 ](https://travis-ci.org/losalamos/libquo)
@@ -14,33 +14,36 @@ Distribution tarballs can be found [here](http://losalamos.github.io/libquo/).
 ### Prerequisites
 libquo requires an implementation of the message passing interface [(MPI)]
 (http://mpi-forum.org/) and [hwloc](http://www.open-mpi.org/projects/hwloc).
-hwloc is included with libquo, so the only external dependency is an MPI
-library.
+hwloc is included with libquo, so the only external dependency is an MPI library
+(libquo has been extensively tested against both [Open MPI](
+https://www.open-mpi.org/) and [MPICH](https://www.mpich.org/) based
+implementations).
 
-##### Please see documentation located in docs/builds.
+**Please see documentation located in docs/builds.**
 
 ## libquo API
-##### C Interface Users
+### C Interface Users
 See src/quo.h for more information.
 
-##### Fortran Interface Users
-See src/fortran/quof.f90 and src/quo.h for more information.
+### Fortran Interface Users
+See [src/fortran/quof.f90](src/fortran/quof.f90) and [src/quo.h](src/quo.h) for
+more information.
 
-##### Interface Examples
-In tests and demos.
+### Interface Examples
+In [tests](tests) and [demos](demos).
 
 ## Linking to libquo 
-##### Example 1
+### Example 1
 ```
 mpicc myquoapp.c -I[QUO-PREFIX]/include -L[QUO-PREFIX]/lib -o myquoapp -lquo
 export LD_LIBRARY_PATH=[QUO-PREFIX]/lib:$LD_LIBRARY_PATH
 ```
-##### Example 2
+### Example 2
 ```
 mpicc myquoapp.c -o myquoapp -I[QUO-PREFIX]/include \
 -L[QUO-PREFIX]/lib -lquo -Wl,-rpath=[QUO-PREFIX]/lib
 ```
-##### Example 3 (with [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/))
+### Example 3 (with [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/))
 ```
 mpicc myquoapp.c -o myquoapp `pkg-config --cflags --libs libquo`
 ```
