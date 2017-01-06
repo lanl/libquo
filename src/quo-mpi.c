@@ -608,15 +608,13 @@ quo_mpi_smprank2pid(quo_mpi_t *mpi,
                     pid_t *out_pid)
 {
     if (!mpi || !out_pid) return QUO_ERR_INVLD_ARG;
-    *out_pid = 0;
-    /* slow. update if too slow... */
-    for (int i = 0; i < mpi->nsmpranks; ++i) {
-        if (mpi->pid_smprank_map[i].smprank == smprank) {
-            *out_pid = (pid_t)mpi->pid_smprank_map[i].pid;
-            return QUO_SUCCESS;
-        }
-    }
-    return QUO_ERR_NOT_FOUND;
+
+    /* MPI_Allgather guarantees rank ordering. Since we used the SMP
+     * communicator for this exchange, the ith item will always correspond to
+     * the SMP rank i. */
+    *out_pid = (pid_t)mpi->pid_smprank_map[smprank].pid;
+
+    return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
