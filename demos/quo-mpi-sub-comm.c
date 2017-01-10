@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2016 Los Alamos National Security, LLC
+ * Copyright (c) 2013-2017 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * This software was produced under U.S. Government contract DE-AC52-06NA25396
@@ -45,6 +45,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -120,6 +121,7 @@ static int
 print_comm_ranks(MPI_Comm comm)
 {
     char *bad_func = NULL;
+    int *ranks = NULL, *world_ranks = NULL;
 
     MPI_Group grp, world_grp;
 
@@ -138,8 +140,13 @@ print_comm_ranks(MPI_Comm comm)
         goto out;
     }
 
-    int *ranks = malloc(grp_size * sizeof(int));
-    int *world_ranks = malloc(grp_size * sizeof(int));
+    ranks = malloc(grp_size * sizeof(int));
+    world_ranks = malloc(grp_size * sizeof(int));
+
+    if (NULL == ranks || NULL == world_ranks) {
+        bad_func = "malloc";
+        goto out;
+    }
 
     for (int i = 0; i < grp_size; i++) ranks[i] = i;
 
@@ -152,8 +159,6 @@ print_comm_ranks(MPI_Comm comm)
     for (int i = 0; i < grp_size; i++)
         printf("comm[%d] has world rank %d\n", i, world_ranks[i]);
 
-    free(ranks); free(world_ranks);
-
     if (MPI_SUCCESS != MPI_Group_free(&grp)) {
         bad_func = "MPI_Group_free";
         goto out;
@@ -163,6 +168,9 @@ print_comm_ranks(MPI_Comm comm)
         goto out;
     }
 out:
+    if (ranks) free(ranks);
+    if (world_ranks) free(world_ranks);
+
     if (NULL != bad_func) {
         fprintf(stderr, "xxx %s failure in: %s\n", __FILE__, bad_func);
         return 1;
@@ -219,6 +227,7 @@ main(void)
     char *bad_func = NULL;
     QUO_context quo = NULL;
     inf_t info;
+    memset(&info, 0, sizeof(inf_t));
     hw_info_t hw_info;
 
     if (init(&info)) {
