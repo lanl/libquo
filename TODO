@@ -6,9 +6,7 @@ o add C++ API
 o report to hwloc devel slowdown in init between v 1.11.2 and 1.11.3.
 o add broken compiler check for fortran at configure time.
 o reconsider default mapping if affinity is turned off. evenly distribute.
-o update header documentation.
 o Make hwloc (Intel) valgrind clean and send upstream.
-o add better error messages.
 o implement global placement api.
 o add support query.
 o Expose memory API?
