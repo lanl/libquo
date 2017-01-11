@@ -93,7 +93,7 @@ get_qids_in_target_type(QUO_t *q,
     /* Points to a unique (node-local) path name for inter-process affinity
      * info. */
     char *sm_seg_path = NULL;
-    quo_sm_t *smseg;
+    quo_sm_t *smseg = NULL;
 
     /* Get node communicator so we can chat with our friends. */
     if (QUO_SUCCESS != (rc = quo_mpi_get_node_comm(q->mpi, &node_comm))) {
