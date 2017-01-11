@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013-2016 Los Alamos National Security, LLC
+# Copyright (c) 2013-2017 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Los Alamos National Security, LLC. This software was produced under U.S.
@@ -146,6 +146,19 @@ dnl AC_COMPUTE_INT(quo_sizeof_voidptr, [sizeof(void *)])
 dnl AC_SUBST(QUO_IKIND_VAL, $quo_sizeof_voidptr)
 
 ################################################################################
+# pthreads stuff
+################################################################################
+AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
+# TODO
+#AC_SUBST(QUO_PTHREAD_CFLAGS, $PTHREAD_CFLAGS)
+#AC_SUBST(QUO_PTHREAD_LIBS, $PTHREAD_LIBS)
+
+# Check for pthread_barrier_init. Error out if not found.
+AC_SEARCH_LIBS([pthread_barrier_init], [pthread],
+               [],
+               [AC_MSG_ERROR([pthread_barrier_init() required but not found.])])
+
+################################################################################
 # hwloc stuff
 ################################################################################
 # set some hwloc configure options
@@ -166,14 +179,6 @@ HWLOC_SETUP_CORE([src/hwloc],
 CPPFLAGS="$HWLOC_EMBEDDED_CPPFLAGS $CPPFLAGS"
 LIBS="$HWLOC_EMBEDDED_LIBS $LIBS"
 HWLOC_DO_AM_CONDITIONALS
-
-################################################################################
-# pthreads stuff
-################################################################################
-AX_PTHREAD([], AC_MSG_ERROR([*** pthread configure failure. ***]))
-# TODO
-#AC_SUBST(QUO_PTHREAD_CFLAGS, $PTHREAD_CFLAGS)
-#AC_SUBST(QUO_PTHREAD_LIBS, $PTHREAD_LIBS)
 
 ################################################################################
 # OpenMP configury (Disable for now)
