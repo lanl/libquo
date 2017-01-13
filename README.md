@@ -1,11 +1,13 @@
+![logo](docs/img/quo-logo.svg)
+
+[![Build Status](https://travis-ci.org/losalamos/libquo.svg?branch=master)
+](https://travis-ci.org/losalamos/libquo)
+
 # The QUO Runtime Library
 
 QUO (as in *"status quo"*) is a runtime library that aids in accommodating
 thread-level heterogeneity in dynamic, phased MPI+X applications comprising
 single- and multi-threaded libraries.
-
-[![Build Status](https://travis-ci.org/losalamos/libquo.svg?branch=master)
-](https://travis-ci.org/losalamos/libquo)
 
 ## Releases
 Distribution tarballs can be found [here](http://losalamos.github.io/libquo/).
