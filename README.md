@@ -1,4 +1,4 @@
-![logo](docs/img/quo-logo.svg)
+![logo](docs/img/quo-logo.png)
 
 [![Build Status](https://travis-ci.org/losalamos/libquo.svg?branch=master)
 ](https://travis-ci.org/losalamos/libquo)
