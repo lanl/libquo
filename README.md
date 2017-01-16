@@ -1,7 +1,7 @@
 ![logo](docs/img/quo-logo.png)
 
-[![Build Status](https://travis-ci.org/losalamos/libquo.svg?branch=master)
-](https://travis-ci.org/losalamos/libquo)
+[![Build Status](https://travis-ci.org/lanl/libquo.svg?branch=master)
+](https://travis-ci.org/lanl/libquo)
 
 # The QUO Runtime Library
 
@@ -10,7 +10,7 @@ thread-level heterogeneity in dynamic, phased MPI+X applications comprising
 single- and multi-threaded libraries.
 
 ## Releases
-Distribution tarballs can be found [here](http://losalamos.github.io/libquo/).
+Distribution tarballs can be found [here](http://lanl.github.io/libquo/).
 
 ## Building
 ### Prerequisites
