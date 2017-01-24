@@ -226,6 +226,7 @@ AC_CONFIG_FILES([Makefile
                  src/tools/Makefile
                  tests/Makefile
                  demos/Makefile
+                 demos/mpi-openmp/Makefile
                  pkgconfig/Makefile
                  pkgconfig/libquo.pc
                  docs/Makefile

@@ -41,7 +41,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
 
-#SUBDIRS = openmp
+SUBDIRS = \
+mpi-openmp
 
 noinst_PROGRAMS = \
 basic-info \
