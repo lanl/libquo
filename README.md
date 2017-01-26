@@ -16,8 +16,8 @@ Distribution tarballs can be found [here](http://lanl.github.io/libquo/).
 ### Prerequisites
 libquo requires an implementation of the message passing interface [(MPI)]
 (http://mpi-forum.org/) and [hwloc](http://www.open-mpi.org/projects/hwloc).
-hwloc is included with libquo, so the only external dependency is an MPI library
-libquo has been extensively tested against both [Open MPI](
+hwloc is included with libquo, so the only external dependency is an MPI
+library.  libquo has been extensively tested against both [Open MPI](
 https://www.open-mpi.org/) and [MPICH](https://www.mpich.org/) based
 implementations.
 
