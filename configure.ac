@@ -133,12 +133,12 @@ if test "x$HAVE_OPENMP" = "x"; then
     AC_MSG_WARN([No OpenMP support. Continuing without OpenMP examples.])
 else
     AC_MSG_NOTICE([OpenMP support detected... Building OpenMP examples.])
+    AC_SUBST([OPENMP_CFLAGS])
+    AC_SUBST([OPENMP_CXXFLAGS])
+    AC_SUBST([OPENMP_FFLAGS])
 fi
 AM_CONDITIONAL([QUO_HAVE_OPENMP_SUPPORT],
                [test "x$HAVE_OPENMP" != "x"])
-#CFLAGS="$CFLAGS $OPENMP_CFLAGS"
-#CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
-#FFLAGS="$FFLAGS $OPENMP_FFLAGS"
 
 ################################################################################
 # hwloc stuff

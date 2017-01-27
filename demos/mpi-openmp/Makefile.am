@@ -14,6 +14,7 @@ dgemv
 
 ###
 dgemv_SOURCES = dgemv.c 
+dgemv_CFLAGS = @OPENMP_CFLAGS@
 dgemv_CPPFLAGS = -I$(top_srcdir)/src
 dgemv_LDADD = $(top_builddir)/src/libquo.la
 endif # QUO_HAVE_OPENMP_SUPPORT

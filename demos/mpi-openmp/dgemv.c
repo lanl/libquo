@@ -120,7 +120,29 @@ init_dgem(dgemv_t *d,
     d->m = iparams[0];
     d->n = iparams[1];
 
-    pprintf(0 == d->pe,
+    return SUCCESS;
+}
+
+static int
+emit_config(dgemv_t *d)
+{
+    const bool emit = (0 == d->pe);
+
+    pprintf(emit,
+            "# MPI:\n"
+            "# numpe=%d\n",
+            d->numpe);
+
+    pprintf(emit, "#\n");
+
+    pprintf(emit,
+            "# OpenMP:\n"
+            "# max-threads=%d\n",
+            omp_get_max_threads());
+
+    pprintf(emit, "#\n");
+
+    pprintf(emit,
             "# Local Matrix:\n"
             "# m=%" PRId64 "\n"
             "# n=%" PRId64 "\n"
@@ -144,6 +166,7 @@ main(int argc, char **argv)
     if (SUCCESS != (rc = init_dgem(&dgem, argc, argv))) goto out;
     /* Create a QUO context (can be done anytime after MPI_Init). */
     if (SUCCESS != (rc = create_quo_context(&dgem))) goto out;
+    if (SUCCESS != (rc = emit_config(&dgem))) goto out;
 
     if (SUCCESS != (rc = free_quo_context(&dgem))) goto out;
     if (SUCCESS != (rc = fini_mpi())) goto out;
