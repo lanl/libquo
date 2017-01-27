@@ -181,15 +181,18 @@ if test "x$QUO_WHICH_FC" = x; then
     QUO_WHICH_FC="none"
 fi
 
-AC_ARG_VAR(USER,[ Username used in build info (fails back to `id -u -n` output)])
+AC_ARG_VAR(USER,
+           [ Username used in build info (Default: `id -u -n` output)])
 if test "x$USER" = x; then
     USER=`id -u -n`
 fi
-AC_ARG_VAR(HOSTNAME,[ Hostname used in build info (fails back to `hostname` output)])
+AC_ARG_VAR(HOSTNAME,
+           [ Hostname used in build info (Default: `hostname` output)])
 if test "x$HOSTNAME" = x; then
     HOSTNAME=`hostname`
 fi
-AC_ARG_VAR(DATE,[ Date used in build info (fails back to `date` output)])
+AC_ARG_VAR(DATE,
+           [ Date used in build info (Default: `date` output)])
 if test "x$DATE" = x; then
     DATE=`date`
 fi
