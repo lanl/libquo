@@ -181,6 +181,19 @@ if test "x$QUO_WHICH_FC" = x; then
     QUO_WHICH_FC="none"
 fi
 
+AC_ARG_VAR(USER,[ Username used in build info (fails back to `id -u -n` output)])
+if test "x$USER" = x; then
+    USER=`id -u -n`
+fi
+AC_ARG_VAR(HOSTNAME,[ Hostname used in build info (fails back to `hostname` output)])
+if test "x$HOSTNAME" = x; then
+    HOSTNAME=`hostname`
+fi
+AC_ARG_VAR(DATE,[ Date used in build info (fails back to `date` output)])
+if test "x$DATE" = x; then
+    DATE=`date`
+fi
+
 AC_SUBST([CC])
 AC_SUBST([QUO_WHICH_CC])
 AC_SUBST([CFLAGS])
@@ -189,6 +202,9 @@ AC_SUBST([CXXFLAGS])
 AC_SUBST([CXXCPPFLAGS])
 AC_SUBST([FC])
 AC_SUBST([QUO_WHICH_FC])
+AC_SUBST([USER])
+AC_SUBST([HOSTNAME])
+AC_SUBST([DATE])
 AC_SUBST([FFLAGS])
 AC_SUBST([FCFLAGS])
 AC_SUBST([LDFLAGS])

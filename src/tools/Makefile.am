@@ -17,9 +17,9 @@ quo-info.c
 
 quo_info_CPPFLAGS = \
 -I${top_srcdir}/src \
--DQUO_BUILD_USER="\"$$USER\"" \
--DQUO_BUILD_HOST="\"`hostname`\"" \
--DQUO_BUILD_DATE="\"`date`\"" \
+-DQUO_BUILD_USER="\"@USER@\"" \
+-DQUO_BUILD_HOST="\"@HOSTNAME@\"" \
+-DQUO_BUILD_DATE="\"@DATE@\"" \
 -DQUO_BUILD_PREFIX="\"@prefix@\"" \
 -DQUO_BUILD_INCLUDEDIR="\"@includedir@\"" \
 -DQUO_BUILD_LIBDIR="\"@libdir@\"" \
