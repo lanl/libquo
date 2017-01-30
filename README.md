@@ -9,8 +9,8 @@ QUO (as in *"status quo"*) is a runtime library that aids in accommodating
 thread-level heterogeneity in dynamic, phased MPI+X applications comprising
 single- and multi-threaded libraries.
 
-## Releases Distribution tarballs can be found
-[here](http://lanl.github.io/libquo/).
+## Releases
+Distribution tarballs can be found [here](http://lanl.github.io/libquo/).
 
 ## Citing QUO
 
@@ -19,7 +19,7 @@ single- and multi-threaded libraries.
   Weik, Christoph Junghans. [**Accommodating Thread-Level Heterogeneity in
   Coupled Parallel Applications**](docs/publications/quo-ipdps17.pdf). In
   Proceedings of the IEEE International Parallel and Distributed Processing
-  Symposium (IPDPS 2017), Orlando, FL, To appear May 2017. 
+  Symposium (IPDPS 2017), Orlando, FL, To appear May 2017.
 
 ## Building
 ### Prerequisites
@@ -43,7 +43,7 @@ more information.
 ### Interface Examples
 In [tests](tests) and [demos](demos).
 
-## Linking to libquo 
+## Linking to libquo
 ### Example 1
 ```
 mpicc myquoapp.c -I[QUO-PREFIX]/include -L[QUO-PREFIX]/lib -o myquoapp -lquo
