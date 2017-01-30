@@ -17,6 +17,102 @@
 #include "omp.h"
 #include "quo.h"
 
+#define pprintf(p, va...)                                                      \
+do {                                                                           \
+    if ((p)) {                                                                 \
+        printf(va);                                                            \
+        fflush(stdout);                                                        \
+    }                                                                          \
+} while(0)
+
+enum {
+    SUCCESS = 0,
+    FAILURE
+};
+
+static double
+gettime(void) {
+    return MPI_Wtime();
+}
+
+static double
+timediff(double start,
+         double end)
+{
+    return end - start;
+}
+
+typedef struct matrix_t {
+    /* Local number of rows. */
+    int64_t m;
+    /* Local number of columns. */
+    int64_t n;
+    /* Points to dense data. */
+    double **data;
+} matrix_t;
+
+typedef struct vector_t {
+    /* Local length. */
+    int64_t length;
+    /* Values. */
+    double *values;
+} vector_t;
+
+static int
+vector_construct(vector_t *v,
+                 int64_t len)
+{
+    if (!v) return FAILURE;
+
+    v->length = len;
+    v->values = calloc(len, sizeof(double));
+    if (!v->values) return FAILURE;
+
+    return SUCCESS;
+}
+
+static int
+vector_destruct(vector_t *v)
+{
+    if (!v) return FAILURE;
+
+    if (v->values) free(v->values);
+
+    return SUCCESS;
+}
+
+static int
+matrix_construct(matrix_t *mat,
+                 int64_t m_local,
+                 int64_t n_local)
+
+{
+    if (!mat) return FAILURE;
+
+    mat->m = m_local;
+    mat->n = n_local;
+
+    mat->data = calloc(m_local, sizeof(double));
+    if (!mat->data) return FAILURE;
+
+    for (int64_t r = 0; r < m_local; ++r) {
+        mat->data[r] = calloc(n_local, sizeof(double));
+        if (!mat->data[r]) return FAILURE;
+    }
+    return SUCCESS;
+}
+
+static int
+matrix_destruct(matrix_t *mat)
+{
+    if (!mat) return FAILURE;
+    if (mat->data) {
+        for (int64_t r = 0; r < mat->m; ++r) {
+            if (mat->data[r]) free(mat->data[r]);
+        }
+    }
+}
+
 typedef struct dgemv_t {
     /* Number of MPI processes in MPI_COMM_WORLD. */
     int numpe;
@@ -28,20 +124,13 @@ typedef struct dgemv_t {
     int64_t m;
     /* Local number of columns. */
     int64_t n;
+    /* My local matrix. */
+    matrix_t matrix;
+    /* My local input vector. */
+    vector_t vector_in;
+    /* My local result vector. */
+    vector_t vector_out;
 } dgemv_t;
-
-enum {
-    SUCCESS = 0,
-    FAILURE
-};
-
-#define pprintf(p, va...)                                                      \
-do {                                                                           \
-    if ((p)) {                                                                 \
-        printf(va);                                                            \
-        fflush(stdout);                                                        \
-    }                                                                          \
-} while(0)
 
 static int
 init_mpi(dgemv_t *d,
@@ -154,23 +243,64 @@ emit_config(dgemv_t *d)
     return SUCCESS;
 }
 
+/*
+ * Basic Setup:
+ *
+ * Matrices:
+ * - Globally (m x numpe) rows
+ * - Globally n columns
+ * - Decomposition: 1D along the rows. Each MPI process will have m elements.
+ */
+static int
+gen_dgemv(dgemv_t *d)
+{
+    int rc = SUCCESS;
+    const bool emit = (0 == d->pe);
+
+    pprintf(emit, "# Generating Problem...\n");
+
+    double start = gettime();
+
+    if (SUCCESS != (rc = matrix_construct(&d->matrix, d->m, d->n))) goto out;
+    if (SUCCESS != (rc = vector_construct(&d->vector_in,  d->n)))   goto out;
+    if (SUCCESS != (rc = vector_construct(&d->vector_out, d->n)))   goto out;
+
+    double end = gettime();
+
+    pprintf(emit, "# prob-gen-time=%lfs\n", timediff(start, end));
+out:
+    return rc;
+}
+
+static int
+teardown_dgemv(dgemv_t *d)
+{
+    int rc = SUCCESS;
+    if (SUCCESS != (rc = matrix_destruct(&d->matrix))) goto out;
+    if (SUCCESS != (rc = vector_destruct(&d->vector_in))) goto out;
+    if (SUCCESS != (rc = vector_destruct(&d->vector_out))) goto out; 
+out:
+    return rc;
+}
+
 int
 main(int argc, char **argv)
 {
     int rc = SUCCESS;
     dgemv_t dgem;
-
     /* Init MPI library. */
     if (SUCCESS != (rc = init_mpi(&dgem, argc, argv))) goto out;
     /* Problem init. */
     if (SUCCESS != (rc = init_dgem(&dgem, argc, argv))) goto out;
+    /* Display basic setup info. */
+    if (SUCCESS != (rc = emit_config(&dgem))) goto out;
+    /* Generate the problem. */
+    if (SUCCESS != (rc = gen_dgemv( &dgem))) goto out;
     /* Create a QUO context (can be done anytime after MPI_Init). */
     if (SUCCESS != (rc = create_quo_context(&dgem))) goto out;
-    if (SUCCESS != (rc = emit_config(&dgem))) goto out;
-
+    /* Cleanup. */
     if (SUCCESS != (rc = free_quo_context(&dgem))) goto out;
     if (SUCCESS != (rc = fini_mpi())) goto out;
-
 out:
     return (SUCCESS == rc) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
