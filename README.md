@@ -4,22 +4,12 @@
 ](https://travis-ci.org/lanl/libquo)
 
 # The QUO Runtime Library
-
 QUO (as in *"status quo"*) is a runtime library that aids in accommodating
 thread-level heterogeneity in dynamic, phased MPI+X applications comprising
 single- and multi-threaded libraries.
 
 ## Releases
 Distribution tarballs can be found [here](http://lanl.github.io/libquo/).
-
-## Citing QUO
-
-* Samuel K. Gutiérrez, Kei Davis, Dorian C. Arnold, Randal S. Baker, Robert W.
-  Robey, Patrick McCormick, Daniel Holladay, Jon A. Dahl, R. Joe Zerr, Florian
-  Weik, Christoph Junghans. [**Accommodating Thread-Level Heterogeneity in
-  Coupled Parallel Applications**](docs/publications/quo-ipdps17.pdf). In
-  Proceedings of the IEEE International Parallel and Distributed Processing
-  Symposium (IPDPS 2017), Orlando, FL, To appear May 2017.
 
 ## Building
 ### Prerequisites
@@ -62,6 +52,14 @@ mpicc myquoapp.c -o myquoapp `pkg-config --cflags --libs libquo`
 ## Environment Variables
 QUO_TMPDIR - specifies the base directory where temporary QUO files will be
              written.
+
+## Citing QUO
+* Samuel K. Gutiérrez, Kei Davis, Dorian C. Arnold, Randal S. Baker, Robert W.
+  Robey, Patrick McCormick, Daniel Holladay, Jon A. Dahl, R. Joe Zerr, Florian
+  Weik, Christoph Junghans. [**Accommodating Thread-Level Heterogeneity in
+  Coupled Parallel Applications**](docs/publications/quo-ipdps17.pdf). In
+  Proceedings of the IEEE International Parallel and Distributed Processing
+  Symposium (IPDPS 2017), Orlando, FL, To appear May 2017.
 
 ## Los Alamos National Laboratory Code Release
 QUO - LA-CC-13-076
