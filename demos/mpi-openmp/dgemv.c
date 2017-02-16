@@ -48,7 +48,7 @@ typedef struct matrix_t {
     /* Local number of columns. */
     int64_t n;
     /* Points to dense data. */
-    double **data;
+    double **values;
 } matrix_t;
 
 typedef struct vector_t {
@@ -92,12 +92,12 @@ matrix_construct(matrix_t *mat,
     mat->m = m_local;
     mat->n = n_local;
 
-    mat->data = calloc(m_local, sizeof(double));
-    if (!mat->data) return FAILURE;
+    mat->values = calloc(m_local, sizeof(double));
+    if (!mat->values) return FAILURE;
 
     for (int64_t r = 0; r < m_local; ++r) {
-        mat->data[r] = calloc(n_local, sizeof(double));
-        if (!mat->data[r]) return FAILURE;
+        mat->values[r] = calloc(n_local, sizeof(double));
+        if (!mat->values[r]) return FAILURE;
     }
     return SUCCESS;
 }
@@ -106,9 +106,9 @@ static int
 matrix_destruct(matrix_t *mat)
 {
     if (!mat) return FAILURE;
-    if (mat->data) {
+    if (mat->values) {
         for (int64_t r = 0; r < mat->m; ++r) {
-            if (mat->data[r]) free(mat->data[r]);
+            if (mat->values[r]) free(mat->values[r]);
         }
     }
 }
@@ -158,7 +158,17 @@ fini_mpi(void)
 static int
 create_quo_context(dgemv_t *d)
 {
+    const bool emit = (0 == d->pe);
+
+    pprintf(emit, "# Creating QUO Context...\n");
+
+    const double start = gettime();
+
     if (QUO_SUCCESS != QUO_create(&(d->qc), MPI_COMM_WORLD)) return FAILURE;
+
+    const double end = gettime();
+
+    pprintf(emit, "# quo-context-create-time-s=%lf\n", timediff(start, end));
 
     return SUCCESS;
 }
@@ -166,7 +176,17 @@ create_quo_context(dgemv_t *d)
 static int
 free_quo_context(dgemv_t *d)
 {
+    const bool emit = (0 == d->pe);
+
+    pprintf(emit, "# Freeing QUO Context...\n");
+
+    const double start = gettime();
+
     if (QUO_SUCCESS != QUO_free(d->qc)) return FAILURE;
+
+    const double end = gettime();
+
+    pprintf(emit, "# quo-context-free-time-s=%lf\n", timediff(start, end));
 
     return SUCCESS;
 }
@@ -175,7 +195,7 @@ static bool
 starts_with(char *s,
             char *prefix)
 {
-    size_t n = strlen( prefix );
+    size_t n = strlen(prefix);
     if (strncmp(s, prefix, n)) return false;
     return true;
 }
@@ -219,26 +239,28 @@ emit_config(dgemv_t *d)
 
     pprintf(emit,
             "# MPI:\n"
-            "# numpe=%d\n",
+            "# mpi-numpe=%d\n",
             d->numpe);
 
     pprintf(emit, "#\n");
 
     pprintf(emit,
             "# OpenMP:\n"
-            "# max-threads=%d\n",
+            "# omp-max-threads=%d\n",
             omp_get_max_threads());
 
     pprintf(emit, "#\n");
 
     pprintf(emit,
             "# Local Matrix:\n"
-            "# m=%" PRId64 "\n"
-            "# n=%" PRId64 "\n"
+            "# local-m=%" PRId64 "\n"
+            "# local-n=%" PRId64 "\n"
             "# Global Matrix:\n"
-            "# m=%" PRId64 "\n"
-            "# n=%" PRId64 "\n",
+            "# global-m=%" PRId64 "\n"
+            "# global-n=%" PRId64 "\n",
             d->m, d->n, d->m * d->numpe, d->n);
+
+    pprintf(emit, "#\n");
 
     return SUCCESS;
 }
@@ -259,15 +281,15 @@ gen_dgemv(dgemv_t *d)
 
     pprintf(emit, "# Generating Problem...\n");
 
-    double start = gettime();
+    const double start = gettime();
 
     if (SUCCESS != (rc = matrix_construct(&d->matrix, d->m, d->n))) goto out;
     if (SUCCESS != (rc = vector_construct(&d->vector_in,  d->n)))   goto out;
     if (SUCCESS != (rc = vector_construct(&d->vector_out, d->n)))   goto out;
 
-    double end = gettime();
+    const double end = gettime();
 
-    pprintf(emit, "# prob-gen-time=%lfs\n", timediff(start, end));
+    pprintf(emit, "# prob-gen-time-s=%lf\n", timediff(start, end));
 out:
     return rc;
 }
@@ -281,6 +303,43 @@ teardown_dgemv(dgemv_t *d)
     if (SUCCESS != (rc = vector_destruct(&d->vector_out))) goto out; 
 out:
     return rc;
+}
+
+static double
+comp_ddot(const double *restrict x,
+          const double *restrict y,
+          int64_t n)
+{
+    double res = 0.0;
+    for (int64_t i = 0; i < n; ++i) {
+        res += x[i] * y[i];
+    }
+    return res;
+}
+
+static int
+comp_dgemv(dgemv_t *d)
+{
+    const bool emit = (0 == d->pe);
+
+    pprintf(emit, "# Calculating y=Ax...\n");
+
+    const double start = gettime();
+
+    double        *y = d->vector_out.values;
+    double       **A = d->matrix.values;
+    const double  *x = d->vector_in.values;
+
+    const int64_t nrow = d->matrix.m;
+    const int64_t ncol = d->matrix.n;
+
+    for (int64_t r = 0; r < nrow; ++r) {
+        y[r] = comp_ddot(A[r], x, ncol);
+    }
+
+    const double end = gettime();
+
+    pprintf(emit, "# comp-dgemv-s=%lf\n", timediff(start, end));
 }
 
 int
@@ -298,7 +357,10 @@ main(int argc, char **argv)
     if (SUCCESS != (rc = gen_dgemv( &dgem))) goto out;
     /* Create a QUO context (can be done anytime after MPI_Init). */
     if (SUCCESS != (rc = create_quo_context(&dgem))) goto out;
+    /* Perform the parallel calculation. */
+    if (SUCCESS != (rc = comp_dgemv(&dgem))) goto out;
     /* Cleanup. */
+    if (SUCCESS != (rc = teardown_dgemv(&dgem))) goto out;
     if (SUCCESS != (rc = free_quo_context(&dgem))) goto out;
     if (SUCCESS != (rc = fini_mpi())) goto out;
 out:
