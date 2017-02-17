@@ -25,6 +25,8 @@ do {                                                                           \
     }                                                                          \
 } while(0)
 
+#define DDOT_OMP_CHUNK_SIZE 128
+
 enum {
     SUCCESS = 0,
     FAILURE
@@ -311,9 +313,16 @@ comp_ddot(const double *restrict x,
           int64_t n)
 {
     double res = 0.0;
-    for (int64_t i = 0; i < n; ++i) {
+    int64_t i = 0;
+
+#pragma omp parallel for                                                       \
+        default(shared) private(i)                                             \
+        schedule(static, DDOT_OMP_CHUNK_SIZE)                                  \
+        reduction(+:res)
+    for (i = 0; i < n; ++i) {
         res += x[i] * y[i];
     }
+
     return res;
 }
 
@@ -326,9 +335,9 @@ comp_dgemv(dgemv_t *d)
 
     const double start = gettime();
 
-    double        *y = d->vector_out.values;
-    double       **A = d->matrix.values;
-    const double  *x = d->vector_in.values;
+    double        *y  = d->vector_out.values;
+    const double  **A = (const double **)d->matrix.values;
+    const double  *x  = d->vector_in.values;
 
     const int64_t nrow = d->matrix.m;
     const int64_t ncol = d->matrix.n;
