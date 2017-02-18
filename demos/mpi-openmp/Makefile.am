@@ -18,3 +18,11 @@ dgemv_CFLAGS = @OPENMP_CFLAGS@
 dgemv_CPPFLAGS = -I$(top_srcdir)/src
 dgemv_LDADD = $(top_builddir)/src/libquo.la
 endif # QUO_HAVE_OPENMP_SUPPORT
+
+noinst_PROGRAMS += \
+libzeta
+###
+libzeta_SOURCES = zeta.c
+libzeta_CFLAGS =
+libzeta_CPPFLAGS =
+libzeta_LDADD =
