@@ -26,3 +26,11 @@ libzeta_SOURCES = zeta.c
 libzeta_CFLAGS =
 libzeta_CPPFLAGS =
 libzeta_LDADD =
+
+noinst_PROGRAMS += \
+libeta
+###
+libeta_SOURCES = eta.c
+libeta_CFLAGS =
+libeta_CPPFLAGS =
+libeta_LDADD =
