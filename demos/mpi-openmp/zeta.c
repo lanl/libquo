@@ -7,7 +7,8 @@
  */
 
 /*
- * Parallel library that calculates the Riemann zeta function for a given s.
+ * Parallel library that calculates z(s) for any s > 1.0, where z is the
+ * Euler–Riemann zeta function.
  */
 
 #include <stdio.h>
@@ -93,17 +94,18 @@ main(int argc, char **argv)
     int cid = 0;
     if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &cid)) return EXIT_FAILURE;
 
+    const int64_t n = 1000000;
+    const double s = 2.0;
     double *z = NULL;
     double res = 0.0;
-    int64_t n = 1024;
-    double s = 2.0;
+
     int zrc = zeta(s, n, &z, MPI_COMM_WORLD, &res);
     if (ZETA_SUCCESS != zrc) goto out;
 
     const bool emit = (0 == cid);
-    if (emit) printf("z(%lf) = %lf\n", s, res);
+    if (emit) printf("z(%lf) = %.16lf\n", s, res);
 
 out:
-    MPI_Finalize();
+    if (MPI_SUCCESS != MPI_Finalize()) zrc = ZETA_FAILURE;
     return (ZETA_SUCCESS == zrc ? EXIT_SUCCESS : EXIT_FAILURE);
 }
