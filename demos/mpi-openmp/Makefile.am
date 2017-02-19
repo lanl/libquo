@@ -7,30 +7,39 @@
 #
 
 noinst_PROGRAMS =
+noinst_LTLIBRARIES =
 
 if QUO_HAVE_OPENMP_SUPPORT
 noinst_PROGRAMS += \
-dgemv
+dgemv coupled-eta-zeta
 
 ###
-dgemv_SOURCES = dgemv.c 
+dgemv_SOURCES = dgemv.c
 dgemv_CFLAGS = @OPENMP_CFLAGS@
 dgemv_CPPFLAGS = -I$(top_srcdir)/src
 dgemv_LDADD = $(top_builddir)/src/libquo.la
 endif # QUO_HAVE_OPENMP_SUPPORT
 
 noinst_PROGRAMS += \
-libzeta
+coupled-eta-zeta
 ###
-libzeta_SOURCES = zeta.c
-libzeta_CFLAGS =
-libzeta_CPPFLAGS =
-libzeta_LDADD =
+coupled_eta_zeta_SOURCES = coupled-eta-zeta.c
+coupled_eta_zeta_CFLAGS =
+coupled_eta_zeta_CPPFLAGS =
+coupled_eta_zeta_LDADD = libeta.la libzeta.la
 
-noinst_PROGRAMS += \
-libeta
+noinst_LTLIBRARIES += \
+libzeta.la
 ###
-libeta_SOURCES = eta.c
-libeta_CFLAGS =
-libeta_CPPFLAGS =
-libeta_LDADD =
+libzeta_la_SOURCES = zeta.h zeta.c
+libzeta_la_CFLAGS =
+libzeta_la_CPPFLAGS =
+libzeta_la_LIBADD =
+
+noinst_LTLIBRARIES += \
+libeta.la
+###
+libeta_la_SOURCES = eta.h eta.c
+libeta_la_CFLAGS =
+libeta_la_CPPFLAGS =
+libeta_la_LIBADD =

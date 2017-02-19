@@ -11,6 +11,8 @@
  * Dirichlet eta function.
  */
 
+#include "eta.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -18,13 +20,6 @@
 #include <math.h>
 
 #include "mpi.h"
-
-enum {
-    ETA_SUCCESS = 0,
-    ETA_FAILURE,
-    ETA_INVALID_ARG,
-    ETA_OOR
-};
 
 static int
 etai(double s,
@@ -85,27 +80,4 @@ out:
     if (ETA_SUCCESS != rc) free(ntmp);
     else *n = ntmp;
     return rc;
-}
-
-int
-main(int argc, char **argv)
-{
-    if (MPI_SUCCESS != MPI_Init(&argc, &argv)) return EXIT_FAILURE;
-    int cid = 0;
-    if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &cid)) return EXIT_FAILURE;
-
-    const int64_t n = 1000000;
-    const double s = 2.0;
-    double *z = NULL;
-    double res = 0.0;
-
-    int zrc = eta(s, n, &z, MPI_COMM_WORLD, &res);
-    if (ETA_SUCCESS != zrc) goto out;
-
-    const bool emit = (0 == cid);
-    if (emit) printf("z(%lf) = %.16lf\n", s, res);
-
-out:
-    if (MPI_SUCCESS != MPI_Finalize()) zrc = ETA_FAILURE;
-    return (ETA_SUCCESS == zrc ? EXIT_SUCCESS : EXIT_FAILURE);
 }
