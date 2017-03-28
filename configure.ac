@@ -91,7 +91,6 @@ AS_IF([test "x$AX_PROG_MPICXX_HAVE_MPICXX" != "x1"],dnl
        [*** CXX cannot compile MPI apps. set CXX to something that can. ***])])
 AM_CONDITIONAL(QUO_WITH_MPICXX, test "x$AX_PROG_MPICXX_HAVE_MPICXX" = "x1")
 
-
 ################################################################################
 # atms support
 ################################################################################

@@ -1,10 +1,13 @@
 ###############################################################################
 # Copyright (c) 2006-2012 Cisco Systems, Inc.  All rights reserved.
+#
 # Copyright (c) 2012      The University of Tennessee and The University
 #                         of Tennessee Research Foundation.  All rights
 #                         reserved.
+#
 # Copyright (c) 2012      Inria.  All rights reserved.
-# Copyright (c) 2013-2016 Los Alamos National Security, LLC.
+#
+# Copyright (c) 2013-2017 Los Alamos National Security, LLC.
 #                         All rights reserved.
 #
 # $COPYRIGHT$
