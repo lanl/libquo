@@ -59,7 +59,7 @@ QUO_TMPDIR - specifies the base directory where temporary QUO files will be
   Weik, Christoph Junghans. [**Accommodating Thread-Level Heterogeneity in
   Coupled Parallel Applications**](docs/publications/quo-ipdps17.pdf). In
   Proceedings of the IEEE International Parallel and Distributed Processing
-  Symposium (IPDPS 2017), Orlando, FL, To appear May 2017.
+  Symposium (IPDPS 2017), Orlando, FL, May 2017.
 
 ## Los Alamos National Laboratory Code Release
 QUO - LA-CC-13-076
