@@ -61,5 +61,8 @@ QUO_TMPDIR - specifies the base directory where temporary QUO files will be
   Proceedings of the IEEE International Parallel and Distributed Processing
   Symposium (IPDPS 2017), Orlando, FL, May 2017.
 
+## Other QUO Materials
+* The [**slide deck**](docs/slides/gutierrez-ipdps17.pdf) presented at IPDPS 2017.
+
 ## Los Alamos National Laboratory Code Release
 QUO - LA-CC-13-076
