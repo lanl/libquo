@@ -54,12 +54,26 @@ QUO_TMPDIR - specifies the base directory where temporary QUO files will be
              written.
 
 ## Citing QUO
-* Samuel K. Gutiérrez, Kei Davis, Dorian C. Arnold, Randal S. Baker, Robert W.
-  Robey, Patrick McCormick, Daniel Holladay, Jon A. Dahl, R. Joe Zerr, Florian
-  Weik, Christoph Junghans. [**Accommodating Thread-Level Heterogeneity in
-  Coupled Parallel Applications**](docs/publications/quo-ipdps17.pdf). In
-  Proceedings of the IEEE International Parallel and Distributed Processing
-  Symposium (IPDPS 2017), Orlando, FL, May 2017.
+Samuel K. Gutiérrez, Kei Davis, Dorian C. Arnold, Randal S. Baker, Robert W.
+Robey, Patrick McCormick, Daniel Holladay, Jon A. Dahl, R. Joe Zerr, Florian
+Weik, Christoph Junghans. [**Accommodating Thread-Level Heterogeneity in
+Coupled Parallel Applications**](docs/publications/quo-ipdps17.pdf). In
+Proceedings of the IEEE International Parallel and Distributed Processing
+Symposium (IPDPS 2017), Orlando, FL, May 2017.
+
+```
+@inproceedings{gutierrez:ipdps17:quo,
+  title={{Accommodating Thread-Level Heterogeneity
+          in Coupled Parallel Applications}},
+  author={Samuel K. Guti\'{e}rrez and Kei Davis and Dorian C. Arnold
+          and Randal S. Baker and Robert W. Robey and Patrick McCormick
+          and Daniel Holladay and Jon A. Dahl and R. Joe Zerr and Florian Weik
+          and Christoph Junghans},
+  booktitle={2017 IEEE International Parallel \& Distributed Processing Symposium (IPDPS)},
+  year={2017},
+  address={Orlando, Florida},
+}
+```
 
 ## Other QUO Materials
 * The [**slide deck**](docs/slides/gutierrez-ipdps17.pdf) presented at IPDPS 2017.
