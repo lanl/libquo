@@ -113,6 +113,7 @@ matrix_destruct(matrix_t *mat)
             if (mat->values[r]) free(mat->values[r]);
         }
     }
+    return SUCCESS;
 }
 
 typedef struct dgemv_t {
@@ -349,6 +350,8 @@ comp_dgemv(dgemv_t *d)
     const double end = gettime();
 
     pprintf(emit, "# comp-dgemv-s=%lf\n", timediff(start, end));
+
+    return SUCCESS;
 }
 
 int
