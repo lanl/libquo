@@ -92,10 +92,11 @@ AS_IF([test "x$AX_PROG_MPICXX_HAVE_MPICXX" != "x1"],dnl
 AM_CONDITIONAL(QUO_WITH_MPICXX, test "x$AX_PROG_MPICXX_HAVE_MPICXX" = "x1")
 
 ################################################################################
-# atms support
+# Cross-process memory (xpm) support
 ################################################################################
 
-AX_PKG_QUO_ATMS
+AX_PKG_QUO_XPM
+AM_CONDITIONAL(QUO_WITH_XPM, test "x$AX_PKG_QUO_XPM_HAVE_XPM" = "x1")
 
 # checks for header files.
 AC_CHECK_HEADERS([\
@@ -223,6 +224,7 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/fortran/Makefile
                  src/tools/Makefile
+                 src/xpm/Makefile
                  tests/Makefile
                  demos/Makefile
                  demos/mpi-openmp/Makefile

@@ -7,11 +7,18 @@
  */
 
 /**
- * @file quo_atms_init.c
+ * @file quo-xpm.h
  */
 
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int
-QUO_atms_init(void)
-{
-    return 0;
+QUO_xpm_create(void);
+
+#ifdef __cplusplus
 }
+#endif

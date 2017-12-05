@@ -15,6 +15,7 @@ SUBDIRS = \
 src \
 src/fortran \
 src/tools \
+src/xpm \
 tests \
 demos \
 pkgconfig \
