@@ -45,8 +45,7 @@ QUO_xpm_view_local(quo_xpm_t *xc,
 
 int
 QUO_xpm_view_by_qid(QUO_xpm_context xpm,
-                    int qid_start,
-                    int qid_end,
+                    int qid,
                     QUO_xpm_view_t *rview);
 
 #ifdef __cplusplus

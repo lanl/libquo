@@ -32,7 +32,7 @@ main(int argc, char **argv)
     QUO_id(q, &qid);
     QUO_nqids(q, &nqid);
 
-    int ni = 10;
+    int ni = 1 + rank;
     size_t local_size = ni * sizeof(int);
 
     QUO_xpm_allocate(q, local_size, &xpm);
@@ -42,26 +42,39 @@ main(int argc, char **argv)
     QUO_xpm_view_local(xpm, &my_view);
 
     int *my_array = (int *)my_view.base;
+    int nlocal = my_view.extent / sizeof(int);
 
-    for (int i = 0; i < ni; ++i) {
-        my_array[i] = rank;
+    for (int i = 0; i < nlocal; ++i) {
+        my_array[i] = qid;
     }
 
-    QUO_barrier(q);
     for (int i = 0; i < ni; ++i) {
         printf("%d: my_array[i] = %d\n", qid, my_array[i]);
     }
+
     QUO_barrier(q);
 
     if (0 == qid) {
-        for (int i = 0; i < ni * numpe; ++i) {
-            my_array[i] = rank;
+        printf("xxxxxxxxxxxxxxxxxxx\n");
+        for (int r = 0; r < nqid; ++r) {
+            QUO_xpm_view_by_qid(xpm, r, &my_view);
+            my_array = (int *)my_view.base;
+            nlocal = my_view.extent / sizeof(int);
+
+            for (int i = 0; i < nlocal; ++i) {
+                my_array[i] = nlocal;
+            }
         }
     }
     QUO_barrier(q);
 
+    QUO_xpm_view_local(xpm, &my_view);
+
+    my_array = (int *)my_view.base;
+    nlocal = my_view.extent / sizeof(int);
+
     for (int i = 0; i < ni; ++i) {
-        printf("%d: new my_array[i] = %d\n", qid, my_array[i]);
+        printf("%d: my_array'[i] = %d\n", qid, my_array[i]);
     }
 
     QUO_xpm_free(xpm);

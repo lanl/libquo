@@ -239,36 +239,28 @@ out:
 int
 QUO_xpm_free(quo_xpm_t *xpm)
 {
+    // TODO(skg) barrier?
     return destruct_xpm(xpm);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 QUO_xpm_view_by_qid(quo_xpm_t *xc,
-                    int qid_start,
-                    int qid_end,
-                    QUO_xpm_view_t *rview)
+                    int qid,
+                    QUO_xpm_view_t *view)
 {
-    if (!xc || !rview) return QUO_ERR_INVLD_ARG;
-
-    size_t my_off = range_sum(xc->local_sizes, 0, xc->qc->qid);
     char *base = quo_sm_get_basep(xc->qsm_segment);
-    base += my_off;
+    base += range_sum(xc->local_sizes, 0, qid);
 
-    rview->base = base;
+    view->base = base;
+    view->extent = xc->local_sizes[qid];
 
     return QUO_SUCCESS;
 }
 
 int
 QUO_xpm_view_local(quo_xpm_t *xc,
-                   QUO_xpm_view_t *rview)
+                   QUO_xpm_view_t *view)
 {
-    char *base = quo_sm_get_basep(xc->qsm_segment);
-    base += range_sum(xc->local_sizes, 0, xc->qc->qid);
-
-    rview->base = base;
-    rview->extent = xc->local_size;
-
-    return QUO_SUCCESS;
+    return QUO_xpm_view_by_qid(xc, xc->qc->qid, view);
 }
