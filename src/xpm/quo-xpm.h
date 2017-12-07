@@ -25,7 +25,7 @@ struct quo_xpm_t;
 typedef struct quo_xpm_t quo_xpm_t;
 /** External QUO XPM context type. */
 typedef quo_xpm_t * QUO_xpm_context;
-// TODO(skg) consider making this opaque once interface is complete. */
+
 typedef struct QUO_xpm_view_t {
     void *base;
     size_t extent;
@@ -40,13 +40,19 @@ int
 QUO_xpm_free(QUO_xpm_context xpm);
 
 int
-QUO_xpm_view_local(quo_xpm_t *xc,
-                   QUO_xpm_view_t *rview);
+QUO_xpm_view_local(QUO_xpm_context xpm,
+                   QUO_xpm_view_t *view);
 
 int
 QUO_xpm_view_by_qid(QUO_xpm_context xpm,
                     int qid,
-                    QUO_xpm_view_t *rview);
+                    QUO_xpm_view_t *view);
+
+int
+QUO_xpm_view_by_qid_range(QUO_xpm_context xpm,
+                          int qid_start,
+                          int qid_end,
+                          QUO_xpm_view_t *view);
 
 #ifdef __cplusplus
 }

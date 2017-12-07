@@ -48,7 +48,7 @@ main(int argc, char **argv)
         my_array[i] = qid;
     }
 
-    for (int i = 0; i < ni; ++i) {
+    for (int i = 0; i < nlocal; ++i) {
         printf("%d: my_array[i] = %d\n", qid, my_array[i]);
     }
 
@@ -57,24 +57,40 @@ main(int argc, char **argv)
     if (0 == qid) {
         printf("xxxxxxxxxxxxxxxxxxx\n");
         for (int r = 0; r < nqid; ++r) {
-            QUO_xpm_view_by_qid(xpm, r, &my_view);
-            my_array = (int *)my_view.base;
-            nlocal = my_view.extent / sizeof(int);
+            QUO_xpm_view_t r_view;
+            QUO_xpm_view_by_qid(xpm, r, &r_view);
+            int *r_array = (int *)r_view.base;
+            int n_remote = r_view.extent / sizeof(int);
 
-            for (int i = 0; i < nlocal; ++i) {
-                my_array[i] = nlocal;
+            for (int i = 0; i < n_remote; ++i) {
+                r_array[i] = n_remote;
             }
+        }
+    }
+
+    QUO_barrier(q);
+
+    for (int i = 0; i < nlocal; ++i) {
+        printf("%d: my_array'[i] = %d\n", qid, my_array[i]);
+    }
+
+    QUO_barrier(q);
+
+    if (0 == qid) {
+        printf("xxxxxxxxxxxxxxxxxxx\n");
+        QUO_xpm_view_t range_view;
+        QUO_xpm_view_by_qid_range(xpm, 0, nqid, &range_view);
+        int *r_array = (int *)range_view.base;
+        int n_remote = range_view.extent / sizeof(int);
+
+        for (int i = 0; i < n_remote; ++i) {
+            r_array[i] = -1;
         }
     }
     QUO_barrier(q);
 
-    QUO_xpm_view_local(xpm, &my_view);
-
-    my_array = (int *)my_view.base;
-    nlocal = my_view.extent / sizeof(int);
-
     for (int i = 0; i < ni; ++i) {
-        printf("%d: my_array'[i] = %d\n", qid, my_array[i]);
+        printf("%d: my_array''[i] = %d\n", qid, my_array[i]);
     }
 
     QUO_xpm_free(xpm);

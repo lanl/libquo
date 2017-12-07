@@ -47,16 +47,12 @@ struct quo_xpm_t {
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static size_t
-range_sum(size_t *array,
-          int start,
-          int end)
+range_sum(size_t *array, int start, int end)
 {
     size_t res = 0;
-
     for (int i = start; i < end; ++i) {
         res += array[i];
     }
-
     return res;
 }
 
@@ -103,7 +99,7 @@ mem_segment_create(quo_xpm_t *xpm)
     }
     free(lsizes);
 
-    xpm->global_size = range_sum(xpm->local_sizes, 0, xpm->qc->nqid - 1); 
+    xpm->global_size = range_sum(xpm->local_sizes, 0, xpm->qc->nqid - 1);
 
     if (QUO_SUCCESS != (qrc = get_segment_name(xpm, &sname))) {
         QUO_ERR_MSGRC("get_segment_name", qrc);
@@ -239,28 +235,43 @@ out:
 int
 QUO_xpm_free(quo_xpm_t *xpm)
 {
-    // TODO(skg) barrier?
     return destruct_xpm(xpm);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_xpm_view_by_qid(quo_xpm_t *xc,
-                    int qid,
-                    QUO_xpm_view_t *view)
-{
-    char *base = quo_sm_get_basep(xc->qsm_segment);
-    base += range_sum(xc->local_sizes, 0, qid);
-
-    view->base = base;
-    view->extent = xc->local_sizes[qid];
-
-    return QUO_SUCCESS;
-}
-
-int
 QUO_xpm_view_local(quo_xpm_t *xc,
                    QUO_xpm_view_t *view)
 {
     return QUO_xpm_view_by_qid(xc, xc->qc->qid, view);
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_xpm_view_by_qid(quo_xpm_t *xpm,
+                    int qid,
+                    QUO_xpm_view_t *view)
+{
+    char *base = quo_sm_get_basep(xpm->qsm_segment);
+    base += range_sum(xpm->local_sizes, 0, qid);
+
+    view->base = base;
+    view->extent = xpm->local_sizes[qid];
+
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_xpm_view_by_qid_range(quo_xpm_t *xpm,
+                          int qid_start,
+                          int qid_end,
+                          QUO_xpm_view_t *view)
+{
+    /* Gives us the base we are looking for. */
+    QUO_xpm_view_by_qid(xpm, qid_start, view);
+    /* Now update the extent. */
+    view->extent = range_sum(xpm->local_sizes, qid_start, qid_end);
+
+    return QUO_SUCCESS;
 }
