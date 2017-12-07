@@ -814,6 +814,28 @@ quo_mpi_bcast(void *buffer,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
+quo_mpi_allgather(const void *sendbuf,
+                  int sendcount,
+                  MPI_Datatype sendtype,
+                  void *recvbuf,
+                  int recvcount,
+                  MPI_Datatype recvtype,
+                  MPI_Comm comm)
+{
+    int rc = QUO_SUCCESS;
+
+    if (!sendbuf || !recvbuf) return QUO_ERR_INVLD_ARG;
+
+    if (MPI_SUCCESS != MPI_Allgather(sendbuf, sendcount, sendtype,
+                                     recvbuf, recvcount, recvtype, comm)) {
+        rc = QUO_ERR_MPI;
+    }
+
+    return rc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
 quo_mpi_get_node_comm(quo_mpi_t *mpi,
                       MPI_Comm *comm)
 {

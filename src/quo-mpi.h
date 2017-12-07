@@ -109,6 +109,14 @@ quo_mpi_bcast(void *buffer,
               MPI_Comm comm);
 
 int
+quo_mpi_allgather(const void *sendbuf,
+                  int sendcount,
+                  MPI_Datatype sendtype,
+                  void *recvbuf,
+                  int recvcount,
+                  MPI_Datatype recvtype,
+                  MPI_Comm comm);
+int
 quo_mpi_get_comm_by_type(const quo_mpi_t *mpi,
                          QUO_obj_type_t target_type,
                          MPI_Comm *out_comm);
