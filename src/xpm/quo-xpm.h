@@ -16,8 +16,9 @@
 extern "C" {
 #endif
 
-int
-QUO_xpm_create(void);
+/** Opaque QUO XPM context. */
+struct quo_xpm_t;
+typedef struct quo_xpm_t quo_xpm_t;
 
 #ifdef __cplusplus
 }

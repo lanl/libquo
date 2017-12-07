@@ -17,7 +17,7 @@ include_HEADERS += quo-xpm.h
 libquo_xpm_la_SOURCES = \
 quo-xpm.c
 
-libquo_xpm_la_CFLAGS =
+libquo_xpm_la_CFLAGS = -I$(top_srcdir)/src
 libquo_xpm_la_LDFLAGS = -version-info @QUO_LIBVINFO@
-libquo_xpm_la_LIBADD =
+libquo_xpm_la_LIBADD = $(top_builddir)/src/libquo.la
 endif

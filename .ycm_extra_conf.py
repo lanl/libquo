@@ -58,7 +58,8 @@ flags = [
 'c',
 '-I.',
 '-I./src',
-'-I' + home + '/local/ompi/1.6.5-gcc/include',
+'-I./src/xpm',
+'-I' + home + '/local/ompi/10.7-gnu/include',
 '-I./src/hwloc/include'
 ]
 

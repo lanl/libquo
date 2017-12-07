@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013-2016 Los Alamos National Security, LLC
+# Copyright (c) 2013-2017 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # Copyright 2013. Los Alamos National Security, LLC. This software was produced
@@ -74,3 +74,20 @@ barrier_subset_LDADD   =
 quo_time_SOURCES = quo-time.c
 quo_time_CFLAGS  = -I$(top_srcdir)/src
 quo_time_LDADD   = $(top_builddir)/src/libquo.la
+
+################################################################################
+# xpm tests
+################################################################################
+if QUO_WITH_XPM
+noinst_PROGRAMS += \
+xpm-0
+
+xpm_0_SOURCES = \
+xpm-0.c
+xpm_0_CFLAGS  = \
+-I$(top_srcdir)/src \
+-I$(top_srcdir)/src/xpm
+xpm_0_LDADD   = \
+$(top_builddir)/src/xpm/libquo-xpm.la \
+$(top_builddir)/src/libquo.la
+endif
