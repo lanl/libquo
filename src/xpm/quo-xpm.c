@@ -31,36 +31,72 @@
 struct quo_xpm_t {
     /** Handle to the QUO context associated with allocation. */
     QUO_context qc;
-    /** Flag indication whether or not I am the memory custodian. */
+    /** Flag indicating whether or not I am the memory custodian. */
     bool custodian;
     /** Used as a backing store for the cooperative allocation. */
-    quo_sm_t *qsm_membs;
+    quo_sm_t *qsm_segment;
     /** Process-local size of memory allocation. */
     size_t local_size;
     /** Node-local size of memory allocation (total). */
     size_t global_size;
+    // TODO(skg) array of offsets?
 };
 
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
+mem_segment_create(QUO_t *qc,
+                   quo_xpm_t *xpm)
+{
+    int qrc = QUO_SUCCESS;
+
+out:
+    return qrc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
 static int
 destruct_xpm(quo_xpm_t *xpm)
 {
-    if (xpm) free(xpm);
+    if (xpm) {
+        (void)quo_sm_destruct(xpm->qsm_segment);
+        free(xpm);
+    }
     /* okay to pass NULL here. just return success */
     return QUO_SUCCESS;
 }
 
+/* ////////////////////////////////////////////////////////////////////////// */
 static int
-construct_xpm(quo_xpm_t **new_xpm)
+construct_xpm(QUO_t *qc,
+              size_t local_size,
+              quo_xpm_t **new_xpm)
 {
     int qrc = QUO_SUCCESS;
 
-    if (!new_xpm) return QUO_ERR_INVLD_ARG;
+    if (!qc || !new_xpm) return QUO_ERR_INVLD_ARG;
+
+    /* make sure we are initialized before we continue */
+    QUO_NO_INIT_ACTION(qc);
 
     quo_xpm_t *txpm = calloc(1, sizeof(*txpm));
 
     if (!txpm) {
         QUO_OOR_COMPLAIN();
         qrc = QUO_ERR_OOR;
+        goto out;
+    }
+
+    txpm->qc = qc;
+    txpm->custodian = (0 == qc->qid) ? true : false;
+    txpm->local_size = local_size;
+
+    if (QUO_SUCCESS != (qrc = quo_sm_construct(&txpm->qsm_segment))) {
+        QUO_ERR_MSGRC("quo_sm_construct", qrc);
+        goto out;
+    }
+
+    if (QUO_SUCCESS != (qrc = mem_segment_create(qc, txpm))) {
+        QUO_ERR_MSGRC("mem_segment_create", qrc);
         goto out;
     }
 
@@ -76,32 +112,42 @@ out:
     return qrc;
 }
 
+/* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_xpm_allocate(QUO_context qc,
-                 quo_xpm_t **new_xpmc,
-                 size_t local_size)
+QUO_xpm_allocate(QUO_t *qc,
+                 size_t local_size,
+                 quo_xpm_t **new_xpm)
 {
     int qrc = QUO_SUCCESS;
 
-    if (!qc || !new_xpmc) return QUO_ERR_INVLD_ARG;
-
-    /* make sure we are initialized before we continue */
-    QUO_NO_INIT_ACTION(qc);
-
-    if (QUO_SUCCESS != (qrc = construct_xpm(new_xpmc))) {
+    if (QUO_SUCCESS != (qrc = construct_xpm(qc, local_size, new_xpm))) {
         QUO_ERR_MSGRC("construct_xpm", qrc);
         goto out;
     }
-
 out:
     if (QUO_SUCCESS != qrc) {
-        (void)destruct_xpm(*new_xpmc);
+        (void)destruct_xpm(*new_xpm);
+        *new_xpm = NULL;
     }
     return qrc;
 }
 
+/* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_xpm_free(quo_xpm_t *xpmc)
+QUO_xpm_free(quo_xpm_t *xpm)
 {
+    if (!xpm) return QUO_ERR_INVLD_ARG;
+
+    return QUO_SUCCESS;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+int
+QUO_xpm_view_by_qid(quo_xpm_t *xc,
+                    int qid_start,
+                    int qid_end,
+                    QUO_xpm_view_t *rview)
+{
+    if (!xc || !rview) return QUO_ERR_INVLD_ARG;
     return QUO_SUCCESS;
 }
