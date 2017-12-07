@@ -13,6 +13,7 @@
 #ifndef QUO_XPM_H_INCLUDED
 #define QUO_XPM_H_INCLUDED
 
+#include "quo.h"
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -29,6 +30,24 @@ typedef struct QUO_xpm_view_t {
     void *base;
     size_t extent;
 } QUO_xpm_view_t;
+
+int
+QUO_xpm_allocate(QUO_context qc,
+                 size_t local_size,
+                 QUO_xpm_context *new_xpm);
+
+int
+QUO_xpm_free(QUO_xpm_context xpm);
+
+int
+QUO_xpm_view_local(quo_xpm_t *xc,
+                   QUO_xpm_view_t *rview);
+
+int
+QUO_xpm_view_by_qid(QUO_xpm_context xpm,
+                    int qid_start,
+                    int qid_end,
+                    QUO_xpm_view_t *rview);
 
 #ifdef __cplusplus
 }

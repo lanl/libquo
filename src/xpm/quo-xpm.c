@@ -62,12 +62,30 @@ range_sum(size_t *array,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
+get_segment_name(quo_xpm_t *xpm,
+                 char **sname)
+{
+    int qrc = QUO_SUCCESS;
+
+    if (QUO_SUCCESS != (qrc = quo_mpi_xchange_uniq_path(xpm->qc->mpi,
+                                                        "xpm", sname))) {
+        QUO_ERR_MSGRC("quo_mpi_xchange_uniq_path", qrc);
+        goto out;
+    }
+out:
+    return qrc;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static int
 mem_segment_create(quo_xpm_t *xpm)
 {
     int qrc = QUO_SUCCESS;
 
+    char *sname = NULL;
     long long int lsize = (long long int)xpm->local_size;
     long long int *lsizes = calloc(xpm->qc->nqid, sizeof(*lsizes));
+
     if (!lsizes) {
         QUO_OOR_COMPLAIN();
         qrc = QUO_ERR_OOR;
@@ -87,7 +105,49 @@ mem_segment_create(quo_xpm_t *xpm)
 
     xpm->global_size = range_sum(xpm->local_sizes, 0, xpm->qc->nqid - 1); 
 
+    if (QUO_SUCCESS != (qrc = get_segment_name(xpm, &sname))) {
+        QUO_ERR_MSGRC("get_segment_name", qrc);
+        goto out;
+    }
+    if (xpm->custodian) {
+        if (QUO_SUCCESS!= (qrc = quo_sm_segment_create(xpm->qsm_segment,
+                                                       sname,
+                                                       xpm->global_size))) {
+            QUO_ERR_MSGRC("quo_sm_segment_create", qrc);
+            goto out;
+        }
+        if (QUO_SUCCESS != (qrc = quo_mpi_sm_barrier(xpm->qc->mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", qrc);
+            goto out;
+        }
+        /* Wait for attach completion. */
+        if (QUO_SUCCESS != (qrc = quo_mpi_sm_barrier(xpm->qc->mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", qrc);
+            goto out;
+        }
+        /* Cleanup after everyone is done. */
+        (void)quo_sm_unlink(xpm->qsm_segment);
+    }
+    else {
+        /* Wait for the data to be published. */
+        if (QUO_SUCCESS != (qrc = quo_mpi_sm_barrier(xpm->qc->mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", qrc);
+            goto out;
+        }
+        if (QUO_SUCCESS!= (qrc = quo_sm_segment_attach(xpm->qsm_segment,
+                                                       sname,
+                                                       xpm->global_size))) {
+            QUO_ERR_MSGRC("quo_sm_segment_attach", qrc);
+            goto out;
+        }
+        /* Signal attach completion. */
+        if (QUO_SUCCESS != (qrc = quo_mpi_sm_barrier(xpm->qc->mpi))) {
+            QUO_ERR_MSGRC("quo_mpi_sm_barrier", qrc);
+            goto out;
+        }
+    }
 out:
+    if (sname) free(sname);
     return qrc;
 }
 
@@ -190,5 +250,25 @@ QUO_xpm_view_by_qid(quo_xpm_t *xc,
                     QUO_xpm_view_t *rview)
 {
     if (!xc || !rview) return QUO_ERR_INVLD_ARG;
+
+    size_t my_off = range_sum(xc->local_sizes, 0, xc->qc->qid);
+    char *base = quo_sm_get_basep(xc->qsm_segment);
+    base += my_off;
+
+    rview->base = base;
+
+    return QUO_SUCCESS;
+}
+
+int
+QUO_xpm_view_local(quo_xpm_t *xc,
+                   QUO_xpm_view_t *rview)
+{
+    char *base = quo_sm_get_basep(xc->qsm_segment);
+    base += range_sum(xc->local_sizes, 0, xc->qc->qid);
+
+    rview->base = base;
+    rview->extent = xc->local_size;
+
     return QUO_SUCCESS;
 }
