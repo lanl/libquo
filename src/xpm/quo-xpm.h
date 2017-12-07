@@ -10,7 +10,8 @@
  * @file quo-xpm.h
  */
 
-#pragma once
+#ifndef QUO_XPM_H_INCLUDED
+#define QUO_XPM_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +20,11 @@ extern "C" {
 /** Opaque QUO XPM context. */
 struct quo_xpm_t;
 typedef struct quo_xpm_t quo_xpm_t;
+/** External QUO XPM context type. */
+typedef quo_xpm_t * QUO_xpm_context;
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

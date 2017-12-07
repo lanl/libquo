@@ -227,7 +227,7 @@ QUO_cpuset_in_type(QUO_t *q,
  * caller is responsible for freeing *out_qids.
  */
 int
-QUO_qids_in_type(QUO_context q,
+QUO_qids_in_type(QUO_t *q,
                  QUO_obj_type_t type,
                  int in_type_index,
                  int *out_nqids,
