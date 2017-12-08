@@ -14,6 +14,7 @@
 #define QUO_XPM_H_INCLUDED
 
 #include "quo.h"
+
 #include <stdlib.h>
 
 #ifdef __cplusplus

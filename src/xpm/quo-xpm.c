@@ -15,10 +15,10 @@
 #endif
 
 #include "quo-xpm.h"
+
 #include "quo-private.h"
 #include "quo-hwloc.c"
 #include "quo-mpi.c"
-#include "quo.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -170,7 +170,7 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-destruct_xpm(
+xpm_destruct(
     quo_xpm_t *xpm
 ) {
     if (xpm) {
@@ -184,7 +184,7 @@ destruct_xpm(
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-construct_xpm(
+xpm_construct(
     QUO_t *qc,
     size_t local_size,
     quo_xpm_t **new_xpm
@@ -206,7 +206,8 @@ construct_xpm(
         QUO_ERR_MSGRC("quo_sm_construct", qrc);
         goto out;
     }
-    if (QUO_SUCCESS != (qrc = quo_mpi_get_node_comm(qc->mpi, &txpm->node_comm))) {
+    if (QUO_SUCCESS != (qrc = quo_mpi_get_node_comm(qc->mpi,
+                                                    &txpm->node_comm))) {
         QUO_ERR_MSGRC("quo_mpi_get_node_comm", qrc);
         goto out;
     }
@@ -217,7 +218,7 @@ construct_xpm(
 
 out:
     if (QUO_SUCCESS != qrc) {
-        (void)destruct_xpm(txpm);
+        (void)xpm_destruct(txpm);
         *new_xpm = NULL;
     }
     else {
@@ -241,8 +242,8 @@ QUO_xpm_allocate(
     /* Make sure we are initialized before we continue. */
     QUO_NO_INIT_ACTION(qc);
 
-    if (QUO_SUCCESS != (qrc = construct_xpm(qc, local_size, new_xpm))) {
-        QUO_ERR_MSGRC("construct_xpm", qrc);
+    if (QUO_SUCCESS != (qrc = xpm_construct(qc, local_size, new_xpm))) {
+        QUO_ERR_MSGRC("xpm_construct", qrc);
         goto out;
     }
     if (QUO_SUCCESS != (qrc = mem_segment_create(*new_xpm))) {
@@ -252,7 +253,7 @@ QUO_xpm_allocate(
 
 out:
     if (QUO_SUCCESS != qrc) {
-        (void)destruct_xpm(*new_xpm);
+        (void)xpm_destruct(*new_xpm);
         *new_xpm = NULL;
     }
 
@@ -264,7 +265,7 @@ int
 QUO_xpm_free(
     quo_xpm_t *xpm
 ) {
-    return destruct_xpm(xpm);
+    return xpm_destruct(xpm);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -283,10 +284,7 @@ QUO_xpm_view_by_qid(
     int qid,
     QUO_xpm_view_t *view
 ) {
-    view->base = base_offset(xpm, qid);
-    view->extent = xpm->local_sizes[qid];
-
-    return QUO_SUCCESS;
+    return QUO_xpm_view_by_qid_range(xpm, qid, qid, view);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -297,9 +295,7 @@ QUO_xpm_view_by_qid_range(
     int qid_end,
     QUO_xpm_view_t *view
 ) {
-    /* Gives us the base we are looking for. */
     view->base = base_offset(xpm, qid_start);
-    /* Now update the extent. */
     view->extent = range_sum(xpm, qid_start, qid_end);
 
     return QUO_SUCCESS;
