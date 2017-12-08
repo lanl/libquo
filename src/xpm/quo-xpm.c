@@ -131,9 +131,9 @@ mem_segment_create(quo_xpm_t *xpm)
         goto out;
     }
     if (xpm->custodian) {
-        if (QUO_SUCCESS!= (qrc = quo_sm_segment_create(xpm->qsm_segment,
-                                                       sname,
-                                                       xpm->global_size))) {
+        if (QUO_SUCCESS != (qrc = quo_sm_segment_create(xpm->qsm_segment,
+                                                        sname,
+                                                        xpm->global_size))) {
             QUO_ERR_MSGRC("quo_sm_segment_create", qrc);
             goto out;
         }

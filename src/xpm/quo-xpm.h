@@ -42,6 +42,19 @@ QUO_xpm_allocate(
     QUO_xpm_context *new_xpm
 );
 
+
+/**
+ * TODO(skg)
+ */
+int
+QUO_xpm_allocate_by_qids(
+    QUO_context qc,
+    int *qids,
+    int nqids,
+    size_t local_size,
+    QUO_xpm_context *new_xpm
+);
+
 /**
  *
  */
