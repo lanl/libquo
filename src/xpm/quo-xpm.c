@@ -53,9 +53,11 @@ range_sum(
     int end
 ) {
     size_t res = 0;
+
     for (int i = start; i <= end; ++i) {
         res += xpm->local_sizes[i];
     }
+
     return res;
 }
 
@@ -66,6 +68,7 @@ base_offset(
     int qid
 ) {
     size_t offset = 0;
+
     for (int i = 0; i < qid; ++i) {
         offset += xpm->local_sizes[i];
     }
@@ -82,13 +85,13 @@ get_segment_name(
     quo_xpm_t *xpm,
     char **sname
 ) {
-    int qrc = QUO_SUCCESS;
+    int qrc = quo_mpi_xchange_uniq_path(xpm->qc->mpi, "xpm", sname);
 
-    if (QUO_SUCCESS != (qrc = quo_mpi_xchange_uniq_path(xpm->qc->mpi,
-                                                        "xpm", sname))) {
+    if (QUO_SUCCESS != qrc) {
         QUO_ERR_MSGRC("quo_mpi_xchange_uniq_path", qrc);
         goto out;
     }
+
 out:
     return qrc;
 }
@@ -112,7 +115,8 @@ mem_segment_create(quo_xpm_t *xpm)
     if (QUO_SUCCESS != (qrc = quo_mpi_allgather(&lsize, 1, MPI_LONG_LONG_INT,
                                                 lsizes, 1, MPI_LONG_LONG_INT,
                                                 xpm->node_comm))) {
-        qrc = QUO_ERR_MPI;
+        QUO_ERR_MSGRC("quo_mpi_allgather", qrc);
+        goto out;
     }
     /* Copy back. */
     for (int i = 0; i < xpm->qc->nqid; ++i) {
@@ -163,6 +167,7 @@ mem_segment_create(quo_xpm_t *xpm)
             goto out;
         }
     }
+
 out:
     if (sname) free(sname);
     return qrc;
