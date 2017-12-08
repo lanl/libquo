@@ -79,7 +79,7 @@ main(int argc, char **argv)
     if (0 == qid) {
         printf("xxxxxxxxxxxxxxxxxxx\n");
         QUO_xpm_view_t range_view;
-        QUO_xpm_view_by_qid_range(xpm, 0, nqid, &range_view);
+        QUO_xpm_view_by_qid_range(xpm, 0, nqid - 1, &range_view);
         int *r_array = (int *)range_view.base;
         int n_remote = range_view.extent / sizeof(int);
 
@@ -87,6 +87,7 @@ main(int argc, char **argv)
             r_array[i] = -1;
         }
     }
+
     QUO_barrier(q);
 
     for (int i = 0; i < ni; ++i) {

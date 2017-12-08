@@ -47,11 +47,27 @@ struct quo_xpm_t {
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static size_t
-range_sum(size_t *array, int start, int end)
-{
+range_sum(
+    const quo_xpm_t *xpm,
+    int start,
+    int end
+) {
     size_t res = 0;
-    for (int i = start; i < end; ++i) {
-        res += array[i];
+    for (int i = start; i <= end; ++i) {
+        res += xpm->local_sizes[i];
+    }
+    return res;
+}
+
+/* ////////////////////////////////////////////////////////////////////////// */
+static size_t
+base_offset(
+    const quo_xpm_t *xpm,
+    int qid
+) {
+    size_t res = 0;
+    for (int i = 0; i < qid; ++i) {
+        res += xpm->local_sizes[i];
     }
     return res;
 }
@@ -79,8 +95,8 @@ mem_segment_create(quo_xpm_t *xpm)
     int qrc = QUO_SUCCESS;
 
     char *sname = NULL;
-    long long int lsize = (long long int)xpm->local_size;
-    long long int *lsizes = calloc(xpm->qc->nqid, sizeof(*lsizes));
+    long long lsize = (long long)xpm->local_size;
+    long long *lsizes = calloc(xpm->qc->nqid, sizeof(*lsizes));
 
     if (!lsizes) {
         QUO_OOR_COMPLAIN();
@@ -99,7 +115,7 @@ mem_segment_create(quo_xpm_t *xpm)
     }
     free(lsizes);
 
-    xpm->global_size = range_sum(xpm->local_sizes, 0, xpm->qc->nqid - 1);
+    xpm->global_size = range_sum(xpm, 0, xpm->qc->nqid - 1);
 
     if (QUO_SUCCESS != (qrc = get_segment_name(xpm, &sname))) {
         QUO_ERR_MSGRC("get_segment_name", qrc);
@@ -253,7 +269,7 @@ QUO_xpm_view_by_qid(quo_xpm_t *xpm,
                     QUO_xpm_view_t *view)
 {
     char *base = quo_sm_get_basep(xpm->qsm_segment);
-    base += range_sum(xpm->local_sizes, 0, qid);
+    base += base_offset(xpm, qid);
 
     view->base = base;
     view->extent = xpm->local_sizes[qid];
@@ -269,9 +285,11 @@ QUO_xpm_view_by_qid_range(quo_xpm_t *xpm,
                           QUO_xpm_view_t *view)
 {
     /* Gives us the base we are looking for. */
-    QUO_xpm_view_by_qid(xpm, qid_start, view);
+    char *base = quo_sm_get_basep(xpm->qsm_segment);
+    base += base_offset(xpm, qid_start);
+    view->base = base;
     /* Now update the extent. */
-    view->extent = range_sum(xpm->local_sizes, qid_start, qid_end);
+    view->extent = range_sum(xpm, qid_start, qid_end);
 
     return QUO_SUCCESS;
 }
