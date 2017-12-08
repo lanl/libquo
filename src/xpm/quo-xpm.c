@@ -60,23 +60,28 @@ range_sum(
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
-static size_t
+static void *
 base_offset(
     const quo_xpm_t *xpm,
     int qid
 ) {
-    size_t res = 0;
+    size_t offset = 0;
     for (int i = 0; i < qid; ++i) {
-        res += xpm->local_sizes[i];
+        offset += xpm->local_sizes[i];
     }
-    return res;
+
+    char *base = quo_sm_get_basep(xpm->qsm_segment);
+    base += offset;
+
+    return base;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-get_segment_name(quo_xpm_t *xpm,
-                 char **sname)
-{
+get_segment_name(
+    quo_xpm_t *xpm,
+    char **sname
+) {
     int qrc = QUO_SUCCESS;
 
     if (QUO_SUCCESS != (qrc = quo_mpi_xchange_uniq_path(xpm->qc->mpi,
@@ -165,23 +170,25 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-destruct_xpm(quo_xpm_t *xpm)
-{
+destruct_xpm(
+    quo_xpm_t *xpm
+) {
     if (xpm) {
         (void)quo_sm_destruct(xpm->qsm_segment);
         if (xpm->local_sizes) free(xpm->local_sizes);
         free(xpm);
     }
-    /* okay to pass NULL here. just return success */
+    /* Okay to pass NULL here. Just return success. */
     return QUO_SUCCESS;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
-construct_xpm(QUO_t *qc,
-              size_t local_size,
-              quo_xpm_t **new_xpm)
-{
+construct_xpm(
+    QUO_t *qc,
+    size_t local_size,
+    quo_xpm_t **new_xpm
+) {
     int qrc = QUO_SUCCESS;
     quo_xpm_t *txpm = NULL;
 
@@ -203,9 +210,11 @@ construct_xpm(QUO_t *qc,
         QUO_ERR_MSGRC("quo_mpi_get_node_comm", qrc);
         goto out;
     }
+
     txpm->qc = qc;
     txpm->custodian = (0 == qc->qid) ? true : false;
     txpm->local_size = local_size;
+
 out:
     if (QUO_SUCCESS != qrc) {
         (void)destruct_xpm(txpm);
@@ -220,15 +229,16 @@ out:
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_xpm_allocate(QUO_t *qc,
-                 size_t local_size,
-                 quo_xpm_t **new_xpm)
-{
+QUO_xpm_allocate(
+    QUO_t *qc,
+    size_t local_size,
+    quo_xpm_t **new_xpm
+) {
     int qrc = QUO_SUCCESS;
 
     if (!qc || !new_xpm) return QUO_ERR_INVLD_ARG;
 
-    /* make sure we are initialized before we continue */
+    /* Make sure we are initialized before we continue. */
     QUO_NO_INIT_ACTION(qc);
 
     if (QUO_SUCCESS != (qrc = construct_xpm(qc, local_size, new_xpm))) {
@@ -239,39 +249,41 @@ QUO_xpm_allocate(QUO_t *qc,
         QUO_ERR_MSGRC("mem_segment_create", qrc);
         goto out;
     }
+
 out:
     if (QUO_SUCCESS != qrc) {
         (void)destruct_xpm(*new_xpm);
         *new_xpm = NULL;
     }
+
     return qrc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_xpm_free(quo_xpm_t *xpm)
-{
+QUO_xpm_free(
+    quo_xpm_t *xpm
+) {
     return destruct_xpm(xpm);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_xpm_view_local(quo_xpm_t *xc,
-                   QUO_xpm_view_t *view)
-{
+QUO_xpm_view_local(
+    quo_xpm_t *xc,
+    QUO_xpm_view_t *view
+) {
     return QUO_xpm_view_by_qid(xc, xc->qc->qid, view);
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_xpm_view_by_qid(quo_xpm_t *xpm,
-                    int qid,
-                    QUO_xpm_view_t *view)
-{
-    char *base = quo_sm_get_basep(xpm->qsm_segment);
-    base += base_offset(xpm, qid);
-
-    view->base = base;
+QUO_xpm_view_by_qid(
+    quo_xpm_t *xpm,
+    int qid,
+    QUO_xpm_view_t *view
+) {
+    view->base = base_offset(xpm, qid);
     view->extent = xpm->local_sizes[qid];
 
     return QUO_SUCCESS;
@@ -279,15 +291,14 @@ QUO_xpm_view_by_qid(quo_xpm_t *xpm,
 
 /* ////////////////////////////////////////////////////////////////////////// */
 int
-QUO_xpm_view_by_qid_range(quo_xpm_t *xpm,
-                          int qid_start,
-                          int qid_end,
-                          QUO_xpm_view_t *view)
-{
+QUO_xpm_view_by_qid_range(
+    quo_xpm_t *xpm,
+    int qid_start,
+    int qid_end,
+    QUO_xpm_view_t *view
+) {
     /* Gives us the base we are looking for. */
-    char *base = quo_sm_get_basep(xpm->qsm_segment);
-    base += base_offset(xpm, qid_start);
-    view->base = base;
+    view->base = base_offset(xpm, qid_start);
     /* Now update the extent. */
     view->extent = range_sum(xpm, qid_start, qid_end);
 
