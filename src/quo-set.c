@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Los Alamos National Security, LLC
+ * Copyright (c) 2013-2018 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * This software was produced under U.S. Government contract DE-AC52-06NA25396
@@ -83,7 +83,7 @@ quo_set_get_k_set_intersection(int nsets,
 {
     /* all set data are positive, so we don't have to worry about that */
     int global_max = -1;
-    /* "hash table" large enough to hold the largest set value. */ 
+    /* "hash table" large enough to hold the largest set value. */
     int *big_htab = NULL;
     /* length of the k set intersection */
     int ilen = 0;
@@ -100,7 +100,7 @@ quo_set_get_k_set_intersection(int nsets,
         int curval = 0;
         for (int elem = 0; elem < set_lens[set]; ++elem) {
             if (0 == elem) {
-                curval = sets[set][elem]; 
+                curval = sets[set][elem];
             }
             else {
                 if (curval >= sets[set][elem]) return QUO_ERR_INVLD_ARG;
