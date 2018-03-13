@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2013-2016 Los Alamos National Security, LLC
+# Copyright (c) 2013-2018 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # This software was produced under U.S. Government contract DE-AC52-06NA25396
@@ -46,7 +46,7 @@ mpi-openmp
 
 noinst_PROGRAMS = \
 basic-info \
-even-distrib \
+nice-tid-distrib \
 quodemo-0 \
 quodemo-1 \
 caller-driven-multilib \
@@ -69,9 +69,9 @@ basic_info_CPPFLAGS = -I$(top_srcdir)/src
 basic_info_LDADD = $(top_builddir)/src/libquo.la
 
 ###
-even_distrib_SOURCES = even-distrib.c
-even_distrib_CPPFLAGS = -I$(top_srcdir)/src
-even_distrib_LDADD = $(top_builddir)/src/libquo.la
+nice_tid_distrib_SOURCES = nice-tid-distrib.c
+nice_tid_distrib_CPPFLAGS = -I$(top_srcdir)/src
+nice_tid_distrib_LDADD = $(top_builddir)/src/libquo.la
 
 ###
 quodemo_0_SOURCES = quodemo-0.c
