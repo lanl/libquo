@@ -11,7 +11,7 @@
 
 #include "mpi.h"
 
-// An example of how one might get a 'nice distribution' of tids per node when
+// An example of how one might get a 'nice distribution' of stids per node when
 // faced with a potentially uneven number of selected tids per some given
 // resource.
 
@@ -34,10 +34,18 @@ typedef struct inf_t {
     MPI_Comm machine_comm;
     // Comm used for communication between QID zeros across machines.
     MPI_Comm machine_delegate_comm;
-    // List of nQID totals indexed by node ID
-    // (Valid only at MPI_COMM_WORLD rank 0).
-    int *nqids;
+    // Flag indicating whether or not I've been selected ---I'm an stid.
+    int selected;
+    // List of total number of stids per machine (not resource) that allows us
+    // to understand how many stids are 'active' per node.  Valid only at
+    // MPI_COMM_WORLD rank 0.
+    int *nstids;
 } inf_t;
+
+typedef struct tuple_t {
+    int first;
+    int second;
+} tuple_t;
 
 static void
 machine_comm_setup(inf_t *inf)
@@ -54,7 +62,7 @@ delegate_comm_setup(inf_t *inf)
     //     Group 2) contains everyone else.
     MPI_Comm_split(
         MPI_COMM_WORLD,
-        0 ? 1 : inf->qid == 0 /* Only two groups. */,
+        inf->qid == 0 ? 0 : 1 /* Only two groups. */,
         inf->rank,
         &inf->machine_delegate_comm
     );
@@ -88,25 +96,51 @@ node_id_setup(inf_t *inf)
 }
 
 static void
-gather_nqids(
+auto_distrib(
+    inf_t *inf,
+    QUO_obj_type_t target_res,
+    int max_stids_per_res
+) {
+    QUO_auto_distrib(
+        inf->quo,
+        target_res,
+        max_stids_per_res,
+        &inf->selected
+    );
+}
+
+static void
+gather_nstid(
     inf_t *inf
 ) {
+    // Sum up number of stids on my machine. This is easy for C (0 or 1 are
+    // returned), but may require more work for a Fortran code (logicals).
+    int local_nstid = -1;
+    MPI_Reduce(
+        &inf->selected,
+        &local_nstid /* Valid only at root. */,
+        1,
+        MPI_INT,
+        MPI_SUM,
+        0,
+        inf->machine_comm
+    );
     if (inf->rank == 0) {
-        // Create list large enough to hold nqid totals across all machines.
-        inf->nqids = calloc(inf->n_machines, sizeof(int));
+        // Create list large enough to hold nstids totals across all machines.
+        inf->nstids = calloc(inf->n_machines, sizeof(int));
     }
     else {
-        inf->nqids = NULL;
+        inf->nstids = NULL;
     }
     // MPI_COMM_WORLD rank 0 will always be a node delegate. We also know that
     // the number of nodes (machines) reported by QUO will be equal to the size
     // of machine_delegate_comm.
     if (inf->machine_delegate_comm != MPI_COMM_NULL) {
         MPI_Gather(
-            &inf->nqid,
+            &local_nstid,
             1,
             MPI_INT,
-            inf->nqids,
+            inf->nstids,
             1,
             MPI_INT,
             0,
@@ -116,19 +150,15 @@ gather_nqids(
     if (inf->rank == 0) {
         for (int i = 0; i < inf->n_machines; ++i) {
             printf(
-                "# rank %d says that node %d has %d processes.\n",
-                inf->rank, i, inf->nqids[i]
+                "# rank %d says that node %d has %d stid%s\n",
+                inf->rank, i, inf->nstids[i],
+                (0 == inf->nstids[i] || inf->nstids[i] > 1) ? "s." : "."
             );
         }
     }
     // Not needed. Only used for nice output.
     MPI_Barrier(MPI_COMM_WORLD);
 }
-
-#if 0
-    int selected = 0;
-    QUO_auto_distrib(inf->quo, target_res, max_local_res, &selected);
-#endif
 
 static int
 init(inf_t *inf)
@@ -158,10 +188,70 @@ fini(inf_t *inf)
     if (inf->machine_delegate_comm != MPI_COMM_NULL) {
         MPI_Comm_free(&inf->machine_delegate_comm);
     }
+    if (inf->nstids) free(inf->nstids);
     //
     QUO_free(inf->quo);
     //
     MPI_Finalize();
+}
+
+static int
+sum(
+    int *a,
+    int na
+) {
+    int res = 0;
+    for (int i = 0; i < na; ++i) res += a[i];
+    return res;
+}
+
+static int
+all_same(
+    int *a,
+    int na
+) {
+    int first = a[0];
+    for (int i = 1; i < na; ++i) {
+        if (first != a[i]) return 0;
+    }
+    return 1;
+}
+
+static void
+optimize_distribution(
+    inf_t *inf,
+    int max_stids
+) {
+    if (inf->rank == 0) {
+        printf(
+            "# rank %d is optimizing for max_stids = %d\n",
+            inf->rank, max_stids
+        );
+        //
+        const int nstids_len = inf->n_machines;
+        // Easy case.
+        if (all_same(inf->nstids, nstids_len)) {
+#if 0 // TODO
+            printf(
+                "#\teven distribution of stids: %d per machine...done!\n",
+                inf->nstids[0]
+            );
+            goto done;
+#endif
+        }
+        int total_stids = sum(inf->nstids, nstids_len);
+        printf("#\ttotal_stids = %d.\n", total_stids);
+        // Easy case.
+        if (total_stids <= max_stids) {
+            printf("#\ttotal_stids <= max_stids...done!\n");
+            goto done;
+        }
+        // The harder case.
+        // How many stids do we have to unselect?
+        int nunsel = max_stids - total_stids;
+    }
+done:
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 int
@@ -176,12 +266,16 @@ main(void)
     delegate_comm_setup(&info);
     //
     node_id_setup(&info);
-    //
-    gather_nqids(&info);
     // Modify here for testing different configurations.
-    const QUO_obj_type_t target_res = QUO_OBJ_NUMANODE;
-    const int max_local_res  = 2; // Per node.
-    const int max_global_res = 5; // Total target across all machines.
+    const QUO_obj_type_t target_res = QUO_OBJ_SOCKET;
+    const int max_stids_per_res = 1; // Per node.
+    const int max_stids = 1; // Total target across all machines.
+    //
+    auto_distrib(&info, target_res, max_stids_per_res);
+    //
+    gather_nstid(&info);
+    //
+    optimize_distribution(&info, max_stids);
     // Cleanup.
     fini(&info);
     // All done.
