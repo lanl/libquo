@@ -254,7 +254,7 @@ update_nstids(
         node_nstids[i].first = i;
         node_nstids[i].second = inf->nstids[i];
     }
-    // Sort in descending order based on nstids (i.e., the second element).
+    // Sort in decreasing order based on nstids (i.e., the second element).
     qsort(node_nstids, inf->nstids_len, sizeof(tuple_t), compare_second);
 #if 1 // Debug
     for (int i = 0; i < inf->nstids_len; ++i) {
