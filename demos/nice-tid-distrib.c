@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "mpi.h"
 
@@ -36,18 +37,55 @@ typedef struct inf_t {
     MPI_Comm machine_delegate_comm;
     // Flag indicating whether or not I've been selected ---I'm an stid.
     int selected;
+    // Flag indicating whether or not I'm a machine delegate.
+    bool machine_delegate;
     // List of total number of stids per machine (not resource) that allows us
     // to understand how many stids are 'active' per node.  Valid only at
     // MPI_COMM_WORLD rank 0.
     int *nstids;
     // Number of elements stored in nstids;
     int nstids_len;
+    // Number of stids on a node (valid only for machine delegates).
+    int local_nstid;
 } inf_t;
 
 typedef struct tuple_t {
     int first;
     int second;
 } tuple_t;
+
+static int
+sum(
+    int *a,
+    int na
+) {
+    int res = 0;
+    for (int i = 0; i < na; ++i) res += a[i];
+    return res;
+}
+
+static int
+all_same(
+    int *a,
+    int na
+) {
+    int first = a[0];
+    for (int i = 1; i < na; ++i) {
+        if (first != a[i]) return 0;
+    }
+    return 1;
+}
+
+static int
+compare_second(
+    const void *e1,
+    const void *e2
+) {
+    const int s1 = ((tuple_t *)e1)->second;
+    const int s2 = ((tuple_t *)e2)->second;
+
+    return s2 - s1;
+}
 
 static void
 machine_comm_setup(inf_t *inf)
@@ -75,6 +113,10 @@ delegate_comm_setup(inf_t *inf)
     if (inf->qid != 0) {
         MPI_Comm_free(&inf->machine_delegate_comm);
         inf->machine_delegate_comm = MPI_COMM_NULL;
+        inf->machine_delegate = false;
+    }
+    else {
+        inf->machine_delegate = true;
     }
 }
 
@@ -83,7 +125,7 @@ node_id_setup(inf_t *inf)
 {
     // Name the machines with IDs 0 to N-1, where N is the total number of
     // machines in the job (because MPI_COMM_WORLD was used in QUO_create).
-    if (inf->machine_delegate_comm != MPI_COMM_NULL) {
+    if (inf->machine_delegate) {
         // The reason this works is because each node has exactly one process in
         // the machine_delegate_comm communicator---and they happen to be nice
         // IDs: 0 to N-1.
@@ -117,31 +159,30 @@ gather_nstid(
 ) {
     // Sum up number of stids on my machine. This is easy for C (0 or 1 are
     // returned), but may require more work for a Fortran code (logicals).
-    int local_nstid = -1;
     MPI_Reduce(
         &inf->selected,
-        &local_nstid /* Valid only at root. */,
+        &inf->local_nstid /* Valid only at root. */,
         1,
         MPI_INT,
         MPI_SUM,
         0,
         inf->machine_comm
     );
-    if (inf->rank == 0) {
+    //
+    inf->nstids_len = 0;
+    inf->nstids = NULL;
+    //
+    if (inf->rank == 0 && inf->nstids == NULL) {
         // Create list large enough to hold nstids totals across all machines.
         inf->nstids_len = inf->n_machines;
         inf->nstids = calloc(inf->nstids_len, sizeof(int));
     }
-    else {
-        inf->nstids_len = 0;
-        inf->nstids = NULL;
-    }
     // MPI_COMM_WORLD rank 0 will always be a node delegate. We also know that
     // the number of nodes (machines) reported by QUO will be equal to the size
     // of machine_delegate_comm.
-    if (inf->machine_delegate_comm != MPI_COMM_NULL) {
+    if (inf->machine_delegate) {
         MPI_Gather(
-            &local_nstid,
+            &inf->local_nstid,
             1,
             MPI_INT,
             inf->nstids,
@@ -200,39 +241,6 @@ fini(inf_t *inf)
 }
 
 static int
-sum(
-    int *a,
-    int na
-) {
-    int res = 0;
-    for (int i = 0; i < na; ++i) res += a[i];
-    return res;
-}
-
-static int
-all_same(
-    int *a,
-    int na
-) {
-    int first = a[0];
-    for (int i = 1; i < na; ++i) {
-        if (first != a[i]) return 0;
-    }
-    return 1;
-}
-
-static int
-compare_second(
-    const void *e1,
-    const void *e2
-) {
-    const int s1 = ((tuple_t *)e1)->second;
-    const int s2 = ((tuple_t *)e2)->second;
-
-    return s2 - s1;
-}
-
-static int
 update_nstids(
     inf_t *inf,
     int max_stids
@@ -249,7 +257,7 @@ update_nstids(
 #if 1 // Debug
     for (int i = 0; i < inf->nstids_len; ++i) {
         printf(
-            "(nodeid=%d, nstids=%d\n",
+            "- (nodeid=%d, nstids=%d)\n",
             node_nstids[i].first,
             node_nstids[i].second
         );
@@ -277,7 +285,7 @@ update_nstids(
     printf("\n");
     for (int i = 0; i < inf->nstids_len; ++i) {
         printf(
-            "(nodeid=%d, nstids'=%d\n",
+            "- (nodeid=%d, nstids'=%d)\n",
             node_nstids[i].first,
             node_nstids[i].second
         );
@@ -291,11 +299,76 @@ update_nstids(
     printf("\n");
     for (int i = 0; i < inf->nstids_len; ++i) {
         printf(
-            "node %d: nstids=%d\n", i, inf->nstids[i]
+            "- node %d: nstids=%d\n", i, inf->nstids[i]
         );
     }
 #endif
+    free(node_nstids);
     return 0;
+}
+
+static void
+stid_fixup(
+    inf_t *inf
+) {
+    int new_local_nstid = -1;
+    // Let each machine delegate know what their new total should be so that
+    // they can unselect the processes they see fit.
+    if (inf->machine_delegate) {
+        MPI_Scatter(
+            inf->nstids,
+            1,
+            MPI_INT,
+            &new_local_nstid,
+            1,
+            MPI_INT,
+            0,
+            inf->machine_delegate_comm
+        );
+        // No updates required.
+        if (new_local_nstid == inf->local_nstid) return;
+    }
+    // We have some work to do.
+    // Everyone on a node share their selected flag with the machine delegate.
+    int *sflags = NULL;
+    if (inf->machine_delegate) {
+        sflags = calloc(inf->nqid, sizeof(*sflags));
+    }
+    MPI_Gather(
+        &inf->selected,
+        1,
+        MPI_INT,
+        sflags,
+        1,
+        MPI_INT,
+        0,
+        inf->machine_comm
+    );
+    if (inf->machine_delegate) {
+        int nunsel = inf->local_nstid - new_local_nstid;
+        // Favor unselecting from the back of the list because, for convenience,
+        // we always want a delegate to be an stid.
+        for (int i = inf->nqid - 1; i >= 0; --i) {
+            if (nunsel > 0 && sflags[i] == 1) {
+                sflags[i] = 0;
+                nunsel--;
+            }
+            else break;
+        }
+    }
+    // Let everyone on the machine know what their selected flag should now be.
+    MPI_Scatter(
+        sflags,
+        1,
+        MPI_INT,
+        &inf->selected,
+        1,
+        MPI_INT,
+        0,
+        inf->machine_comm
+    );
+    //
+    if (sflags) free(sflags);
 }
 
 static void
@@ -303,6 +376,8 @@ optimize_distribution(
     inf_t *inf,
     int max_stids
 ) {
+    int update_stids = 0;
+
     if (inf->rank == 0) {
         printf(
             "# rank %d is optimizing for max_stids = %d\n",
@@ -327,9 +402,15 @@ optimize_distribution(
         if (update_nstids(inf, max_stids)) {
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
+        // If we are here, then an stid_fixup is required.
+        update_stids = 1;
     }
 done:
-    MPI_Barrier(MPI_COMM_WORLD);
+    // Does anyone need to update their stid list?
+    MPI_Bcast(&update_stids, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (update_stids) {
+        stid_fixup(inf);
+    }
 }
 
 int
@@ -347,22 +428,15 @@ main(void)
     // Modify here for testing different configurations.
     const QUO_obj_type_t target_res = QUO_OBJ_SOCKET;
     const int max_stids_per_res = 1; // Per node.
-    const int max_stids = 11; // Total target across all machines.
+    const int max_stids = 32; // Total target across all machines.
     //
     auto_distrib(&info, target_res, max_stids_per_res);
     //
     gather_nstid(&info);
-    // TODO RM
-    if (info.rank == 0) {
-        int nlen = 5;
-        info.nstids = calloc(nlen, sizeof(int));
-        info.nstids_len = nlen;
-        for (int i = 0; i < nlen; ++i) {
-            info.nstids[i] = nlen - (i - 1);
-            //info.nstids[i] = i + 1;
-        }
-    }
+    //
     optimize_distribution(&info, max_stids);
+    // Make sure this all worked.
+    gather_nstid(&info);
     // Cleanup.
     fini(&info);
     // All done.
