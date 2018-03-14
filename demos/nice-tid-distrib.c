@@ -40,6 +40,8 @@ typedef struct inf_t {
     // to understand how many stids are 'active' per node.  Valid only at
     // MPI_COMM_WORLD rank 0.
     int *nstids;
+    // Number of elements stored in nstids;
+    int nstids_len;
 } inf_t;
 
 typedef struct tuple_t {
@@ -127,9 +129,11 @@ gather_nstid(
     );
     if (inf->rank == 0) {
         // Create list large enough to hold nstids totals across all machines.
-        inf->nstids = calloc(inf->n_machines, sizeof(int));
+        inf->nstids_len = inf->n_machines;
+        inf->nstids = calloc(inf->nstids_len, sizeof(int));
     }
     else {
+        inf->nstids_len = 0;
         inf->nstids = NULL;
     }
     // MPI_COMM_WORLD rank 0 will always be a node delegate. We also know that
@@ -148,7 +152,7 @@ gather_nstid(
         );
     }
     if (inf->rank == 0) {
-        for (int i = 0; i < inf->n_machines; ++i) {
+        for (int i = 0; i < inf->nstids_len; ++i) {
             printf(
                 "# rank %d says that node %d has %d stid%s\n",
                 inf->rank, i, inf->nstids[i],
@@ -217,6 +221,83 @@ all_same(
     return 1;
 }
 
+static int
+compare_second(
+    const void *e1,
+    const void *e2
+) {
+    const int s1 = ((tuple_t *)e1)->second;
+    const int s2 = ((tuple_t *)e2)->second;
+
+    return s2 - s1;
+}
+
+static int
+update_nstids(
+    inf_t *inf,
+    int max_stids
+) {
+    // Create a list of (nodeid, nstids) so we can sort the list while easily
+    // maintaining the (nodeid, nstids) relationship after the sort.
+    tuple_t *node_nstids = calloc(inf->nstids_len, sizeof(tuple_t));
+    for (int i = 0; i < inf->nstids_len; ++i) {
+        node_nstids[i].first = i;
+        node_nstids[i].second = inf->nstids[i];
+    }
+    // Sort in descending order based on nstids (i.e., the second element).
+    qsort(node_nstids, inf->nstids_len, sizeof(tuple_t), compare_second);
+#if 1 // Debug
+    for (int i = 0; i < inf->nstids_len; ++i) {
+        printf(
+            "(nodeid=%d, nstids=%d\n",
+            node_nstids[i].first,
+            node_nstids[i].second
+        );
+    }
+#endif
+    const int total_stids = sum(inf->nstids, inf->nstids_len);
+    // How many stids do we have to unselect?
+    int nunsel = total_stids - max_stids;
+    // Do while there are still stids to unselect.
+    while (nunsel > 0) {
+        int nunsel_old = nunsel;
+        for (int i = 0; i < inf->nstids_len && i < nunsel_old; ++i) {
+            // Want at least one stid per node.
+            if (node_nstids[i].second > 1) {
+                node_nstids[i].second--;
+                nunsel--;
+            }
+        }
+        if (nunsel_old == nunsel) {
+            fprintf(stderr, "STOP: cannot satisfy max_stids request\n");
+            return 1;
+        }
+    }
+#if 1 // Debug
+    printf("\n");
+    for (int i = 0; i < inf->nstids_len; ++i) {
+        printf(
+            "(nodeid=%d, nstids'=%d\n",
+            node_nstids[i].first,
+            node_nstids[i].second
+        );
+    }
+#endif
+    // Write results back to caller.
+    for (int i = 0; i < inf->nstids_len; ++i) {
+        inf->nstids[node_nstids[i].first] = node_nstids[i].second;
+    }
+#if 1 // Debug
+    printf("\n");
+    for (int i = 0; i < inf->nstids_len; ++i) {
+        printf(
+            "node %d: nstids=%d\n", i, inf->nstids[i]
+        );
+    }
+#endif
+    return 0;
+}
+
 static void
 optimize_distribution(
     inf_t *inf,
@@ -227,19 +308,15 @@ optimize_distribution(
             "# rank %d is optimizing for max_stids = %d\n",
             inf->rank, max_stids
         );
-        //
-        const int nstids_len = inf->n_machines;
         // Easy case.
-        if (all_same(inf->nstids, nstids_len)) {
-#if 0 // TODO
+        if (all_same(inf->nstids, inf->nstids_len)) {
             printf(
                 "#\teven distribution of stids: %d per machine...done!\n",
                 inf->nstids[0]
             );
             goto done;
-#endif
         }
-        int total_stids = sum(inf->nstids, nstids_len);
+        const int total_stids = sum(inf->nstids, inf->nstids_len);
         printf("#\ttotal_stids = %d.\n", total_stids);
         // Easy case.
         if (total_stids <= max_stids) {
@@ -247,8 +324,9 @@ optimize_distribution(
             goto done;
         }
         // The harder case.
-        // How many stids do we have to unselect?
-        int nunsel = max_stids - total_stids;
+        if (update_nstids(inf, max_stids)) {
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
     }
 done:
     MPI_Barrier(MPI_COMM_WORLD);
@@ -269,12 +347,21 @@ main(void)
     // Modify here for testing different configurations.
     const QUO_obj_type_t target_res = QUO_OBJ_SOCKET;
     const int max_stids_per_res = 1; // Per node.
-    const int max_stids = 1; // Total target across all machines.
+    const int max_stids = 11; // Total target across all machines.
     //
     auto_distrib(&info, target_res, max_stids_per_res);
     //
     gather_nstid(&info);
-    //
+    // TODO RM
+    if (info.rank == 0) {
+        int nlen = 5;
+        info.nstids = calloc(nlen, sizeof(int));
+        info.nstids_len = nlen;
+        for (int i = 0; i < nlen; ++i) {
+            info.nstids[i] = nlen - (i - 1);
+            //info.nstids[i] = i + 1;
+        }
+    }
     optimize_distribution(&info, max_stids);
     // Cleanup.
     fini(&info);
