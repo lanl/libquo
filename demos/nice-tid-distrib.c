@@ -81,9 +81,14 @@ compare_second(
     const void *e1,
     const void *e2
 ) {
+    const int f1 = ((tuple_t *)e1)->first;
+    const int f2 = ((tuple_t *)e2)->first;
     const int s1 = ((tuple_t *)e1)->second;
     const int s2 = ((tuple_t *)e2)->second;
-
+    // In case of tie, use first to break.
+    if (s1 == s2) {
+        return f2 - f1;
+    }
     return s2 - s1;
 }
 
