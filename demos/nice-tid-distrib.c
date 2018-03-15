@@ -174,9 +174,6 @@ gather_nstid(
         inf->machine_comm
     );
     //
-    inf->nstids_len = 0;
-    inf->nstids = NULL;
-    //
     if (inf->rank == 0 && inf->nstids == NULL) {
         // Create list large enough to hold nstids totals across all machines.
         inf->nstids_len = inf->n_machines;
@@ -198,6 +195,7 @@ gather_nstid(
         );
     }
     if (inf->rank == 0) {
+        printf("\n");
         for (int i = 0; i < inf->nstids_len; ++i) {
             printf(
                 "# rank %d says that node %d has %d stid%s\n",
@@ -216,6 +214,7 @@ init(inf_t *inf)
     MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &(inf->nranks));
     MPI_Comm_rank(MPI_COMM_WORLD, &(inf->rank));
+    setbuf(stdout, NULL);
     // QUO stuff
     QUO_create(&inf->quo, MPI_COMM_WORLD);
     QUO_id(inf->quo, &inf->qid);
@@ -224,6 +223,9 @@ init(inf_t *inf)
     //
     inf->machine_comm = MPI_COMM_NULL;
     inf->machine_delegate_comm = MPI_COMM_NULL;
+    //
+    inf->nstids_len = 0;
+    inf->nstids = NULL;
     //
     return 0;
 }
@@ -257,12 +259,12 @@ update_nstids(
         node_nstids[i].first = i;
         node_nstids[i].second = inf->nstids[i];
     }
-    // Sort in descending order based on nstids (i.e., the second element).
+    // Sort in decreasing order based on nstids (i.e., the second element).
     qsort(node_nstids, inf->nstids_len, sizeof(tuple_t), compare_second);
 #if 1 // Debug
     for (int i = 0; i < inf->nstids_len; ++i) {
         printf(
-            "- (nodeid=%d, nstids=%d)\n",
+            "\t- (nodeid=%d, nstids=%d)\n",
             node_nstids[i].first,
             node_nstids[i].second
         );
@@ -290,7 +292,7 @@ update_nstids(
     printf("\n");
     for (int i = 0; i < inf->nstids_len; ++i) {
         printf(
-            "- (nodeid=%d, nstids'=%d)\n",
+            "\t- (nodeid=%d, nstids'=%d)\n",
             node_nstids[i].first,
             node_nstids[i].second
         );
@@ -304,7 +306,7 @@ update_nstids(
     printf("\n");
     for (int i = 0; i < inf->nstids_len; ++i) {
         printf(
-            "- node %d: nstids=%d\n", i, inf->nstids[i]
+            "\t- node %d: nstids=%d\n", i, inf->nstids[i]
         );
     }
 #endif
@@ -330,8 +332,6 @@ stid_fixup(
             0,
             inf->machine_delegate_comm
         );
-        // No updates required.
-        if (new_local_nstid == inf->local_nstid) return;
     }
     // We have some work to do.
     // Everyone on a node share their selected flag with the machine delegate.
@@ -354,11 +354,12 @@ stid_fixup(
         // Favor unselecting from the back of the list because, for convenience,
         // we always want a delegate to be an stid.
         for (int i = inf->nqid - 1; i >= 0; --i) {
-            if (nunsel > 0 && sflags[i] == 1) {
+            if (nunsel == 0) break;
+            //
+            if (sflags[i] == 1) {
                 sflags[i] = 0;
                 nunsel--;
             }
-            else break;
         }
     }
     // Let everyone on the machine know what their selected flag should now be.
@@ -384,6 +385,7 @@ optimize_distribution(
     int update_stids = 0;
 
     if (inf->rank == 0) {
+        printf("\n");
         printf(
             "# rank %d is optimizing for max_stids = %d\n",
             inf->rank, max_stids
@@ -431,9 +433,10 @@ main(void)
     //
     node_id_setup(&info);
     // Modify here for testing different configurations.
-    const QUO_obj_type_t target_res = QUO_OBJ_SOCKET;
-    const int max_stids_per_res = 1; // Per node.
-    const int max_stids = 32; // Total target across all machines.
+    const QUO_obj_type_t target_res = QUO_OBJ_NUMANODE;
+    const int max_stids_per_res = 3; // Per node.
+    // Total target across all machines.
+    const int max_stids = info.n_machines + 3;
     //
     auto_distrib(&info, target_res, max_stids_per_res);
     //
