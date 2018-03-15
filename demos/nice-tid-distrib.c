@@ -113,8 +113,8 @@ delegate_comm_setup(inf_t *inf)
     );
     // Because we want it to be erroneous for a non-zero QID to communicate over
     // the machine_delegate_comm, invalidate for those that aren't part of Group
-    // 1 (above), so errors are easy to catch---it is an error to communicate
-    // over MPI_COMM_NULL.
+    // 1 (above), so errors are easy to catch---it is an error to attempt
+    // communication over MPI_COMM_NULL.
     if (inf->qid != 0) {
         MPI_Comm_free(&inf->machine_delegate_comm);
         inf->machine_delegate_comm = MPI_COMM_NULL;
