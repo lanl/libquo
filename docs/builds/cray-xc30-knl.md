@@ -3,7 +3,7 @@ How to Build QUO on a KNL Cray XC30
 
 ## Setup Build Environment
 
-## Auto-Generate Build Scripts
+### Auto-Generate Build Scripts
 **NOTE: Required Only if NOT Building from a Release**
 
 See [this](typical.md) for more information.
@@ -12,7 +12,10 @@ See [this](typical.md) for more information.
 
 * Load appropriate programming environment (Intel, PGI, etc.).
 
-* Swap to appropriate Cray PE module swap craype-haswell craype-mic-knl
+* Swap to appropriate Cray PE
+```
+module swap craype-haswell craype-mic-knl
+```
 
 * Set QUO_PREFIX
 ```
