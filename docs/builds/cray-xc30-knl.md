@@ -3,10 +3,8 @@ How to Build QUO on a KNL Cray XC30
 
 ## Setup Build Environment
 
-### Auto-Generate Build Scripts
-**NOTE: Required Only if NOT Building from a Release**
-
-See [this](typical.md) for more information.
+* Auto-Generate Build Scripts **NOTE: Required Only if NOT Building from a
+  Release.** See [this](typical.md) for more information.
 
 * Log into a front-end node (NOT a login node).
 
