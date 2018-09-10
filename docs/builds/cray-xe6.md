@@ -4,7 +4,7 @@ How to Build QUO on a Cray XE6
 ## Auto-Generate Build Scripts
 **NOTE: Required Only if NOT Building from a Release**
 
-See [this](docs/builds/typical.md) for more information.
+See [this](typical.md) for more information.
 
 ## Setup Build Environment
 
