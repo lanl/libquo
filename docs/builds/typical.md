@@ -17,7 +17,7 @@ How to Configure and Build QUO on a Typical Linux System
 ## Configure libquo
 
 ```
-./configure CC=[MPICC] [FC=[MPIFC]] [--prefix=INSTALL-PATH]
+./configure CC=MPICC [FC=MPIFC] [--prefix=INSTALL-PATH]
 ```
 
 Where MPICC is your system's MPI CC wrapper compiler and MPIFC is your system's
