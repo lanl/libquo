@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Los Alamos National Security, LLC
+ * Copyright (c) 2013-2018 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * This software was produced under U.S. Government contract DE-AC52-06NA25396
