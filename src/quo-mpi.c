@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Los Alamos National Security, LLC
+ * Copyright (c) 2013-2018 Los Alamos National Security, LLC
  *                         All rights reserved.
  *
  * This software was produced under U.S. Government contract DE-AC52-06NA25396
@@ -135,9 +135,9 @@ struct quo_mpi_t {
     MPI_Comm smpcomm;
     /** Number of nodes in the current job. */
     int nnodes;
-    /** My rank in MPI_COMM_WORLD. */
+    /** My rank in the user-provided communicator. */
     int rank;
-    /** Number of ranks in MPI_COMM_WORLD. */
+    /** Number of processes in the user-provided communicator. */
     int nranks;
     /** My smp (node) rank. */
     int smprank;
@@ -241,6 +241,7 @@ smprank_setup(quo_mpi_t *mpi)
     /* split into local node groups */
     if (MPI_SUCCESS != (rc = MPI_Comm_split(mpi->commchan, mycolor, mpi->rank,
                                             &(mpi->smpcomm)))) {
+        rc = QUO_ERR_MPI;
         goto out;
     }
     /* get basic smpcomm info */
