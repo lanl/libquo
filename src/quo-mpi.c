@@ -98,6 +98,8 @@
 
 #include "mpi.h"
 
+#define QUO_BARRIER_WITH_MPI 1
+
 /* don't forget that the upper layer will make sure that all the right stuff
  * will be called in the right order, so we don't have to be so careful
  * about checking if everything has been setup before continuing with the
@@ -244,6 +246,19 @@ smprank_setup(quo_mpi_t *mpi)
         rc = QUO_ERR_MPI;
         goto out;
     }
+#if (MPI_VERSION >= 3 && QUO_BARRIER_WITH_MPI == 1)
+    MPI_Info info;
+    if (MPI_SUCCESS != MPI_Comm_get_info(mpi->commchan, &info)) {
+        return QUO_ERR_MPI;
+    }
+    if (MPI_SUCCESS != MPI_Comm_set_info(mpi->smpcomm, info)) {
+        (void)MPI_Info_free(&info);
+        return QUO_ERR_MPI;
+    }
+    if (MPI_SUCCESS != MPI_Info_free(&info)) {
+        return QUO_ERR_MPI;
+    }
+#endif
     /* get basic smpcomm info */
     if (MPI_SUCCESS != MPI_Comm_size(mpi->smpcomm, &(mpi->nsmpranks))) {
         rc = QUO_ERR_MPI;
@@ -272,9 +287,23 @@ commchan_setup(quo_mpi_t *mpi,
                MPI_Comm comm)
 {
     if (!mpi) return QUO_ERR_INVLD_ARG;
+#if (MPI_VERSION >= 3 && QUO_BARRIER_WITH_MPI == 1)
+    MPI_Info info;
+    if (MPI_SUCCESS != MPI_Comm_get_info(comm, &info)) {
+        return QUO_ERR_MPI;
+    }
+    if (MPI_SUCCESS != MPI_Comm_dup_with_info(comm, info, &(mpi->commchan))) {
+        (void)MPI_Info_free(&info);
+        return QUO_ERR_MPI;
+    }
+    if (MPI_SUCCESS != MPI_Info_free(&info)) {
+        return QUO_ERR_MPI;
+    }
+#else
     if (MPI_SUCCESS != MPI_Comm_dup(comm, &(mpi->commchan))) {
         return QUO_ERR_MPI;
     }
+#endif
     return QUO_SUCCESS;
 }
 
@@ -761,10 +790,16 @@ quo_mpi_ranks_on_node(const quo_mpi_t *mpi,
 int
 quo_mpi_sm_barrier(const quo_mpi_t *mpi)
 {
-    int rc = 0;
     if (!mpi) return QUO_ERR_INVLD_ARG;
-    rc = pthread_barrier_wait(&(mpi->bsegp->barrier));
+#if (MPI_VERSION >= 3 && QUO_BARRIER_WITH_MPI == 1)
+    if (MPI_SUCCESS != MPI_Barrier(mpi->smpcomm)) {
+        return QUO_ERR_MPI;
+    }
+#else
+    // TODO(skg) Conditionally init sm barrier infrastructure.
+    int rc = pthread_barrier_wait(&(mpi->bsegp->barrier));
     if (PTHREAD_BARRIER_SERIAL_THREAD != rc && 0 != rc) return QUO_ERR_SYS;
+#endif
     return QUO_SUCCESS;
 }
 
