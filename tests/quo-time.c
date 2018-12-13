@@ -52,6 +52,9 @@
 
 #include "mpi.h"
 
+MPI_Session session;
+MPI_Comm world_comm, shared_comm;
+
 /**
  * Measures cost of QUO calls.
  */
@@ -103,7 +106,7 @@ typedef struct experiment_t {
 static inline void
 demo_emit_sync(const context_t *c)
 {
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(world_comm);
     usleep((c->rank) * 1000);
 }
 
@@ -113,7 +116,11 @@ fini(context_t *c)
     if (!c) return 1;
     if (QUO_SUCCESS != QUO_free(c->quo)) return 1;
     /* finalize mpi AFTER QUO_destruct - we may mpi in our destruct */
-    if (c->mpi_inited) MPI_Finalize();
+    if (c->mpi_inited) {
+	MPI_Comm_free (&world_comm);
+	MPI_Comm_free (&shared_comm);
+	MPI_Session_finalize (&session);
+    }
     if (c->cbindstr) free(c->cbindstr);
     free(c);
     return 0;
@@ -129,21 +136,36 @@ fini(context_t *c)
 static int
 init(context_t **c)
 {
+    MPI_Info info;
     context_t *newc = NULL;
+    MPI_Group group;
+    MPI_Flags flags = MPI_FLAG_THREAD_CONCURRENT;
+
     /* alloc our context */
     if (NULL == (newc = calloc(1, sizeof(*newc)))) return 1;
     /* libquo requires that MPI be initialized before its init is called */
-    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) return 1;
-    /* gather some basic job info from our mpi lib */
-    if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(newc->nranks))) goto err;
+
+    MPI_Session_init (&flags, MPI_INFO_NULL, MPI_ERRORS_ARE_FATAL, &session);
+    MPI_Group_from_session_pset (session, "mpi://shared", &group);
+    MPI_Info_create (&info);
+    MPI_Info_set (info, "ompi_assert_lazy_barrier", "true");
+    MPI_Comm_create_from_group (group, "shared_group", info, MPI_ERRORS_ARE_FATAL, &shared_comm);
+    MPI_Group_free (&group);
+    MPI_Info_free (&info);
+
+    MPI_Group_from_session_pset (session, "mpi://world", &group);
+    MPI_Comm_create_from_group (group, "world_group", MPI_INFO_NULL, MPI_ERRORS_ARE_FATAL, &world_comm);
+    MPI_Group_free (&group);
+
+    if (MPI_SUCCESS != MPI_Comm_size(world_comm, &(newc->nranks))) goto err;
     /* ...and more */
-    if (MPI_SUCCESS != MPI_Comm_rank(MPI_COMM_WORLD, &(newc->rank))) goto err;
+    if (MPI_SUCCESS != MPI_Comm_rank(world_comm, &(newc->rank))) goto err;
     /* can be called at any point -- even before init and construct. */
     if (QUO_SUCCESS != QUO_version(&(newc->qv), &(newc->qsv))) goto err;
     /* relatively expensive call. you only really want to do this once at the
      * beginning of time and pass the context all over the place within your
      * code. */
-    if (QUO_SUCCESS != QUO_create(&newc->quo, MPI_COMM_WORLD)) goto err;
+    if (QUO_SUCCESS != QUO_create(&newc->quo, shared_comm)) goto err;
     newc->mpi_inited = true;
     *c = newc;
     return 0;
@@ -242,7 +264,7 @@ qcreate(
     //
     for (int i = 0; i < n_trials; ++i) {
         double start = MPI_Wtime();
-        if (QUO_SUCCESS != QUO_create(&(ctx[i]), MPI_COMM_WORLD)) return 1;
+        if (QUO_SUCCESS != QUO_create(&(ctx[i]), shared_comm)) return 1;
         double end = MPI_Wtime();
         res[i] = end - start;
     }
@@ -264,7 +286,7 @@ qfree(
     if (!ctx) return 1;
     //
     for (int i = 0; i < n_trials; ++i) {
-        if (QUO_SUCCESS != QUO_create(&(ctx[i]), MPI_COMM_WORLD)) return 1;
+        if (QUO_SUCCESS != QUO_create(&(ctx[i]), shared_comm)) return 1;
     }
     for (int i = 0; i < n_trials; ++i) {
         double start = MPI_Wtime();
@@ -283,7 +305,7 @@ qnpus(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx, MPI_COMM_WORLD)) return 1;
+    if (QUO_SUCCESS != QUO_create(&ctx, shared_comm)) return 1;
     //
     int n = 0;
     for (int i = 0; i < n_trials; ++i) {
@@ -306,7 +328,7 @@ qquids_in_type(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx, MPI_COMM_WORLD)) return 1;
+    if (QUO_SUCCESS != QUO_create(&ctx, shared_comm)) return 1;
     //
     int n = 0;
     for (int i = 0; i < n_trials; ++i) {
@@ -337,7 +359,7 @@ qbind_push(
     (void)c;
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx, MPI_COMM_WORLD)) return 1;
+    if (QUO_SUCCESS != QUO_create(&ctx, shared_comm)) return 1;
     //
     for (int i = 0; i < n_trials; ++i) {
         double start = MPI_Wtime();
@@ -361,7 +383,7 @@ qbind_pop(
     (void)c;
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx, MPI_COMM_WORLD)) return 1;
+    if (QUO_SUCCESS != QUO_create(&ctx, shared_comm)) return 1;
     //
     for (int i = 0; i < n_trials; ++i) {
         if (QUO_SUCCESS != QUO_bind_push(
@@ -384,7 +406,7 @@ qauto_distrib(
 ) {
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx, MPI_COMM_WORLD)) return 1;
+    if (QUO_SUCCESS != QUO_create(&ctx, shared_comm)) return 1;
     //
     int sel = 0;
     for (int i = 0; i < n_trials; ++i) {
@@ -409,7 +431,7 @@ qbarrier(
     (void)c;
     //
     QUO_context ctx;
-    if (QUO_SUCCESS != QUO_create(&ctx, MPI_COMM_WORLD)) return 1;
+    if (QUO_SUCCESS != QUO_create(&ctx, shared_comm)) return 1;
     //
     for (int i = 0; i < n_trials; ++i) {
         double start = MPI_Wtime();
@@ -450,7 +472,7 @@ time_fun(
     //
     if (MPI_SUCCESS != MPI_Gather(0 == c->rank ? MPI_IN_PLACE : res,
                                   n_trials, MPI_DOUBLE, res, n_trials,
-                                  MPI_DOUBLE, 0, MPI_COMM_WORLD)) {
+                                  MPI_DOUBLE, 0, shared_comm)) {
         return 1;
     }
 #if 0 // DEBUG
