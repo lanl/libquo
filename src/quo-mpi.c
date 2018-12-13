@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2013-2018 Los Alamos National Security, LLC
  *                         All rights reserved.
+ * Copyright (c) 2018      Triad National Security, LLC.
+ *                         All rights reserved.
  *
  * This software was produced under U.S. Government contract DE-AC52-06NA25396
  * for Los Alamos National Laboratory (LANL), which is operated by Los Alamos
@@ -164,6 +166,7 @@ struct quo_mpi_t {
 /* ////////////////////////////////////////////////////////////////////////// */
 
 /* ////////////////////////////////////////////////////////////////////////// */
+#if (MPI_VERSION < 3)
 static int
 cmp_uli(const void *p1,
         const void *p2)
@@ -212,19 +215,33 @@ get_my_color(unsigned long int *net_nums,
     *my_color = node_i;
     return QUO_SUCCESS;
 }
+#endif
 
 /* ////////////////////////////////////////////////////////////////////////// */
 static int
 smprank_setup(quo_mpi_t *mpi)
 {
-    int rc = QUO_ERR, mycolor = 0, nnode_contrib = 0;
+    int rc = QUO_ERR, nnode_contrib = 0;
+#if (MPI_VERSION < 3)
+    int mycolor = 0;
     unsigned long int my_netnum = 0, *netnums = NULL;
+#endif
+
+#if (MPI_VERSION >= 3 && QUO_BARRIER_WITH_MPI == 1)
+    MPI_Info info;
+    if (MPI_SUCCESS != MPI_Comm_get_info(mpi->commchan, &info)) {
+        return QUO_ERR_MPI;
+    }
+#endif
 
     if (!mpi) return QUO_ERR_INVLD_ARG;
+
+#if MPI_VERSION < 3
     if (NULL == (netnums = calloc(mpi->nranks, sizeof(*netnums)))) {
         QUO_OOR_COMPLAIN();
         return QUO_ERR_OOR;
     }
+
     if (QUO_SUCCESS != (rc = get_netnum(mpi->hostname, &my_netnum))) {
         /* rc set */
         goto out;
@@ -246,11 +263,15 @@ smprank_setup(quo_mpi_t *mpi)
         rc = QUO_ERR_MPI;
         goto out;
     }
-#if (MPI_VERSION >= 3 && QUO_BARRIER_WITH_MPI == 1)
-    MPI_Info info;
-    if (MPI_SUCCESS != MPI_Comm_get_info(mpi->commchan, &info)) {
-        return QUO_ERR_MPI;
+#else
+    if (MPI_SUCCESS != (rc = MPI_Comm_split_type (mpi->commchan, MPI_COMM_TYPE_SHARED, 0,
+                                                 info, &(mpi->smpcomm)))) {
+       rc = QUO_ERR_MPI;
+       goto out;
     }
+#endif
+
+#if (MPI_VERSION >= 3 && QUO_BARRIER_WITH_MPI == 1)
     if (MPI_SUCCESS != MPI_Comm_set_info(mpi->smpcomm, info)) {
         (void)MPI_Info_free(&info);
         return QUO_ERR_MPI;
@@ -276,7 +297,9 @@ smprank_setup(quo_mpi_t *mpi)
         goto out;
     }
 out:
+#if (MPI_VERSION < 3)
     if (netnums) free(netnums);
+#endif
     return rc;
 }
 
