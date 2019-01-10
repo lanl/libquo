@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2017 Los Alamos National Security, LLC
+# Copyright (c) 2013-2019 Los Alamos National Security, LLC
 #                         All rights reserved.
 #
 # This file is part of the libquo project. See the LICENSE file at the
@@ -43,6 +43,7 @@ AC_USE_SYSTEM_EXTENSIONS
 
 AC_PROG_CC_C99
 AC_PROG_CC_C_O
+AM_PROG_CC_C_O
 AC_PROG_CPP
 
 AX_PROG_MPICC
