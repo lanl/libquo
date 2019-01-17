@@ -50,7 +50,8 @@ AX_PROG_MPICC
 
 AS_IF([test "x$AX_PROG_MPICC_HAVE_MPICC" != "x1"],dnl
       [AC_MSG_ERROR(
-       [*** CC cannot compile MPI apps. set CC to something that can. ***])])
+       [*** CC cannot compile MPI apps. set CC to something that can \
+or set CPPFLAGS and LDFLAGS appropriately. ***])])
 
 ################################################################################
 # Fortran Language Support
@@ -63,7 +64,8 @@ AX_PROG_MPIFC
 # mpi apps.  if not disable fortran support.
 AS_IF([test "x$AX_PROG_MPIFC_HAVE_MPIFC" != "x1"],dnl
       [AC_MSG_WARN(
-       [*** FC cannot compile MPI apps. set FC to something that can. ***])])
+       [*** FC cannot compile MPI apps. set FC to something that can \
+or set FCFLAGS and LDFLAGS appropriately. ***])])
 AM_CONDITIONAL(QUO_WITH_MPIFC, test "x$AX_PROG_MPIFC_HAVE_MPIFC" = "x1")
 
 ################################################################################
@@ -89,7 +91,8 @@ AX_PROG_MPICXX
 # mpi apps.  if not disable C++ support.
 AS_IF([test "x$AX_PROG_MPICXX_HAVE_MPICXX" != "x1"],dnl
       [AC_MSG_WARN(
-       [*** CXX cannot compile MPI apps. set CXX to something that can. ***])])
+       [*** CXX cannot compile MPI apps. set CXX to something that can \
+or set CPPFLAGS and LDFLAGS appropriately. ***])])
 AM_CONDITIONAL(QUO_WITH_MPICXX, test "x$AX_PROG_MPICXX_HAVE_MPICXX" = "x1")
 
 ################################################################################
