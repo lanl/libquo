@@ -7,7 +7,7 @@
 # checks for hwloc headers and library.
 #
 # COPYRIGHT
-# Copyright (c) 2013      Los Alamos National Security, LLC.
+# Copyright (c) 2013-2019 Triad National Security, LLC
 #                         All rights reserved.
 #
 

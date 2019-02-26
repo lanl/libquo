@@ -7,7 +7,7 @@
 # Enables cross-process memory support in QUO and checks for support.
 #
 # COPYRIGHT
-# Copyright (c) 2017-2018 Los Alamos National Security, LLC.
+# Copyright (c) 2017-2019 Triad National Security, LLC
 #                         All rights reserved.
 #
 

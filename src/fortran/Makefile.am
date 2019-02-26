@@ -4,7 +4,7 @@
 #                         of Tennessee Research Foundation.  All rights
 #                         reserved.
 # Copyright (c) 2012      Inria.  All rights reserved.
-# Copyright (c) 2013-2018 Los Alamos National Security, LLC.
+# Copyright (c) 2013-2019 Triad National Security, LLC
 #                         All rights reserved.
 #
 # $COPYRIGHT$
