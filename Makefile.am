@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2017 Los Alamos National Security, LLC
+# Copyright (c) 2013-2019 Triad National Security, LLC
 #                         All rights reserved.
 #
 # This file is part of the libquo project. See the LICENSE file at the
@@ -9,7 +9,7 @@
 ACLOCAL_AMFLAGS = -Iconfig -Isrc/hwloc/config
 
 EXTRA_DIST = \
-AUTHORS README.md THANKS LICENSE autogen contrib BROKEN-COMPILERS
+AUTHORS README.md THANKS LICENSE COPYRIGHT autogen contrib BROKEN-COMPILERS
 
 SUBDIRS = \
 src \
