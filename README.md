@@ -76,6 +76,7 @@ Symposium (IPDPS 2017), Orlando, FL, May 2017.
 ```
 
 ## Other QUO Materials
+* The [**dissertation**](https://digitalrepository.unm.edu/cgi/viewcontent.cgi?article=1094&context=cs_etds) detailing QUO.
 * The [**slide deck**](docs/slides/gutierrez-ipdps17.pdf) presented at IPDPS 2017.
 
 ## Los Alamos National Laboratory Code Release
