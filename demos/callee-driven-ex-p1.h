@@ -7,7 +7,9 @@
  *
  */
 
-#pragma once
+#ifndef CED_EXP
+#define CED_EXP
+
 
 #include "mpi.h"
 #include "quo.h"
@@ -63,3 +65,5 @@ p1_entry_point(p1_context_t *c);
 
 int
 p1_fini(p1_context_t *p1_ctx);
+
+#endif

@@ -7,7 +7,8 @@
  *
  */
 
-#pragma once
+#ifndef CRD_EXC
+#define CRD_EXC
 
 #include "quo.h"
 #include "mpi.h"
@@ -95,3 +96,5 @@ out:
     }
     return 0;
 }
+
+#endif
