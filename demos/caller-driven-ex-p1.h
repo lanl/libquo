@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef CRD_EXP
-#define CRD_EXP
+#ifndef CALLER_DRIVEN_EX_P1_H
+#define CALLER_DRIVEN_EX_P1_H
 
 
 #include "caller-driven-ex-common.h"

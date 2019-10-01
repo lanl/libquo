@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef CRD_EXC
-#define CRD_EXC
+#ifndef CALLER_DRIVEN_EX_COMMON_H
+#define CALLER_DRIVEN_EX_COMMON_H
 
 #include "quo.h"
 #include "mpi.h"

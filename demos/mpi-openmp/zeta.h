@@ -11,8 +11,8 @@
  * Euler–Riemann zeta function.
  */
 
-#ifndef ZETA_DEMO
-#defin ZETA_DEMO
+#ifndef ZETA_H_INCLUDED
+#define ZETA_H_INCLUDED
 
 #include <inttypes.h>
 #include "mpi.h"

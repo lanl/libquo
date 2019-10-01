@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef CED_EXP
-#define CED_EXP
+#ifndef CALLEE_DRIVEN_EX_P1_H_INCLUDED
+#define CALLEE_DRIVEN_EX_P1_H_INCLUDED
 
 
 #include "mpi.h"

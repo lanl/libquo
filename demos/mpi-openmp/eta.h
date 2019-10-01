@@ -11,8 +11,8 @@
  * Dirichlet eta function.
  */
 
-#ifndef ETA_DEMO
-#define ETA_DEMO
+#ifndef ETA_H_INCLUDED
+#define ETA_H_INCLUDED
 
 #include <inttypes.h>
 #include "mpi.h"
