@@ -1,7 +1,8 @@
+dist: xenial
 language: c
+compiler: gcc
 
 before_install:
- - sudo add-apt-repository ppa:dns/gnu -y #newer autoconf
  - sudo apt-get update
  - sudo apt-get install check gfortran libopenmpi-dev openmpi-bin numactl autoconf libnuma-dev doxygen
 
