@@ -11,7 +11,8 @@
  * Dirichlet eta function.
  */
 
-#pragma once
+#ifndef ETA_DEMO
+#define ETA_DEMO
 
 #include <inttypes.h>
 #include "mpi.h"
@@ -29,3 +30,5 @@ eta(double s,
     double **z,
     MPI_Comm comm,
     double *result);
+
+#endif

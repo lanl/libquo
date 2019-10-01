@@ -11,7 +11,8 @@
  * Euler–Riemann zeta function.
  */
 
-#pragma once
+#ifndef ZETA_DEMO
+#defin ZETA_DEMO
 
 #include <inttypes.h>
 #include "mpi.h"
@@ -29,3 +30,5 @@ zeta(double s,
      double **z,
      MPI_Comm comm,
      double *result);
+
+#endif
