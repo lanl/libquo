@@ -70,12 +70,15 @@ static int
 fini(context_t *c)
 {
     if (!c) return 1;
-    if (QUO_SUCCESS != QUO_free(c->quo)) return 1;
+
+    int nerrs = 0;
+    if (QUO_SUCCESS != QUO_free(c->quo)) nerrs++;
     /* finalize mpi AFTER QUO_destruct - we may mpi in our destruct */
     if (c->mpi_inited) MPI_Finalize();
     if (c->cbindstr) free(c->cbindstr);
     free(c);
-    return 0;
+
+    return (nerrs ? 1 : 0);
 }
 
 /**
@@ -90,9 +93,9 @@ init(context_t **c)
 {
     context_t *newc = NULL;
     /* alloc our context */
-    if (NULL == (newc = calloc(1, sizeof(*newc)))) return 1;
+    if (NULL == (newc = calloc(1, sizeof(*newc)))) goto err;
     /* libquo requires that MPI be initialized before its init is called */
-    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) return 1;
+    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) goto err;
     /* gather some basic job info from our mpi lib */
     if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(newc->nranks))) goto err;
     /* ...and more */
@@ -127,7 +130,7 @@ sys_grok(context_t *c)
     if (QUO_SUCCESS != QUO_nobjs_in_type_by_type(c->quo,
                                                  QUO_OBJ_MACHINE,
                                                  0,
-                                                 QUO_OBJ_SOCKET,
+                                                 QUO_OBJ_PACKAGE,
                                                  &c->nsockets)) {
         bad_func = "QUO_nobjs_in_type_by_type";
         goto out;
@@ -222,7 +225,7 @@ bindup_sockets(const context_t *c)
     /* if you are going to change bindings often, then cache this */
     if (c->noderank + 1 <= c->nsockets) {
         if (QUO_SUCCESS != QUO_bind_push(c->quo, QUO_BIND_PUSH_PROVIDED,
-                                         QUO_OBJ_SOCKET, c->noderank)) {
+                                         QUO_OBJ_PACKAGE, c->noderank)) {
             return 1;
         }
     }

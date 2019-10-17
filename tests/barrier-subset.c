@@ -26,6 +26,7 @@ main(int argc, char **argv)
     }
     else {
         sleep(100);
+        assert(MPI_SUCCESS == MPI_Barrier(MPI_COMM_WORLD));
     }
     assert(MPI_SUCCESS == MPI_Finalize());
     return EXIT_SUCCESS;

@@ -315,11 +315,15 @@ p1_init(p1_context_t **p1_ctx,
     //
     int n_workers = 0;
     int *worker_comm_ids = NULL;
-    if (get_worker_pes(newc, &n_workers, &worker_comm_ids)) return 1;
-    if (gen_libcomm(newc, n_workers, worker_comm_ids)) return 1;
+    if (get_worker_pes(newc, &n_workers, &worker_comm_ids)) goto err;
+    if (gen_libcomm(newc, n_workers, worker_comm_ids)) goto err;
     //
     *p1_ctx = newc;
+    if (worker_comm_ids) free(worker_comm_ids);
     return 0;
+err:
+    if (worker_comm_ids) free(worker_comm_ids);
+    return 1;
 }
 
 int

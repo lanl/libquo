@@ -53,6 +53,11 @@ program quofort
     print *, 'sock_qids', sock_qids
     deallocate (sock_qids)
 
+    ! The output should be identical to QUO_OBJ_SOCKET query.
+    call quo_qids_in_type(quoc, QUO_OBJ_PACKAGE, 0, sock_qids, info)
+    print *, 'package_qids', sock_qids
+    deallocate (sock_qids)
+
     call quo_nnumanodes(quoc, nres, info)
     print *, 'nnumanodes', nres
 

@@ -1,8 +1,8 @@
 .\" -*- nroff -*-
-.\" Copyright © 2010 inria.  All rights reserved.
+.\" Copyright © 2010-2019 Inria.  All rights reserved.
 .\" Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
 .\" See COPYING in top-level directory.
-.TH HWLOC-PS "1" "#HWLOC_DATE#" "#PACKAGE_VERSION#" "#PACKAGE_NAME#"
+.TH HWLOC-PS "1" "%HWLOC_DATE%" "%PACKAGE_VERSION%" "%PACKAGE_NAME%"
 .SH NAME
 hwloc-ps \- List currently-running processes or threads that are bound
 .
@@ -21,23 +21,33 @@ hwloc-ps \- List currently-running processes or threads that are bound
 .
 .TP 10
 \fB\-a\fR
-list all processes, even those that are not bound to any
+List all processes, even those that are not bound to any
 specific part of the machine.
 .TP
+\fB\-\-pid <pid>\fR
+Only show process of PID \fI<pid>\fR,
+even if it is not bound to any specific part of the machine.
+.TP
+\fB\-\-name <name>\fR
+Only show processes whose name contains \fI<name>\fR,
+even if they are not bound to any specific part of the machine.
+This is not supported on all operating systems.
+.TP
 \fB\-p\fR \fB\-\-physical\fR
-report OS/physical indexes instead of logical indexes
+Report OS/physical indexes instead of logical indexes
 .TP
 \fB\-l\fR \fB\-\-logical\fR
-report logical indexes instead of physical/OS indexes (default)
+Report logical indexes instead of physical/OS indexes (default)
 .TP
 \fB\-c\fR \fB\-\-cpuset\fR
-show process bindings as cpusets instead of objects.
+Show process bindings as cpusets instead of objects.
 .TP
 \fB\-t\fR \fB\-\-threads\fR
-show threads inside processes.
+Show threads inside processes.
 If \fB\-a\fR is given as well, list all threads within each process.
 Otherwise, show all threads inside each process where at least one
 thread is bound.
+This is currently only supported on Linux.
 .TP
 \fB\-e\fR \fB\-\-get\-last\-cpu\-location\fR
 Report  the last processors where the process/thread ran.
@@ -45,14 +55,28 @@ Note that the result may already be outdated when reported
 since the operating system may move the tasks to other processors
 at any time according to the binding.
 .TP
-\fB\-\-whole\-system\fR
-Do not consider administration limitations.
+\fB\-\-disallowed\fR
+Include objects disallowed by administrative limitations.
 .TP
 \fB\-\-pid\-cmd <cmd>\fR
 Append the output of the given command to each PID line.
 For each displayed process ID, execute the command \fI<cmd> <pid>\fR
 and append \fBthe first line\fR of its output to the regular hwloc-ps
 line.
+.TP
+\fB\-\-json\-server\fR
+Run the tool as a JSON server that waits for other process' requests
+on a port and sends back binding information.
+See contrib/hwloc-ps.www/ for details.
+.TP
+\fB\-\-json\-port <port>\fR
+Use the given port number instead of the default 8888.
+.TP
+\fB\-v\fR \fB\-\-verbose\fR
+Increase verbosity of the JSON server.
+.TP
+\fB\-h\fR \fB\-\-help\fR
+Display help message and exit.
 .
 .\" **************************
 .\"    Description Section
@@ -70,7 +94,7 @@ binding.  The binding may be reported as objects or cpusets.
 .PP
 By default, process bindings are restricted to the currently available
 topology. If some processes are bound to processors that are not available
-to the current process, they are ignored unless \fB\-\-whole\-system\fR
+to the current process, they are ignored unless \fB\-\-include\-disallowed\fR
 is given.
 .
 .PP
@@ -97,7 +121,7 @@ If a process is bound, it appears in the default output:
     4759	Core:0		myprogram
 
 If a process is not bound but 3 of his 4 threads are bound,
-it only appears in the thread-aware output:
+it only appears in the thread-aware output (or if explicitly selected):
 
     $ utils/hwloc-ps
 
@@ -107,6 +131,9 @@ it only appears in the thread-aware output:
      4761	PU:0
      4762	PU:2
      4765	PU:1
+
+    $ utils/hwloc-ps --pid 4759
+    4759	Machine:0		myprogram
 
 To display the binding of already running MPI processes (launched by
 Open MPI) and append their MPI rank (in MPI_COMM_WORLD) to each line:
@@ -128,5 +155,5 @@ where \fBmyscript\fR is a bash script doing:
 .SH SEE ALSO
 .
 .ft R
-hwloc(7), lstopo(1), hwloc-calc(1), hwloc-distrib(1)
+hwloc(7), lstopo(1), hwloc-calc(1), hwloc-distrib(1), and hwloc-ps.www/README
 .sp

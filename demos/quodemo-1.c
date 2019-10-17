@@ -88,12 +88,15 @@ static int
 fini(context_t *c)
 {
     if (!c) return 1;
-    if (QUO_SUCCESS != QUO_free(c->quo)) return 1;
+
+    int nerrs = 0;
+    if (QUO_SUCCESS != QUO_free(c->quo)) nerrs++;
     /* finalize mpi AFTER QUO_destruct - we may mpi in our destruct */
     if (c->mpi_inited) MPI_Finalize();
     if (c->cbindstr) free(c->cbindstr);
     free(c);
-    return 0;
+
+    return (nerrs ? 1 : 0);
 }
 
 /**
@@ -109,9 +112,9 @@ init(context_t **c)
     int name_len = 0;
     context_t *newc = NULL;
     /* alloc our context */
-    if (NULL == (newc = calloc(1, sizeof(*newc)))) return 1;
+    if (NULL == (newc = calloc(1, sizeof(*newc)))) goto err;
     /* libquo requires that MPI be initialized before its init is called */
-    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) return 1;
+    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) goto err;
     /* gather some basic job info from our mpi lib */
     if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(newc->nranks))) goto err;
     /* ...and more */

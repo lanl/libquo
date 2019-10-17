@@ -1,47 +1,57 @@
 /*
- * Copyright © 2013-2015 Inria.  All rights reserved.
+ * Copyright © 2013-2019 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/private.h>
-#include <hwloc.h>
-#include <hwloc/diff.h>
-
+#include "private/autogen/config.h"
+#include "hwloc.h"
+#include "hwloc/diff.h"
 #include "misc.h"
 
 void usage(const char *callname __hwloc_attribute_unused, FILE *where)
 {
 	fprintf(where, "Usage: hwloc-diff [options] <old.xml> <new.xml> [<output.diff.xml>]\n");
 	fprintf(where, "Options:\n");
-	fprintf(where, "  --refname        Change the XML reference identifier in the output\n");
-	fprintf(where, "                   (default is the filename of the first topology\n");
-	fprintf(where, "  --version        Report version and exit\n");
+	fprintf(where, "  --refname <name>  Change the XML reference identifier to <name> in the output\n");
+	fprintf(where, "                    (default is the filename of the first topology\n");
+	fprintf(where, "  --version         Report version and exit\n");
 }
 
 int main(int argc, char *argv[])
 {
 	hwloc_topology_t topo1, topo2;
 	hwloc_topology_diff_t firstdiff = NULL, diff;
-	unsigned long flags = HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM | HWLOC_TOPOLOGY_FLAG_WHOLE_IO | HWLOC_TOPOLOGY_FLAG_ICACHES;
+	unsigned long flags = HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED;
 	char *callname, *input1, *input2, *output, *outputname, *refname = NULL;
 	char *xmlbuffer;
 	int xmlbuflen;
 	unsigned i, j;
 	int err;
 
-	putenv("HWLOC_XML_VERBOSE=1");
 	callname = argv[0];
 	/* skip argv[0], handle options */
 	argc--;
 	argv++;
 
+	hwloc_utils_check_api_version(callname);
+
+	if (!getenv("HWLOC_XML_VERBOSE"))
+		putenv((char *) "HWLOC_XML_VERBOSE=1");
+
 	while (argc && *argv[0] == '-') {
 		if (!strcmp (argv[0], "--refname")) {
+			if (argc < 2) {
+				usage(callname, stderr);
+				exit(EXIT_FAILURE);
+			}
 			refname = argv[1];
 			argc--;
 			argv++;
 		} else if (!strcmp (argv[0], "--version")) {
 			printf("%s %s\n", callname, HWLOC_VERSION);
+			exit(EXIT_SUCCESS);
+		} else if (!strcmp (argv[0], "-h") || !strcmp (argv[0], "--help")) {
+			usage(callname, stdout);
 			exit(EXIT_SUCCESS);
 		} else {
 			fprintf(stderr, "Unrecognized options: %s\n", argv[0]);
@@ -67,26 +77,36 @@ int main(int argc, char *argv[])
 		argv++;
 	} else  {
 		output = NULL;
-		outputname = "stdout";
+		outputname = (char *) "stdout";
 	}
 
 	hwloc_topology_init(&topo1);
+	hwloc_topology_set_all_types_filter(topo1, HWLOC_TYPE_FILTER_KEEP_ALL);
 	hwloc_topology_set_flags(topo1, flags);
 	err = hwloc_topology_set_xml(topo1, input1);
 	if (err < 0) {
 		fprintf(stderr, "Failed to load 1st XML topology %s\n", input1);
-		goto out;
+		goto out_with_topo1;
 	}
-	hwloc_topology_load(topo1);
+	err = hwloc_topology_load(topo1);
+	if (err < 0) {
+		fprintf(stderr, "Failed to load 1st topology %s\n", input1);
+		goto out_with_topo1;
+	}
 
 	hwloc_topology_init(&topo2);
+	hwloc_topology_set_all_types_filter(topo2, HWLOC_TYPE_FILTER_KEEP_ALL);
 	hwloc_topology_set_flags(topo2, flags);
 	err = hwloc_topology_set_xml(topo2, input2);
 	if (err < 0) {
 		fprintf(stderr, "Failed to load 2nd XML topology %s\n", input2);
-		goto out_with_topo1;
+		goto out_with_topo2;
 	}
-	hwloc_topology_load(topo2);
+	err = hwloc_topology_load(topo2);
+	if (err < 0) {
+		fprintf(stderr, "Failed to load 2nd topology %s\n", input2);
+		goto out_with_topo2;
+	}
 
 	if (!refname) {
 		refname = strrchr(input1, '/');
@@ -120,9 +140,9 @@ int main(int argc, char *argv[])
 	}
 	if (!j) {
 		if (output) {
-			err = hwloc_topology_diff_export_xml(topo1, firstdiff, refname, output);
+			err = hwloc_topology_diff_export_xml(firstdiff, refname, output);
 		} else {
-			err = hwloc_topology_diff_export_xmlbuffer(topo1, firstdiff, refname, &xmlbuffer, &xmlbuflen);
+			err = hwloc_topology_diff_export_xmlbuffer(firstdiff, refname, &xmlbuffer, &xmlbuflen);
 			if (!err) {
 				printf("%s\n", xmlbuffer);
 				hwloc_free_xmlbuffer(topo1, xmlbuffer);
@@ -132,7 +152,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Failed to export topology diff %s\n", output);
 	}
 
-	hwloc_topology_diff_destroy(topo1, firstdiff);
+	hwloc_topology_diff_destroy(firstdiff);
 
 	hwloc_topology_destroy(topo2);
 	hwloc_topology_destroy(topo1);
@@ -146,6 +166,5 @@ out_with_topo2:
 	hwloc_topology_destroy(topo2);
 out_with_topo1:
 	hwloc_topology_destroy(topo1);
-out:
 	exit(EXIT_FAILURE);
 }

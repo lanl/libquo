@@ -69,9 +69,9 @@ init(p0_context_t **c)
 {
     p0_context_t *newc = NULL;
     /* alloc our context */
-    if (NULL == (newc = calloc(1, sizeof(*newc)))) return 1;
+    if (NULL == (newc = calloc(1, sizeof(*newc)))) goto err;
     /* libquo requires that MPI be initialized before its init is called */
-    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) return 1;
+    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) goto err;
     /* gather some basic job info from our mpi lib */
     if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(newc->nranks))) goto err;
     /* ...and more */

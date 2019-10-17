@@ -25,7 +25,13 @@ git tag -d v1.1
 push --delete origin 'TAGNAME'
 
 ################################################################################
-# valgrind
+# Valgrind
 ################################################################################
 valgrind --leak-check=full --trace-children=yes --track-origins=yes \
+--log-file=OUT.valgrind.%q{OMPI_COMM_WORLD_RANK}
+
+# With the hwloc-provided suppression file.
+
+valgrind --leak-check=full --trace-children=yes --track-origins=yes \
+--suppressions=./src/hwloc/contrib/hwloc-valgrind.supp \
 --log-file=OUT.valgrind.%q{OMPI_COMM_WORLD_RANK}

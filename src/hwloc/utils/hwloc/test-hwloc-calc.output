@@ -2,6 +2,7 @@
 0xffffffffffffffff
 
 0x0000000f
+0x11111111,0x0
 0x00000f0c
 0x0000800a
 
@@ -28,14 +29,21 @@ Core:0.PU:3 Core:1.PU:0 Core:1.PU:1 Core:1.PU:2
 NUMANode:0.Core:2.PU:3 NUMANode:0.Core:3.PU:0 NUMANode:0.Core:3.PU:1 NUMANode:0.Core:3.PU:2
 11,12,13,14
 
-Core:3 NUMANode:1 Core:8 PU:36 PU:37
-PU:22_PU:23_Core:6_Core:7_NUMANode:2
+Core:3 Group0:1 Core:8 PU:36 PU:37
+PU:22_PU:23_Core:6_Core:7_Group0:2
 
 0x00400000
 22
 
 33,34,35,36,37
 1foo2
+
+0x00000006
+0x00000008
+0,2
+
+2,1
+4,20,32,48
 
 0x0000000b
 0x0000ff0f

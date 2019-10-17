@@ -43,15 +43,17 @@ module quo
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       integer(c_int) QUO_OBJ_MACHINE
       integer(c_int) QUO_OBJ_NUMANODE
+      integer(c_int) QUO_OBJ_PACKAGE
       integer(c_int) QUO_OBJ_SOCKET
       integer(c_int) QUO_OBJ_CORE
       integer(c_int) QUO_OBJ_PU
 
       parameter (QUO_OBJ_MACHINE = 0)
       parameter (QUO_OBJ_NUMANODE = 1)
-      parameter (QUO_OBJ_SOCKET = 2)
-      parameter (QUO_OBJ_CORE = 3)
-      parameter (QUO_OBJ_PU = 4)
+      parameter (QUO_OBJ_PACKAGE = 2)
+      parameter (QUO_OBJ_SOCKET = 3)
+      parameter (QUO_OBJ_CORE = 4)
+      parameter (QUO_OBJ_PU = 5)
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! push policies

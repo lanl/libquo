@@ -1,5 +1,6 @@
 libquo TODO
 
+o With hwloc2: is the topo available via shared-memory?
 o add "is the process distribution on my node sane?" example.
 o add EXTRA_* flags in configury.
 o add C++ API

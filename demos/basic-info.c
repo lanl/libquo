@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -25,6 +26,8 @@ typedef struct inf_t {
 static int
 init(inf_t *inf)
 {
+    (void)memset(inf, 0, sizeof(*inf));
+
     if (MPI_SUCCESS != MPI_Init(NULL, NULL)) {
         return 1;
     }

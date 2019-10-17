@@ -1,14 +1,13 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2016 Inria.  All rights reserved.
+ * Copyright © 2009-2019 Inria.  All rights reserved.
  * Copyright © 2009-2010 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/private.h>
-#include <hwloc.h>
-
+#include "private/autogen/config.h"
+#include "hwloc.h"
 #include "misc.h"
 
 #ifdef HAVE_UNISTD_H
@@ -26,7 +25,7 @@ void usage(const char *callname __hwloc_attribute_unused, FILE *where)
   fprintf(where, "  --reverse        Distribute by starting from last objects\n");
   fprintf(where, "Input topology options:\n");
   fprintf(where, "  --restrict <set> Restrict the topology to processors listed in <set>\n");
-  fprintf(where, "  --whole-system   Do not consider administration limitations\n");
+  fprintf(where, "  --disallowed     Include objects disallowed by administrative limitations\n");
   hwloc_utils_input_format_usage(where, 0);
   fprintf(where, "Formatting options:\n");
   fprintf(where, "  --single         Singlify each output to a single CPU\n");
@@ -46,23 +45,27 @@ int main(int argc, char *argv[])
   int singlify = 0;
   int verbose = 0;
   char *restrictstring = NULL;
-  hwloc_obj_type_t from_type = (hwloc_obj_type_t) -1, to_type = (hwloc_obj_type_t) -1;
+  const char *from_type = NULL, *to_type = NULL;
   hwloc_topology_t topology;
   unsigned long flags = 0;
   unsigned long dflags = 0;
   int opt;
   int err;
 
-  /* enable verbose backends */
-  putenv("HWLOC_XML_VERBOSE=1");
-  putenv("HWLOC_SYNTHETIC_VERBOSE=1");
-
-  hwloc_topology_init(&topology);
-
   callname = argv[0];
   /* skip argv[0], handle options */
   argv++;
   argc--;
+
+  hwloc_utils_check_api_version(callname);
+
+  /* enable verbose backends */
+  if (!getenv("HWLOC_XML_VERBOSE"))
+    putenv((char *) "HWLOC_XML_VERBOSE=1");
+  if (!getenv("HWLOC_SYNTHETIC_VERBOSE"))
+    putenv((char *) "HWLOC_SYNTHETIC_VERBOSE=1");
+
+  hwloc_topology_init(&topology);
 
   while (argc >= 1) {
     if (!strcmp(argv[0], "--")) {
@@ -84,11 +87,11 @@ int main(int argc, char *argv[])
 	verbose = 1;
 	goto next;
       }
-      if (!strcmp (argv[0], "--whole-system")) {
-	flags |= HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM;
+      if (!strcmp (argv[0], "--disallowed") || !strcmp (argv[0], "--whole-system")) {
+	flags |= HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED;
 	goto next;
       }
-      if (!strcmp(argv[0], "--help")) {
+      if (!strcmp(argv[0], "-h") || !strcmp(argv[0], "--help")) {
 	usage(callname, stdout);
 	return EXIT_SUCCESS;
       }
@@ -105,10 +108,10 @@ int main(int argc, char *argv[])
 	  usage(callname, stdout);
 	  exit(EXIT_FAILURE);
 	}
-	if (hwloc_obj_type_sscanf(argv[1], &type, NULL, NULL, 0) < 0)
+	if (hwloc_type_sscanf(argv[1], &type, NULL, 0) < 0)
 	  fprintf(stderr, "Unsupported type `%s' passed to --ignore, ignoring.\n", argv[1]);
 	else
-	  hwloc_topology_ignore_type(topology, type);
+	  hwloc_topology_set_type_filter(topology, type, HWLOC_TYPE_FILTER_KEEP_NONE);
 	argc--;
 	argv++;
 	goto next;
@@ -118,8 +121,7 @@ int main(int argc, char *argv[])
 	  usage(callname, stdout);
 	  exit(EXIT_FAILURE);
 	}
-	if (hwloc_obj_type_sscanf(argv[1], &from_type, NULL, NULL, 0) < 0)
-	  fprintf(stderr, "Unsupported type `%s' passed to --from, ignoring.\n", argv[1]);
+	from_type = argv[1];
 	argc--;
 	argv++;
 	goto next;
@@ -129,8 +131,7 @@ int main(int argc, char *argv[])
 	  usage(callname, stdout);
 	  exit(EXIT_FAILURE);
 	}
-	if (hwloc_obj_type_sscanf(argv[1], &to_type, NULL, NULL, 0) < 0)
-	  fprintf(stderr, "Unsupported type `%s' passed to --to, ignoring.\n", argv[1]);
+	to_type = argv[1];
 	argc--;
 	argv++;
 	goto next;
@@ -140,9 +141,7 @@ int main(int argc, char *argv[])
 	  usage(callname, stdout);
 	  exit(EXIT_FAILURE);
 	}
-	if (hwloc_obj_type_sscanf(argv[1], &to_type, NULL, NULL, 0) < 0)
-	  fprintf(stderr, "Unsupported type `%s' passed to --at, ignoring.\n", argv[1]);
-	from_type = to_type;
+	from_type = to_type = argv[1];
 	argc--;
 	argv++;
 	goto next;
@@ -202,11 +201,17 @@ int main(int argc, char *argv[])
 
     if (input) {
       err = hwloc_utils_enable_input_format(topology, input, &input_format, verbose, callname);
-      if (err)
-	return err;
+      if (err) {
+	free(cpuset);
+	return EXIT_FAILURE;
+      }
     }
     hwloc_topology_set_flags(topology, flags);
-    hwloc_topology_load(topology);
+    err = hwloc_topology_load(topology);
+    if (err < 0) {
+      free(cpuset);
+      return EXIT_FAILURE;
+    }
 
     if (restrictstring) {
       hwloc_bitmap_t restrictset = hwloc_bitmap_alloc();
@@ -214,35 +219,25 @@ int main(int argc, char *argv[])
       err = hwloc_topology_restrict (topology, restrictset, 0);
       if (err) {
 	perror("Restricting the topology");
-	/* fallthrough */
+	/* FALLTHRU */
       }
       hwloc_bitmap_free(restrictset);
       free(restrictstring);
     }
 
-    if (from_type == (hwloc_obj_type_t) -1) {
-      from_depth = 0;
-    } else {
-      from_depth = hwloc_get_type_depth(topology, from_type);
-      if (from_depth == HWLOC_TYPE_DEPTH_UNKNOWN) {
-	fprintf(stderr, "unavailable type %s to distribute among, ignoring\n", hwloc_obj_type_string(from_type));
-	from_depth = 0;
-      } else if (from_depth == HWLOC_TYPE_DEPTH_MULTIPLE) {
-	fprintf(stderr, "multiple depth for type %s to distribute among, ignoring\n", hwloc_obj_type_string(from_type));
-	from_depth = 0;
+    from_depth = 0;
+    if (from_type) {
+      if (hwloc_type_sscanf_as_depth(from_type, NULL, topology, &from_depth) < 0 || from_depth < 0) {
+	fprintf(stderr, "Unsupported or unavailable type `%s' passed to --from, ignoring.\n", from_type);
+	return EXIT_FAILURE;
       }
     }
 
-    if (to_type == (hwloc_obj_type_t) -1) {
-      to_depth = INT_MAX;
-    } else {
-      to_depth = hwloc_get_type_depth(topology, to_type);
-      if (to_depth == HWLOC_TYPE_DEPTH_UNKNOWN) {
-	fprintf(stderr, "unavailable type %s to distribute among, ignoring\n", hwloc_obj_type_string(to_type));
-	to_depth = INT_MAX;
-      } else if (to_depth == HWLOC_TYPE_DEPTH_MULTIPLE) {
-	fprintf(stderr, "multiple depth for type %s to distribute among, ignoring\n", hwloc_obj_type_string(to_type));
-	to_depth = INT_MAX;
+    to_depth = INT_MAX;
+    if (to_type) {
+      if (hwloc_type_sscanf_as_depth(to_type, NULL, topology, &to_depth) < 0 || to_depth < 0) {
+	fprintf(stderr, "Unsupported or unavailable type `%s' passed to --to, ignoring.\n", to_type);
+	return EXIT_FAILURE;
       }
     }
 

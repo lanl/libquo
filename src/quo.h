@@ -10,8 +10,9 @@
  * @file quo.h
  */
 
-/* I do a pretty terrible job explaining the interface. play around with the
- * demo codes; they are simple and pretty clearly illustrate how to use QUO. */
+/* I do a pretty terrible job explaining the interface. Play around with the
+ * demo codes, as they are simple and pretty clearly illustrate how to use QUO.
+ */
 
 #ifndef QUO_H_INCLUDED
 #define QUO_H_INCLUDED
@@ -71,7 +72,9 @@ typedef enum {
     QUO_OBJ_MACHINE = 0,
     /** NUMA node. */
     QUO_OBJ_NUMANODE,
-    /** Socket. */
+    /** Package. */
+    QUO_OBJ_PACKAGE,
+    /** Socket (synonym for QUO_OBJ_PACKAGE). */
     QUO_OBJ_SOCKET,
     /** Core. */
     QUO_OBJ_CORE,
@@ -587,15 +590,6 @@ int
 QUO_get_mpi_comm_by_type(QUO_context q,
                          QUO_obj_type_t target_type,
                          MPI_Comm *out_comm);
-
-/**
- * \note
- * Experimental.
- */
-int
-QUO_bind_threads(QUO_context q,
-                 QUO_obj_type_t type,
-                 int index);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-# Copyright © 2009-2015 Inria.  All rights reserved.
+# Copyright © 2009-2019 Inria.  All rights reserved.
 # Copyright © 2009-2012, 2014 Université Bordeaux
 # Copyright © 2009-2014 Cisco Systems, Inc.  All rights reserved.
 #
@@ -11,26 +11,32 @@ AM_CFLAGS = $(HWLOC_CFLAGS)
 AM_CPPFLAGS = $(HWLOC_CPPFLAGS) -I$(top_srcdir)/utils/hwloc
 AM_LDFLAGS = $(HWLOC_LDFLAGS)
 
-LDADD = $(HWLOC_top_builddir)/src/libhwloc.la
+LDADD = $(HWLOC_top_builddir)/hwloc/libhwloc.la \
+	$(HWLOC_top_builddir)/utils/hwloc/libutils_common.la
 
 bin_PROGRAMS = \
         lstopo-no-graphics
 
 EXTRA_DIST = \
-        test-hwloc-ls.output
+        test-lstopo.output
 
 lstopo_no_graphics_SOURCES = \
         lstopo.h \
         lstopo.c \
-        lstopo-color.c \
         lstopo-draw.c \
         lstopo-fig.c \
+        lstopo-svg.c \
         lstopo-ascii.c \
         lstopo-text.c \
         lstopo-xml.c
 
-lstopo_no_graphics_CFLAGS =
+if !HWLOC_HAVE_WINDOWS
+lstopo_no_graphics_SOURCES += lstopo-shmem.c
+endif
+
+lstopo_no_graphics_CFLAGS = $(AM_CFLAGS)
 lstopo_no_graphics_LDADD = $(LDADD) -lm $(HWLOC_TERMCAP_LIBS)
+
 lstopo_SOURCES = $(lstopo_no_graphics_SOURCES)
 lstopo_CPPFLAGS = $(AM_CPPFLAGS)
 lstopo_LDADD = $(lstopo_no_graphics_LDADD)
@@ -58,10 +64,11 @@ man1_pages = lstopo-no-graphics.1
 EXTRA_DIST += $(man1_pages:.1=.1in)
 nodist_man_MANS = $(man1_pages)
 
-if !HWLOC_HAVE_MINGW32
 TESTS = \
-        test-hwloc-ls.sh
-endif !HWLOC_HAVE_MINGW32
+        test-lstopo.sh
+if HWLOC_HAVE_LINUX
+TESTS += test-lstopo-shmem.sh
+endif HWLOC_HAVE_LINUX
 
 if HWLOC_HAVE_CAIRO
 # only installed when lstopo is built with Cairo/X11 support
@@ -70,9 +77,9 @@ APPLICATIONSdir = @datarootdir@/applications
 dist_APPLICATIONS_DATA = lstopo.desktop
 endif
 
-SEDMAN = $(SED) -e 's/\#PACKAGE_NAME\#/@PACKAGE_NAME@/g' \
-	  -e 's/\#PACKAGE_VERSION\#/@PACKAGE_VERSION@/g' \
-	  -e 's/\#HWLOC_DATE\#/@HWLOC_RELEASE_DATE@/g'
+SEDMAN = $(SED) -e 's/%PACKAGE_NAME%/@PACKAGE_NAME@/g' \
+	  -e 's/%PACKAGE_VERSION%/@PACKAGE_VERSION@/g' \
+	  -e 's/%HWLOC_DATE%/@HWLOC_RELEASE_DATE@/g'
 
 .1in.1:
 	@ echo Creating $@ man page...

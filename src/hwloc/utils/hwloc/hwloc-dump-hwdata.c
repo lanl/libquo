@@ -1,17 +1,20 @@
 /*
  * Copyright © 2015 Intel, Inc.  All rights reserved.
- * Copyright © 2015-2016 Inria.  All rights reserved.
+ * Copyright © 2015-2018 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
-#include <private/autogen/config.h>
+#include "private/autogen/config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <errno.h>
 #include <assert.h>
 
@@ -29,7 +32,7 @@ static void usage(const char *name, FILE *where)
 int main(int argc, char *argv[])
 {
     const char *callname = argv[0];
-    char *dirname = DEFAULT_DUMP_DIR;
+    char *dirname = (char *) DEFAULT_DUMP_DIR;
     char *input_fsroot;
     char *filename;
     int err;
@@ -70,7 +73,7 @@ int main(int argc, char *argv[])
 
     input_fsroot = getenv("HWLOC_FSROOT");
     if (!input_fsroot)
-      input_fsroot = "/";
+      input_fsroot = (char *) "/";
 
     err = asprintf(&filename, "%s/knl_memoryside_cache", dirname);
     assert(err >= 0);

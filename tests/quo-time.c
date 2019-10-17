@@ -42,7 +42,7 @@ typedef struct experiment_t {
 } experiment_t;
 
 /**
- * rudimentary "pretty print" routine. not needed in real life...
+ * Rudimentary "pretty print" routine. not needed in real life...
  */
 static inline void
 demo_emit_sync(const context_t *c)
@@ -55,28 +55,32 @@ static int
 fini(context_t *c)
 {
     if (!c) return 1;
-    if (QUO_SUCCESS != QUO_free(c->quo)) return 1;
-    /* finalize mpi AFTER QUO_destruct - we may mpi in our destruct */
+
+    int nerrs = 0;
+    if (QUO_SUCCESS != QUO_free(c->quo)) nerrs++;
+    /* Finalize MPI AFTER QUO_destruct---we may MPI in our destruct. */
     if (c->mpi_inited) MPI_Finalize();
     free(c);
-    return 0;
+
+    return (nerrs ? 1 : 0);
 }
 
-/**
+/*
  * i'm being really sloppy here. ideally, one should probably save the rc and
  * then display or do some other cool thing with it. don't be like this code. if
  * QUO_construct or QUO_init fail, then someone using this could just continue
  * without the awesomeness that is libquo. they cleanup after themselves, so
  * things *should* be in an okay state after an early failure. the failures may
- * be part of a larger problem, however. */
+ * be part of a larger problem, however.
+ */
 static int
 init(context_t **c)
 {
     context_t *newc = NULL;
     /* alloc our context */
-    if (NULL == (newc = calloc(1, sizeof(*newc)))) return 1;
+    if (NULL == (newc = calloc(1, sizeof(*newc)))) goto err;
     /* libquo requires that MPI be initialized before its init is called */
-    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) return 1;
+    if (MPI_SUCCESS != MPI_Init(NULL, NULL)) goto err;
     /* gather some basic job info from our mpi lib */
     if (MPI_SUCCESS != MPI_Comm_size(MPI_COMM_WORLD, &(newc->nranks))) goto err;
     /* ...and more */
