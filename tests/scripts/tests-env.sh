@@ -27,10 +27,10 @@ quo_tests_run() {
 
     for test in "${tests[@]}"; do
         app=$(quo_tests_get_app "$test")
-        for numpe in $(quo_tests_get_numpe "$test"); do
+        for n in $(quo_tests_get_numpe "$test"); do
             # TODO(skg) FIXME Make nicer.
-            echo "$QUO_TESTS_PRUN $QUO_TESTS_PRUN_N $numpe $QUO_TESTS_PRUN_OTHER_ARGS $app"
-                  $QUO_TESTS_PRUN $QUO_TESTS_PRUN_N $numpe $QUO_TESTS_PRUN_OTHER_ARGS $app
+            echo "$QUO_TESTS_PRUN $QUO_TESTS_PRUN_N $n $QUO_TESTS_PRUN_OTHER_ARGS $app"
+                  $QUO_TESTS_PRUN $QUO_TESTS_PRUN_N $n $QUO_TESTS_PRUN_OTHER_ARGS $app
         done
     done
 }
@@ -70,7 +70,7 @@ skip_export() {
 exported_val() {
     key=$1
 
-    echo "$(bash -c "echo $(eval echo \$"$key")")"
+    bash -c "echo $(eval echo \$"$key")"
 }
 
 export_envars() {
