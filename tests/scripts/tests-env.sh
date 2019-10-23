@@ -44,7 +44,7 @@ EOF
 }
 
 emit_envars() {
-    eval "declare -A envars="${1#*=}
+    eval "declare -A envars=""${1#*=}"
 
     echo "# The following variables affect how tests are run."
     echo "# Exported key=value pairs will change test harness behavior."
@@ -70,21 +70,21 @@ skip_export() {
 exported_val() {
     key=$1
 
-    echo "$(bash -c "echo $(eval echo \$$key)")"
+    echo "$(bash -c "echo $(eval echo \$"$key")")"
 }
 
 export_envars() {
-    eval "declare -A envars="${1#*=}
+    eval "declare -A envars=""${1#*=}"
 
     for key in "${!envars[@]}"; do
-        if skip_export $key; then
+        if skip_export "$key"; then
             continue
         fi
         # Default value
         val="${envars[$key]}"
         # See if the variable if exported (that means the user wants a different
         # value).
-        exval=$(exported_val $key)
+        exval=$(exported_val "$key")
         if [[ "x" != "x${exval}" ]]; then
             echo "# User-defined key-value pair detected: $key=$exval"
             val=${exval}
@@ -93,14 +93,14 @@ export_envars() {
     done
 
     echo "# Below is the setup used for testing."
-    env | grep -E ^QUO_TESTS_.*= | sort
+    env | grep -E '^QUO_TESTS_.*=' | sort
 
     exval=$(exported_val "QUO_TESTS_EXPORT")
     if [[ "x" != "x${exval}" ]]; then
         echo "# And here are the variables that we exported for you."
         for key in $(echo "$exval" | tr ':' '\n'); do
-            echo "$key=$(eval echo \$$key)"
-            export "$key=$(eval echo \$$key)"
+            echo "$key=$(eval echo \$"$key")"
+            export "$key=$(eval echo \$"$key")"
         done
     fi
 }
