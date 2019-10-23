@@ -11,14 +11,14 @@
 quo_tests_get_app() {
     t=$*
 
-    echo $t | cut -f 1 -d ':'
+    echo "$t" | cut -f 1 -d ':'
 }
 export -f quo_tests_get_app
 
 quo_tests_get_numpe() {
     t=$*
 
-    echo $t | cut -f 2 -d ':'
+    echo "$t" | cut -f 2 -d ':'
 }
 export -f quo_tests_get_numpe
 
@@ -26,10 +26,11 @@ quo_tests_run() {
     tests=("$@")
 
     for test in "${tests[@]}"; do
-        app=$(quo_tests_get_app $test)
-        for numpe in $(quo_tests_get_numpe $test); do
-            echo $QUO_TESTS_PRUN $QUO_TESTS_PRUN_N $numpe $QUO_TESTS_PRUN_OTHER_ARGS $app
-                 $QUO_TESTS_PRUN $QUO_TESTS_PRUN_N $numpe $QUO_TESTS_PRUN_OTHER_ARGS $app
+        app=$(quo_tests_get_app "$test")
+        for numpe in $(quo_tests_get_numpe "$test"); do
+            # TODO(skg) FIXME Make nicer.
+            echo "$QUO_TESTS_PRUN $QUO_TESTS_PRUN_N $numpe $QUO_TESTS_PRUN_OTHER_ARGS $app"
+                  $QUO_TESTS_PRUN $QUO_TESTS_PRUN_N $numpe $QUO_TESTS_PRUN_OTHER_ARGS $app
         done
     done
 }
@@ -69,7 +70,7 @@ skip_export() {
 exported_val() {
     key=$1
 
-    echo $(bash -c "echo $(eval echo \$$key)")
+    echo "$(bash -c "echo $(eval echo \$$key)")"
 }
 
 export_envars() {
@@ -88,16 +89,16 @@ export_envars() {
             echo "# User-defined key-value pair detected: $key=$exval"
             val=${exval}
         fi
-        export $key="$val"
+        export "$key"="$val"
     done
 
     echo "# Below is the setup used for testing."
-    env | egrep ^QUO_TESTS_.*= | sort
+    env | grep -E ^QUO_TESTS_.*= | sort
 
     exval=$(exported_val "QUO_TESTS_EXPORT")
     if [[ "x" != "x${exval}" ]]; then
         echo "# And here are the variables that we exported for you."
-        for key in $(echo $exval | tr ':' '\n'); do
+        for key in $(echo "$exval" | tr ':' '\n'); do
             echo "$key=$(eval echo \$$key)"
             export "$key=$(eval echo \$$key)"
         done
