@@ -19,11 +19,6 @@ callee-driven-multilib \
 mpi-omp \
 quo-mpi-sub-comm
 
-if QUO_WITH_MPIFC
-noinst_PROGRAMS += \
-quofort
-endif
-
 noinst_LTLIBRARIES = \
 libcaller_driven_callee_p1.la \
 libcallee_driven_callee_p1.la
@@ -79,12 +74,3 @@ mpi_omp_LDADD = $(top_builddir)/src/libquo.la
 quo_mpi_sub_comm_SOURCES = quo-mpi-sub-comm.c
 quo_mpi_sub_comm_CPPFLAGS = -I$(top_srcdir)/src
 quo_mpi_sub_comm_LDADD = $(top_builddir)/src/libquo.la
-
-### fortran interface test
-if QUO_WITH_MPIFC
-quofort_SOURCES = quofort.f90
-quofort_FCFLAGS  = -I$(top_builddir)/src/fortran
-quofort_LDADD = \
-$(top_builddir)/src/fortran/libquo-usequo.la \
-$(top_builddir)/src/libquo.la
-endif

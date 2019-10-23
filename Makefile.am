@@ -9,7 +9,14 @@
 ACLOCAL_AMFLAGS = -Iconfig -Isrc/hwloc/config
 
 EXTRA_DIST = \
-AUTHORS README.md THANKS LICENSE COPYRIGHT autogen contrib BROKEN-COMPILERS
+AUTHORS \
+README.md \
+THANKS \
+LICENSE \
+COPYRIGHT \
+autogen \
+contrib \
+BROKEN-COMPILERS
 
 SUBDIRS = \
 src \
@@ -17,6 +24,7 @@ src/fortran \
 src/tools \
 src/xpm \
 tests \
+tests/scripts \
 demos \
 pkgconfig \
 docs

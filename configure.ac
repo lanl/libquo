@@ -250,6 +250,7 @@ AC_CONFIG_FILES([Makefile
                  src/tools/Makefile
                  src/xpm/Makefile
                  tests/Makefile
+                 tests/scripts/Makefile
                  demos/Makefile
                  demos/mpi-openmp/Makefile
                  pkgconfig/Makefile
