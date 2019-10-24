@@ -1,14 +1,12 @@
 libquo TODO
 
 o With hwloc2: is the topo available via shared-memory?
-o add "is the process distribution on my node sane?" example.
-o add EXTRA_* flags in configury.
-o add C++ API
-o report to hwloc devel slowdown in init between v 1.11.2 and 1.11.3.
-o add broken compiler check for fortran at configure time.
-o reconsider default mapping if affinity is turned off. evenly distribute.
-o Make hwloc (Intel) valgrind clean and send upstream.
-o implement global placement api.
-o add support query.
+o Add "is the process distribution on my node sane?" example.
+o Add EXTRA_* flags in configury.
+o Add C++ API.
+o Add broken compiler check for Fortran at configure time.
+o Reconsider default mapping if affinity is turned off: evenly distribute.
+o Implement global placement API.
+o Add support query.
 o Expose memory API?
 o Return popped CPU set to caller (API)?
