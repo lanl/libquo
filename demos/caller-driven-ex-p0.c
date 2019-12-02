@@ -193,7 +193,7 @@ get_p1pes(context_t *c,
     int **rank_ids_bound_to_socket = NULL;
     int rc = QUO_ERR;
     int work_contrib = 0;
-    /* array that hold whether or not a particular rank is going to do work */
+    /* array that holds whether or not a particular rank is going to do work */
     int *work_contribs = NULL;
     int *worker_ranks = NULL;
 
@@ -264,7 +264,7 @@ get_p1pes(context_t *c,
         }
     }
     work_contrib = res_assigned ? 1 : 0;
-    /* array that hold whether or not a particular rank is going to do work */
+    /* array that holds whether or not a particular rank is going to do work */
     work_contribs = calloc(c->nranks, sizeof(*work_contribs));
     if (!work_contribs) {
         rc = QUO_ERR_OOR;
@@ -325,7 +325,7 @@ get_p1pes(context_t *c,
 {
     int res_assigned = 0, tot_workers = 0;
     int rc = QUO_ERR;
-    /* array that hold whether or not a particular rank is going to do work */
+    /* array that holds whether or not a particular rank is going to do work */
     int *work_contribs = NULL;
     int *worker_ranks = NULL;
 
@@ -335,7 +335,7 @@ get_p1pes(context_t *c,
                                         2, &res_assigned)) {
         return 1;
     }
-    /* array that hold whether or not a particular rank is going to do work */
+    /* array that holds whether or not a particular rank is going to do work */
     work_contribs = calloc(c->nranks, sizeof(*work_contribs));
     if (!work_contribs) {
         rc = QUO_ERR_OOR;

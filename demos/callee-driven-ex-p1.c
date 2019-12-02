@@ -147,7 +147,7 @@ get_worker_pes(p1_context_t *c,
 {
     int res_assigned = 0, tot_workers = 0;
     int rc = QUO_ERR;
-    /* array that hold whether or not a particular rank is going to do work */
+    /* array that holds whether or not a particular rank is going to do work */
     int *work_contribs = NULL;
     int *worker_ranks = NULL;
 
@@ -157,7 +157,7 @@ get_worker_pes(p1_context_t *c,
                                         2, &res_assigned)) {
         return 1;
     }
-    /* array that hold whether or not a particular rank is going to do work */
+    /* array that holds whether or not a particular rank is going to do work */
     work_contribs = calloc(c->nranks, sizeof(*work_contribs));
     if (!work_contribs) {
         rc = QUO_ERR_OOR;
