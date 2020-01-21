@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2019 Triad National Security, LLC
+# Copyright (c) 2013-2020 Triad National Security, LLC
 #                         All rights reserved.
 #
 # This file is part of the libquo project. See the LICENSE file at the
@@ -9,7 +9,7 @@
 AC_PREREQ([2.60])
 
 AC_INIT([libquo],
-        [1.3.1],
+        [1.3.2-devel],
         [samuel@lanl.gov],
         [libquo],
         [http://losalamos.github.io/libquo/])
