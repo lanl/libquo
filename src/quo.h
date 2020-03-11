@@ -547,11 +547,11 @@ QUO_barrier(QUO_context q);
  *                                  example, if your system has two sockets and
  *                                  max_qids_per_res_type is 2, then a max of 4
  *                                  processes will be chosen (max 2 per socket).
- *                                  this routine doesn't modify the calling
+ *                                  This routine doesn't modify the calling
  *                                  processes' affinities, but is used as a
- *                                  helper for evenly distributing processes over
+ *                                  helper for distributing processes over
  *                                  hardware resources given a global view of all
- *                                  the affinities within a job. i'm doing a
+ *                                  the affinities within a job. I'm doing a
  *                                  terrible job explaining this, so look at the
  *                                  demos. Believe me, this routine is useful...
  *
