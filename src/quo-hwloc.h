@@ -29,8 +29,6 @@
 
 #include "hwloc/include/hwloc.h"
 
-typedef quo_internal_hwloc_const_cpuset_t quo_const_nodeset_t;
-
 int
 quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
