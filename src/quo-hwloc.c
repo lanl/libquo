@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Triad National Security, LLC
+ * Copyright (c) 2013-2024 Triad National Security, LLC
  *                         All rights reserved.
  *
  * This file is part of the libquo project. See the LICENSE file at the
@@ -694,7 +694,7 @@ quo_hwloc_stringify_cbind(const quo_hwloc_t *hwloc,
         return rc;
     }
     /* caller is responsible for freeing returned resources */
-    hwloc_bitmap_asprintf(out_str, cur_bind);
+    (void)hwloc_bitmap_list_asprintf(out_str, cur_bind);
     if (!out_str) {
         QUO_OOR_COMPLAIN();
         rc = QUO_ERR_OOR;
