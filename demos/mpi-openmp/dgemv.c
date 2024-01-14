@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Triad National Security, LLC
+ * Copyright (c) 2017-2024 Triad National Security, LLC
  *                         All rights reserved.
  *
  * This file is part of the libquo project. See the LICENSE file at the
@@ -17,10 +17,10 @@
 #include "omp.h"
 #include "quo.h"
 
-#define pprintf(p, va...)                                                      \
+#define pprintf(p, ...)                                                        \
 do {                                                                           \
     if ((p)) {                                                                 \
-        printf(va);                                                            \
+        printf(__VA_ARGS__);                                                   \
         fflush(stdout);                                                        \
     }                                                                          \
 } while(0)
