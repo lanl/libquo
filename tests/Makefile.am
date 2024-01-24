@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2019 Triad National Security, LLC
+# Copyright (c) 2013-2024 Triad National Security, LLC
 #                         All rights reserved.
 #
 # This file is part of the libquo project. See the LICENSE file at the
@@ -11,7 +11,8 @@ rebind \
 trivial \
 dist-work \
 barrier-subset \
-quo-time
+quo-time \
+view-mpi-task-bind
 
 if QUO_WITH_MPIFC
 noinst_PROGRAMS += \
@@ -45,6 +46,11 @@ barrier_subset_LDADD   =
 quo_time_SOURCES = quo-time.c
 quo_time_CFLAGS  = -I$(top_srcdir)/src
 quo_time_LDADD   = $(top_builddir)/src/libquo.la
+
+### test 5 (outputs MPI process binding)
+view_mpi_task_bind_SOURCES = view-mpi-task-bind.c
+view_mpi_task_bind_CFLAGS  = -I$(top_srcdir)/src
+view_mpi_task_bind_LDADD   = $(top_builddir)/src/libquo.la
 
 ################################################################################
 # Fortran Tests
