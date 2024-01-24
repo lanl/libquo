@@ -12,7 +12,7 @@ trivial \
 dist-work \
 barrier-subset \
 quo-time \
-view-mpi-task-bind
+view-mpi-proc-bind
 
 if QUO_WITH_MPIFC
 noinst_PROGRAMS += \
@@ -48,9 +48,9 @@ quo_time_CFLAGS  = -I$(top_srcdir)/src
 quo_time_LDADD   = $(top_builddir)/src/libquo.la
 
 ### test 5 (outputs MPI process binding)
-view_mpi_task_bind_SOURCES = view-mpi-task-bind.c
-view_mpi_task_bind_CFLAGS  = -I$(top_srcdir)/src
-view_mpi_task_bind_LDADD   = $(top_builddir)/src/libquo.la
+view_mpi_proc_bind_SOURCES = view-mpi-proc-bind.c
+view_mpi_proc_bind_CFLAGS  = -I$(top_srcdir)/src
+view_mpi_proc_bind_LDADD   = $(top_builddir)/src/libquo.la
 
 ################################################################################
 # Fortran Tests
