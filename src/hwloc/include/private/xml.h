@@ -19,13 +19,14 @@ HWLOC_DECLSPEC int hwloc__xml_verbose(void);
 typedef struct hwloc__xml_import_state_s {
   struct hwloc__xml_import_state_s *parent;
 
-  /* globals shared because the entire stack of states during import */
+  /* globals shared between the entire stack of states during import */
   struct hwloc_xml_backend_data_s *global;
 
   /* opaque data used to store backend-specific data.
    * statically allocated to allow stack-allocation by the common code without knowing actual backend needs.
+   * libxml is 3 ptrs. nolibxml is 3 ptr + one int.
    */
-  char data[32];
+  char data[4 * SIZEOF_VOID_P];
 } * hwloc__xml_import_state_t;
 
 struct hwloc__xml_imported_v1distances_s {
@@ -46,7 +47,7 @@ struct hwloc_xml_backend_data_s {
   int (*find_child)(struct hwloc__xml_import_state_s * state, struct hwloc__xml_import_state_s * childstate, char **tagp);
   int (*close_tag)(struct hwloc__xml_import_state_s * state); /* look for an explicit closing tag </name> */
   void (*close_child)(struct hwloc__xml_import_state_s * state);
-  int (*get_content)(struct hwloc__xml_import_state_s * state, char **beginp, size_t expected_length); /* return 0 on empty content (and sets beginp to empty string), 1 on actual content, -1 on error or unexpected content length */
+  int (*get_content)(struct hwloc__xml_import_state_s * state, const char **beginp, size_t expected_length); /* return 0 on empty content (and sets beginp to empty string), 1 on actual content, -1 on error or unexpected content length */
   void (*close_content)(struct hwloc__xml_import_state_s * state);
   char * msgprefix;
   void *data; /* libxml2 doc, or nolibxml buffer */
@@ -74,8 +75,9 @@ typedef struct hwloc__xml_export_state_s {
 
   /* opaque data used to store backend-specific data.
    * statically allocated to allow stack-allocation by the common code without knowing actual backend needs.
+   * libxml is 1 ptr. nolibxml is 1 ptr + 2 size_t + 3 ints.
    */
-  char data[40];
+  char data[6 * SIZEOF_VOID_P];
 } * hwloc__xml_export_state_t;
 
 HWLOC_DECLSPEC void hwloc__xml_export_topology(hwloc__xml_export_state_t parentstate, hwloc_topology_t topology, unsigned long flags);

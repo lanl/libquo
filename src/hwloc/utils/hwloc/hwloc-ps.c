@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -32,12 +32,16 @@ static int show_threads = 0;
 static char *only_name = NULL;
 static int show_cpuset = 0;
 static int logical = 1;
+static int single_ancestor = 0;
 #define NO_ONLY_PID -1
 static long only_pid = NO_ONLY_PID;
+static long children_of_pid = NO_ONLY_PID;
+static long only_uid;
 static int json_server = 0;
 static int json_port = JSON_PORT;
 static FILE *json_output = NULL;
 static int verbose = 0;
+static FILE *lstopo_misc_output = NULL;
 
 void usage(const char *name, FILE *where)
 {
@@ -45,20 +49,30 @@ void usage(const char *name, FILE *where)
   fprintf (where, "Options:\n");
   fprintf (where, "  -a                 Show all processes, including those that are not bound\n");
   fprintf (where, "  --pid <pid>        Only show process of pid number <pid>\n");
+  fprintf (where, "  --children-of-pid <pid> Only show process of pid number <pid> and its children\n");
   fprintf (where, "  --name <name>      Only show processes whose name contains <name>\n");
+#ifdef HWLOC_LINUX_SYS
+  fprintf (where, "  --uid <uid>        Only show processes of the user with the given uid\n");
+  fprintf (where, "  --uid all          Show processes of all users\n");
+#endif
   fprintf (where, "  -l --logical       Use logical object indexes (default)\n");
   fprintf (where, "  -p --physical      Use physical object indexes\n");
   fprintf (where, "  -c --cpuset        Show cpuset instead of objects\n");
+  fprintf (where, "  --single-ancestor  Show a single ancestor containing the binding\n");
 #ifdef HWLOC_LINUX_SYS
   fprintf (where, "  -t --threads       Show threads\n");
 #endif
   fprintf (where, "  -e --get-last-cpu-location\n");
   fprintf (where, "                     Retrieve the last processors where the tasks ran\n");
   fprintf (where, "  --pid-cmd <cmd>    Append the output of <cmd> <pid> to each PID line\n");
+  fprintf (where, "  --short-name       Show only the process short name instead of the path\n");
   fprintf (where, "  --disallowed       Include objects disallowed by administrative limitations\n");
+  fprintf (where, "  --lstopo-misc <file>  Output Misc object to be given to lstopo --misc-from <file>\n");
   fprintf (where, "  --json-server      Run as a JSON server\n");
   fprintf (where, "  --json-port <n>    Use port <n> for JSON server (default is %d)\n", JSON_PORT);
   fprintf (where, "  -v --verbose       Increase verbosity\n");
+  fprintf (where, "  --version          Report version and exit\n");
+  fprintf (where, "  -h --help          Show this usage\n");
 }
 
 static void print_task(hwloc_topology_t topology,
@@ -76,13 +90,25 @@ static void print_task(hwloc_topology_t topology,
   } else {
     hwloc_bitmap_t remaining = hwloc_bitmap_dup(cpuset);
     int first = 1;
-    while (!hwloc_bitmap_iszero(remaining)) {
-      char type[64];
-      unsigned idx;
+    char type[64];
+    unsigned idx;
+    if (single_ancestor) {
+      hwloc_obj_t obj = hwloc_get_obj_covering_cpuset(topology, cpuset);
+      while (obj->parent && hwloc_bitmap_isequal(obj->cpuset, obj->parent->cpuset) && !hwloc_obj_type_is_cache(obj->parent->type) )
+        obj = obj->parent;
+
+      hwloc_obj_type_snprintf(type, sizeof(type), obj, 1);
+      idx = logical ? obj->logical_index : obj->os_index;
+      if (idx == (unsigned) -1)
+        printf("%s", type);
+      else
+        printf("%s:%u", type, idx);
+    } else {
+     while (!hwloc_bitmap_iszero(remaining)) {
       hwloc_obj_t obj = hwloc_get_first_largest_obj_inside_cpuset(topology, remaining);
       /* don't show a cache if there's something equivalent and nicer */
       while (hwloc_obj_type_is_cache(obj->type) && obj->arity == 1)
-	obj = obj->first_child;
+        obj = obj->first_child;
       hwloc_obj_type_snprintf(type, sizeof(type), obj, 1);
       idx = logical ? obj->logical_index : obj->os_index;
       if (idx == (unsigned) -1)
@@ -91,6 +117,7 @@ static void print_task(hwloc_topology_t topology,
         printf("%s%s:%u", first ? "" : " ", type, idx);
       hwloc_bitmap_andnot(remaining, remaining, obj->cpuset);
       first = 0;
+     }
     }
     hwloc_bitmap_free(remaining);
   }
@@ -108,6 +135,45 @@ static void print_process(hwloc_topology_t topology,
     for(i=0; i<proc->nthreads; i++)
       if (proc->threads[i].cpuset)
 	print_task(topology, proc->threads[i].tid, proc->threads[i].name, proc->threads[i].cpuset, NULL, 1);
+}
+
+static void print_process_lstopo_misc(hwloc_topology_t topology __hwloc_attribute_unused,
+                                      struct hwloc_ps_process *proc)
+{
+  /* sort of similar to foreach_process_cb() in lstopo.c */
+  char name[100];
+  char *s;
+  unsigned i;
+
+  snprintf(name, sizeof(name), "%ld", proc->pid);
+  if (*proc->name)
+    snprintf(name, sizeof(name), "%ld %s", proc->pid, proc->name);
+  hwloc_bitmap_asprintf(&s, proc->cpuset);
+  fprintf(lstopo_misc_output,
+          "name=%s\n"
+          "cpuset=%s\n"
+          "subtype=Process\n"
+          "\n",
+          name, s);
+  free(s);
+
+  if (proc->nthreads)
+    for(i=0; i<proc->nthreads; i++)
+      if (proc->threads[i].cpuset) {
+	char task_name[150];
+	if (*proc->threads[i].name)
+	  snprintf(task_name, sizeof(task_name), "%s %li %s", name, proc->threads[i].tid, proc->threads[i].name);
+	else
+	  snprintf(task_name, sizeof(task_name), "%s %li", name, proc->threads[i].tid);
+        hwloc_bitmap_asprintf(&s, proc->threads[i].cpuset);
+        fprintf(lstopo_misc_output,
+                "name=%s\n"
+                "cpuset=%s\n"
+                "subtype=Thread\n"
+                "\n",
+                task_name, s);
+        free(s);
+      }
 }
 
 static void print_process_json(hwloc_topology_t topology,
@@ -169,14 +235,21 @@ static void print_process_json(hwloc_topology_t topology,
 
 static void foreach_process_cb(hwloc_topology_t topology,
 			       struct hwloc_ps_process *proc,
-			       void *cbdata __hwloc_attribute_unused)
+			       void *cbdata)
 {
+  const char *pidcmd = cbdata;
+
   /* don't print anything if the process isn't bound and if no threads are bound and if not showing all */
-  if (!proc->bound && (!proc->nthreads || !proc->nboundthreads) && !show_all && !only_name)
+  if (!proc->bound && (!proc->nthreads || !proc->nboundthreads) && !show_all && !only_name && children_of_pid == NO_ONLY_PID)
     return;
+
+  if (pidcmd)
+    hwloc_ps_pidcmd(proc, pidcmd);
 
   if (json_output)
     print_process_json(topology, proc);
+  else if (lstopo_misc_output)
+    print_process_lstopo_misc(topology, proc);
   else
     print_process(topology, proc);
 }
@@ -184,9 +257,13 @@ static void foreach_process_cb(hwloc_topology_t topology,
 static int run(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset,
 	       unsigned long psflags, char *pidcmd)
 {
-  if (only_pid == NO_ONLY_PID) {
+  if (children_of_pid != NO_ONLY_PID) {
+    /* show children */
+    return hwloc_ps_foreach_child(topology, topocpuset, children_of_pid, foreach_process_cb, pidcmd, psflags, only_name, only_uid);
+
+  } else if (only_pid == NO_ONLY_PID) {
     /* show all */
-    return hwloc_ps_foreach_process(topology, topocpuset, foreach_process_cb, NULL, psflags, only_name, pidcmd);
+    return hwloc_ps_foreach_process(topology, topocpuset, foreach_process_cb, pidcmd, psflags, only_name, only_uid);
 
   } else {
     /* show only one */
@@ -194,14 +271,21 @@ static int run(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset,
     int ret;
 
     proc.pid = only_pid;
+    proc.uid = only_uid;
     proc.cpuset = NULL;
     proc.nthreads = 0;
     proc.nboundthreads = 0;
     proc.threads = NULL;
-    ret = hwloc_ps_read_process(topology, topocpuset, &proc, psflags, pidcmd);
+    ret = hwloc_ps_read_process(topology, topocpuset, &proc, psflags);
     if (ret >= 0) {
+
+      if (pidcmd)
+        hwloc_ps_pidcmd(&proc, pidcmd);
+
       if (json_output)
 	print_process_json(topology, &proc);
+      else if (lstopo_misc_output)
+        print_process_lstopo_misc(topology, &proc);
       else
 	print_process(topology, &proc);
     }
@@ -284,6 +368,7 @@ run_json_server(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset)
 
       only_name = NULL;
       only_pid = NO_ONLY_PID;
+      children_of_pid = NO_ONLY_PID;
       current = req;
       while (*current) {
 	if (!strncmp(current, "lastcpulocation ", 16)) {
@@ -303,6 +388,10 @@ run_json_server(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset)
 	} else if (!strncmp(current, "pid=", 4)) {
 	  only_pid = atoi(current+4);
 	  psflags |= HWLOC_PS_FLAG_THREADS;
+	  show_all = 1;
+	  break;
+	} else if (!strncmp(current, "childrenofpid=", 14)) {
+	  children_of_pid = atoi(current+14);
 	  show_all = 1;
 	  break;
 	} else if (!strncmp(current, "name=", 5)) {
@@ -345,6 +434,8 @@ int main(int argc, char *argv[])
   int err;
   int opt;
 
+  only_uid = getuid();
+
   callname = strrchr(argv[0], '/');
   if (!callname)
     callname = argv[0];
@@ -374,35 +465,73 @@ int main(int argc, char *argv[])
 #else
       fprintf (stderr, "Listing threads is currently only supported on Linux\n");
 #endif
+    } else if (!strcmp(argv[0], "--single-ancestor")) {
+      single_ancestor = 1;
     } else if (!strcmp(argv[0], "--pid")) {
       if (argc < 2) {
-	usage(callname, stdout);
+	usage(callname, stderr);
 	exit(EXIT_FAILURE);
       }
       only_pid = strtol(argv[1], NULL, 10);
       opt = 1;
+    } else if (!strcmp(argv[0], "--children-of-pid")) {
+      if (argc < 2) {
+	usage(callname, stderr);
+	exit(EXIT_FAILURE);
+      }
+      children_of_pid = strtol(argv[1], NULL, 10);
+      opt = 1;
     } else if (!strcmp(argv[0], "--name")) {
       if (argc < 2) {
-	usage(callname, stdout);
+	usage(callname, stderr);
 	exit(EXIT_FAILURE);
       }
       only_name = argv[1];
       opt = 1;
+    } else if (!strcmp(argv[0], "--uid")) {
+#ifdef HWLOC_LINUX_SYS
+      if (argc < 2) {
+	usage(callname, stderr);
+	exit(EXIT_FAILURE);
+      }
+      if (!strcmp(argv[1], "all"))
+	only_uid = HWLOC_PS_ALL_UIDS;
+      else
+	only_uid = atoi(argv[1]);
+      opt = 1;
+#else
+      fprintf (stderr, "Filtering by UID is currently only supported on Linux\n");
+#endif
     } else if (!strcmp (argv[0], "--disallowed") || !strcmp (argv[0], "--whole-system")) {
       flags |= HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED;
     } else if (!strcmp (argv[0], "--pid-cmd")) {
       if (argc < 2) {
-	usage(callname, stdout);
+	usage(callname, stderr);
 	exit(EXIT_FAILURE);
       }
       pidcmd = argv[1];
+      opt = 1;
+
+    } else if (!strcmp (argv[0], "--lstopo-misc")) {
+      if (argc < 2) {
+	usage(callname, stderr);
+	exit(EXIT_FAILURE);
+      }
+      if (!strcmp(argv[1], "-"))
+        lstopo_misc_output = stdout;
+      else
+        lstopo_misc_output = fopen(argv[1], "w");
+      if (!lstopo_misc_output) {
+        fprintf(stderr, "Failed to open --lstopo-misc output `%s' for writing (%s)\n", argv[1], strerror(errno));
+        exit(EXIT_FAILURE);
+      }
       opt = 1;
 
     } else if (!strcmp (argv[0], "--json-server")) {
       json_server = 1;
     } else if (!strcmp (argv[0], "--json-port")) {
       if (argc < 2) {
-	usage(callname, stdout);
+	usage(callname, stderr);
 	exit(EXIT_FAILURE);
       }
       json_port = atoi(argv[1]);
@@ -410,6 +539,13 @@ int main(int argc, char *argv[])
 
     } else if (!strcmp(argv[0], "-v") || !strcmp(argv[0], "--verbose")) {
       verbose++;
+
+    } else if (!strcmp (argv[0], "--short-name")) {
+      psflags |= HWLOC_PS_FLAG_SHORTNAME;
+
+    } else if (!strcmp (argv[0], "--version")) {
+      printf("%s %s\n", callname, HWLOC_VERSION);
+      exit(EXIT_SUCCESS);
 
     } else if (!strcmp (argv[0], "-h") || !strcmp (argv[0], "--help")) {
       usage (callname, stdout);
@@ -449,6 +585,8 @@ int main(int argc, char *argv[])
     psflags |= HWLOC_PS_FLAG_THREADS;
   if (get_last_cpu_location)
     psflags |= HWLOC_PS_FLAG_LASTCPULOCATION;
+  if (only_uid != HWLOC_PS_ALL_UIDS)
+    psflags |= HWLOC_PS_FLAG_UID;
 
   if (json_server) {
     run_json_server(topology, topocpuset);
@@ -462,5 +600,7 @@ int main(int argc, char *argv[])
  out_with_topology:
   hwloc_topology_destroy(topology);
  out:
+  if (lstopo_misc_output && lstopo_misc_output != stdout)
+    fclose(lstopo_misc_output);
   return err;
 }

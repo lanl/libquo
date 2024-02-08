@@ -1,4 +1,4 @@
-# Copyright © 2009-2018 Inria.  All rights reserved.
+# Copyright © 2009-2021 Inria.  All rights reserved.
 # Copyright © 2009-2010 Université Bordeaux
 # Copyright © 2009-2014 Cisco Systems, Inc.  All rights reserved.
 # Copyright © 2011      Oracle and/or its affiliates.  All rights reserved.
@@ -10,15 +10,13 @@
 if HWLOC_BUILD_STANDALONE
 include_HEADERS = hwloc.h
 
-if BUILD_NETLOCSCOTCH
-include_HEADERS += netloc.h netlocscotch.h
-endif
-
 include_hwlocdir = $(includedir)/hwloc
 include_hwloc_HEADERS = \
         hwloc/bitmap.h \
         hwloc/helper.h \
         hwloc/inlines.h \
+        hwloc/memattrs.h \
+        hwloc/cpukinds.h \
         hwloc/diff.h \
         hwloc/shmem.h \
         hwloc/distances.h \
@@ -28,9 +26,10 @@ include_hwloc_HEADERS = \
         hwloc/cuda.h \
         hwloc/cudart.h \
         hwloc/nvml.h \
+        hwloc/rsmi.h \
+        hwloc/levelzero.h \
         hwloc/plugins.h \
         hwloc/gl.h \
-        hwloc/intel-mic.h \
         hwloc/rename.h \
         hwloc/deprecated.h
 include_hwloc_autogendir = $(includedir)/hwloc/autogen
@@ -44,9 +43,7 @@ noinst_HEADERS = \
         private/components.h \
         private/internal-components.h \
         private/cpuid-x86.h \
-        private/netloc.h \
-        netloc/utarray.h \
-        netloc/uthash.h
+        private/windows.h
 
 if HWLOC_HAVE_LINUX
 include_hwloc_HEADERS += \
@@ -62,5 +59,10 @@ endif HWLOC_HAVE_SOLARIS
 if HWLOC_HAVE_SCHED_SETAFFINITY
 include_hwloc_HEADERS += hwloc/glibc-sched.h
 endif HWLOC_HAVE_SCHED_SETAFFINITY
+
+if HWLOC_HAVE_WINDOWS
+include_hwloc_HEADERS += \
+	hwloc/windows.h
+endif HWLOC_HAVE_WINDOWS
 
 endif HWLOC_BUILD_STANDALONE

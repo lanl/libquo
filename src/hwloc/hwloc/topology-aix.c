@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2011, 2013 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -626,7 +626,8 @@ look_rset(int sdl, hwloc_obj_type_t type, struct hwloc_topology *topology, int l
     unsigned os_index = HWLOC_UNKNOWN_INDEX; /* no os_index except for PU and NUMANODE below */
 
     if (rs_getrad(rset, rad, sdl, i, 0)) {
-      fprintf(stderr,"rs_getrad(%d) failed: %s\n", i, strerror(errno));
+      if (HWLOC_SHOW_CRITICAL_ERRORS())
+        fprintf(stderr, "hwloc/aix: rs_getrad(%d) failed: %s\n", i, strerror(errno));
       continue;
     }
     if (!rs_getinfo(rad, R_NUMPROCS, 0))
@@ -710,11 +711,11 @@ look_rset(int sdl, hwloc_obj_type_t type, struct hwloc_topology *topology, int l
 	    obj3->attr->cache.depth = 1;
 	    obj3->attr->cache.type = HWLOC_OBJ_CACHE_INSTRUCTION;
 	    hwloc_debug("Adding an L1i cache for core %d\n", i);
-	    hwloc_insert_object_by_cpuset(topology, obj3);
+	    hwloc__insert_object_by_cpuset(topology, NULL, obj3, "aix:l1icache");
 	  }
 	}
 	if (hwloc_filter_check_keep_object_type(topology, HWLOC_OBJ_L1CACHE))
-	  hwloc_insert_object_by_cpuset(topology, obj2);
+	  hwloc__insert_object_by_cpuset(topology, NULL, obj2, "aix:l1cache");
 	else
 	  hwloc_free_unlinked_object(obj2); /* FIXME: don't built at all, just build the cpuset in case l1/l1i needs it */
 	break;
@@ -726,7 +727,7 @@ look_rset(int sdl, hwloc_obj_type_t type, struct hwloc_topology *topology, int l
 	       hwloc_obj_type_string(type),
 	       i, obj->cpuset);
     if (hwloc_filter_check_keep_object_type(topology, obj->type))
-      hwloc_insert_object_by_cpuset(topology, obj);
+      hwloc__insert_object_by_cpuset(topology, NULL, obj, "aix:cache");
     else
       hwloc_free_unlinked_object(obj);
   }

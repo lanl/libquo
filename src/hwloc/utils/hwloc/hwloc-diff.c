@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2019 Inria.  All rights reserved.
+ * Copyright © 2013-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -15,20 +15,26 @@ void usage(const char *callname __hwloc_attribute_unused, FILE *where)
 	fprintf(where, "  --refname <name>  Change the XML reference identifier to <name> in the output\n");
 	fprintf(where, "                    (default is the filename of the first topology\n");
 	fprintf(where, "  --version         Report version and exit\n");
+        fprintf(where, "  -h --help         Show this usage\n");
 }
 
 int main(int argc, char *argv[])
 {
 	hwloc_topology_t topo1, topo2;
 	hwloc_topology_diff_t firstdiff = NULL, diff;
-	unsigned long flags = HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED;
+	unsigned long flags = HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED | HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT;
 	char *callname, *input1, *input2, *output, *outputname, *refname = NULL;
 	char *xmlbuffer;
 	int xmlbuflen;
 	unsigned i, j;
 	int err;
 
-	callname = argv[0];
+        callname = strrchr(argv[0], '/');
+        if (!callname)
+          callname = argv[0];
+        else
+          callname++;
+
 	/* skip argv[0], handle options */
 	argc--;
 	argv++;

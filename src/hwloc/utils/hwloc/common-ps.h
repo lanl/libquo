@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -15,9 +15,11 @@
 
 struct hwloc_ps_process {
   long pid;
-  char string[1024];
   char name[64];
+  char string[1024]; /* optional string, used by hwloc-ps --pid-cmd */
   hwloc_bitmap_t cpuset;
+#define HWLOC_PS_ALL_UIDS ((long)-1)
+  long uid;
   int bound;
   unsigned nthreads;
   unsigned nboundthreads;
@@ -32,15 +34,24 @@ struct hwloc_ps_process {
 #define HWLOC_PS_FLAG_THREADS (1UL<<0)
 #define HWLOC_PS_FLAG_LASTCPULOCATION (1UL<<1)
 #define HWLOC_PS_FLAG_SHORTNAME (1UL<<2)
+#define HWLOC_PS_FLAG_UID (1UL<<3)
 
 int hwloc_ps_read_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset,
 			  struct hwloc_ps_process *proc,
-			  unsigned long flags, const char *pidcmd);
+			  unsigned long flags);
 
 int hwloc_ps_foreach_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset,
 			     void (*callback)(hwloc_topology_t topology, struct hwloc_ps_process *proc, void *cbdata),
 			     void *cbdata,
-			     unsigned long flags, const char *only_name, const char *pidcmd);
+			     unsigned long flags, const char *only_name, long only_uid);
+
+int hwloc_ps_foreach_child(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset,
+                           long pid,
+                           void (*callback)(hwloc_topology_t topology, struct hwloc_ps_process *proc, void *cbdata),
+			     void *cbdata,
+			     unsigned long flags, const char *only_name, long only_uid);
+
+void hwloc_ps_pidcmd(struct hwloc_ps_process *proc, const char *pidcmd);
 
 void hwloc_ps_free_process(struct hwloc_ps_process *proc);
 

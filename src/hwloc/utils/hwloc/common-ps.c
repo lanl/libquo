@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -24,14 +24,13 @@
 
 int hwloc_ps_read_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset,
 			  struct hwloc_ps_process *proc,
-			  unsigned long flags, const char *pidcmd)
+			  unsigned long flags)
 {
 #ifdef HAVE_DIRENT_H
   hwloc_pid_t realpid;
   hwloc_bitmap_t cpuset;
   unsigned pathlen;
   char *path;
-  char *end;
   int fd;
   ssize_t n;
 
@@ -58,7 +57,7 @@ int hwloc_ps_read_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocp
     free(path);
     goto out;
   }
-  proc->name[n] = 0;
+  proc->name[n] = '\0';
 
   if (flags & HWLOC_PS_FLAG_SHORTNAME) {
     /* try to get a small name from comm */
@@ -69,9 +68,9 @@ int hwloc_ps_read_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocp
       n = read(fd, comm, sizeof(comm) - 1);
       close(fd);
       if (n > 0) {
-	comm[n] = 0;
+	comm[n] = '\0';
 	if (n > 1 && comm[n-1] == '\n')
-	  comm[n-1] = 0;
+	  comm[n-1] = '\0';
       }
 
     } else {
@@ -86,12 +85,12 @@ int hwloc_ps_read_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocp
 	n = read(fd, stats, sizeof(stats) - 1);
 	close(fd);
 	if (n > 0) {
-	  stats[n] = 0;
+	  stats[n] = '\0';
 	  parenl = strchr(stats, '(');
 	  parenr = strchr(stats, ')');
 	  if (!parenr)
 	    parenr = &stats[sizeof(stats)-1];
-	  *parenr = 0;
+	  *parenr = '\0';
 	  if (parenl)
 	    snprintf(comm, sizeof(comm), "%s", parenl+1);
 	}
@@ -104,22 +103,32 @@ int hwloc_ps_read_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocp
 
   free(path);
 
-  proc->string[0] = '\0';
-  if (pidcmd) {
-    char *cmd;
-    FILE *file;
-    cmd = malloc(strlen(pidcmd)+1+5+2+1);
-    sprintf(cmd, "%s %u", pidcmd, (unsigned) proc->pid);
-    file = popen(cmd, "r");
-    if (file) {
-      if (fgets(proc->string, sizeof(proc->string), file)) {
-	end = strchr(proc->string, '\n');
-	if (end)
-	  *end = '\0';
+  proc->string[0] = '\0'; /* might be set later if hwloc_ps_pidcmd is called */
+
+  if (flags & HWLOC_PS_FLAG_UID) {
+    proc->uid = HWLOC_PS_ALL_UIDS;
+#ifdef HWLOC_LINUX_SYS
+    pathlen = 6 + 21 + 1 + 6 + 1;
+    path = malloc(pathlen);
+    snprintf(path, pathlen, "/proc/%ld/status", proc->pid);
+    fd = open(path, O_RDONLY);
+    if (fd >= 0) {
+      char status[1024];
+      char *uid;
+      if (read(fd, &status, sizeof(status)) > 0) {
+        status[1023] = '\0';
+        uid = strstr(status, "Uid:");
+        if (uid)
+          proc->uid = strtoul(uid+4, NULL, 0);
+        close(fd);
       }
-      pclose(file);
     }
-    free(cmd);
+    free(path);
+#endif
+    /* On *BSD, parse the end of the single-line in /proc/pid/status
+     * (but the format is different between FreeBSD and NetBSD).
+     * It may be a good time to switch to a portable library for gathering this info.
+     */
   }
 
   if (flags & HWLOC_PS_FLAG_THREADS) {
@@ -134,6 +143,7 @@ int hwloc_ps_read_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocp
     if (taskdir) {
       struct dirent *taskdirent;
       long tid;
+      char *end;
       unsigned nbth = 0;
       /* count threads */
       while ((taskdirent = readdir(taskdir))) {
@@ -238,6 +248,93 @@ int hwloc_ps_read_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocp
   return -1;
 }
 
+#if defined(HWLOC_WIN_SYS) && !defined(__CYGWIN__)
+/* hwloc-ps isn't built for Windows, but lstopo is */
+#define popen _popen
+#define pclose _pclose
+#endif
+
+static int
+hwloc_ps_pidcmd__from_env(struct hwloc_ps_process *proc,
+                          const char *envname, size_t envnamelen,
+                          const char *buffer)
+{
+  const char *cur = buffer;
+  while (*cur) {
+    size_t len;
+    if (!strncmp(cur, envname, envnamelen)) {
+      /* copy the entire "name=value" instead of only the value
+       * so that users know which variable was used.
+       */
+      strncpy(proc->string, cur, sizeof(proc->string));
+      proc->string[sizeof(proc->string)-1] = '\0';
+      return 0;
+    }
+    len = strlen(cur);
+    cur += len + 1;
+  }
+  return -1;
+}
+
+static void
+hwloc_ps_pidcmd_from_env(struct hwloc_ps_process *proc,
+                         unsigned nr_env, const char *env[])
+{
+  char path[64]; /* enough for "/proc/%ld/environ" */
+  char buffer[65536]; /* should be enough for the vast majority of cases */
+  FILE *file;
+  size_t len;
+  unsigned i;
+
+  snprintf(path, sizeof(path), "/proc/%ld/environ", proc->pid);
+  file = fopen(path, "r");
+  if (!file)
+    return;
+  len = fread(buffer, 1, sizeof(buffer)-2, file);
+  fclose(file);
+  if (!len)
+    return;
+
+  /* we must end with 2 '\0', one for the current variable if truncated, and one for an empty variable ending the environment array */
+  buffer[len] = '\0';
+  buffer[len+1] = '\0';
+
+  for(i=0; i<nr_env; i++)
+    if (hwloc_ps_pidcmd__from_env(proc, env[i], strlen(env[i]), buffer) == 0)
+      return;
+}
+
+void hwloc_ps_pidcmd(struct hwloc_ps_process *proc, const char *pidcmd)
+{
+  char *cmd;
+  FILE *file;
+
+  if (!strcmp(pidcmd, "mpirank")) {
+    /* SLURM_PROCID works in srun, but not in salloc+mpirun (returns the node ID?), hence use it as a last fallback */
+    const char *envs[] = { "OMPI_COMM_WORLD_RANK", "PMIX_RANK", "PMI_RANK", "SLURM_PROCID" };
+    hwloc_ps_pidcmd_from_env(proc, sizeof(envs)/sizeof(*envs), envs);
+    return;
+  }
+  if (!strncmp(pidcmd, "env=", 4)) {
+    const char *env = pidcmd+4;
+    hwloc_ps_pidcmd_from_env(proc, 1, &env);
+    return;
+  }
+
+  cmd = malloc(strlen(pidcmd)+1+5+2+1);
+  sprintf(cmd, "%s %u", pidcmd, (unsigned) proc->pid);
+  file = popen(cmd, "r");
+  if (file) {
+    if (fgets(proc->string, sizeof(proc->string), file)) {
+      char *end = strchr(proc->string, '\n');
+      if (end)
+        *end = '\0';
+    }
+    pclose(file);
+  }
+  free(cmd);
+}
+
 void hwloc_ps_free_process(struct hwloc_ps_process *proc)
 {
   unsigned i;
@@ -254,7 +351,7 @@ void hwloc_ps_free_process(struct hwloc_ps_process *proc)
 int hwloc_ps_foreach_process(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset,
 			     void (*callback)(hwloc_topology_t topology, struct hwloc_ps_process *proc, void *cbdata),
 			     void *cbdata,
-			     unsigned long flags, const char *only_name, const char *pidcmd)
+			     unsigned long flags, const char *only_name, long uid)
 {
 #ifdef HAVE_DIRENT_H
   DIR *dir;
@@ -279,9 +376,11 @@ int hwloc_ps_foreach_process(hwloc_topology_t topology, hwloc_const_bitmap_t top
     proc.nthreads = 0;
     proc.nboundthreads = 0;
     proc.threads = NULL;
-    if (hwloc_ps_read_process(topology, topocpuset, &proc, flags, pidcmd) < 0)
+    if (hwloc_ps_read_process(topology, topocpuset, &proc, flags) < 0)
       goto next;
     if (only_name && !strstr(proc.name, only_name))
+      goto next;
+    if (uid != HWLOC_PS_ALL_UIDS && proc.uid != HWLOC_PS_ALL_UIDS && proc.uid != uid)
       goto next;
     callback(topology, &proc, cbdata);
   next:
@@ -289,6 +388,66 @@ int hwloc_ps_foreach_process(hwloc_topology_t topology, hwloc_const_bitmap_t top
   }
 
   closedir(dir);
+  return 0;
+#else /* HAVE_DIRENT_H */
+  return -1;
+#endif /* HAVE_DIRENT_H */
+}
+
+int hwloc_ps_foreach_child(hwloc_topology_t topology, hwloc_const_bitmap_t topocpuset,
+                           long pid,
+                           void (*callback)(hwloc_topology_t topology, struct hwloc_ps_process *proc, void *cbdata),
+                           void *cbdata,
+                           unsigned long flags, const char *only_name, long uid)
+{
+#ifdef HAVE_DIRENT_H
+  struct hwloc_ps_process proc;
+  DIR *taskdir;
+  char path[512];
+
+  proc.pid = pid;
+  proc.cpuset = NULL;
+  proc.nthreads = 0;
+  proc.nboundthreads = 0;
+  proc.threads = NULL;
+  if (hwloc_ps_read_process(topology, topocpuset, &proc, flags) < 0)
+    goto next;
+  if (only_name && !strstr(proc.name, only_name))
+    goto next;
+  if (uid != HWLOC_PS_ALL_UIDS && proc.uid != HWLOC_PS_ALL_UIDS && proc.uid != uid)
+    goto next;
+  callback(topology, &proc, cbdata);
+ next:
+  hwloc_ps_free_process(&proc);
+
+  snprintf(path, sizeof(path), "/proc/%ld/task", proc.pid);
+  taskdir = opendir(path); /* should be enough for the vast majority of cases */
+  if (taskdir) {
+    struct dirent *taskdirent;
+    while ((taskdirent = readdir(taskdir))) {
+      char pidline[4096];
+      FILE *file;
+      char *begin;
+      size_t len;
+      snprintf(path, sizeof(path), "/proc/%ld/task/%s/children", proc.pid, taskdirent->d_name);
+      file = fopen(path, "r");
+      if (!file)
+        continue;
+      len = fread(pidline, 1, sizeof(pidline)-1, file);
+      fclose(file);
+      pidline[len] = '\0';
+      begin = pidline;
+      while (1) {
+        char *end;
+        long childpid = strtoul(begin, &end, 10);
+        if (end == begin)
+          break;
+        hwloc_ps_foreach_child(topology, topocpuset, childpid, callback, cbdata, flags, only_name, uid);
+        begin = end;
+      }
+    }
+    closedir(taskdir);
+  }
   return 0;
 #else /* HAVE_DIRENT_H */
   return -1;

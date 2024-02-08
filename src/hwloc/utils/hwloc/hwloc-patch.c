@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2019 Inria.  All rights reserved.
+ * Copyright © 2013-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -14,6 +14,7 @@ void usage(const char *callname __hwloc_attribute_unused, FILE *where)
 	fprintf(where, "Options:\n");
 	fprintf(where, "  -R --reverse     Reverse the sense of the difference\n");
 	fprintf(where, "  --version        Report version and exit\n");
+        fprintf(where, "  -h --help        Show this usage\n");
 }
 
 static int hwloc_diff_read(const char *inputdiff,
@@ -66,12 +67,17 @@ int main(int argc, char *argv[])
 {
 	hwloc_topology_t topo;
 	hwloc_topology_diff_t firstdiff = NULL;
-	unsigned long flags = HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED;
+	unsigned long flags = HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED | HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT;
 	unsigned long patchflags = 0;
 	char *callname, *input, *inputdiff, *output = NULL, *refname = NULL;
 	int err;
 
-	callname = argv[0];
+        callname = strrchr(argv[0], '/');
+        if (!callname)
+          callname = argv[0];
+        else
+          callname++;
+
 	/* skip argv[0], handle options */
 	argc--;
 	argv++;

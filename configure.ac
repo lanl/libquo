@@ -1,15 +1,15 @@
 #
-# Copyright (c) 2013-2020 Triad National Security, LLC
+# Copyright (c) 2013-2024 Triad National Security, LLC
 #                         All rights reserved.
 #
 # This file is part of the libquo project. See the LICENSE file at the
 # top-level directory of this distribution.
 #
 
-AC_PREREQ([2.60])
+AC_PREREQ([2.71])
 
 AC_INIT([libquo],
-        [1.3.2-devel],
+        [1.4.0-devel],
         [samuel@lanl.gov],
         [libquo],
         [http://losalamos.github.io/libquo/])
@@ -34,14 +34,14 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign])
 # Build using AM_SILENT_RULES
 AM_SILENT_RULES([yes])
-AM_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 
 ################################################################################
 # C Language
 ################################################################################
 AC_USE_SYSTEM_EXTENSIONS
 
-AC_PROG_CC_C99
+AC_PROG_CC
 AC_PROG_CC_C_O
 AM_PROG_CC_C_O
 AC_PROG_CPP

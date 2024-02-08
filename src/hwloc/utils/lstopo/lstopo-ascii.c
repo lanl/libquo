@@ -1,7 +1,7 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
- * Copyright © 2009-2012 Université Bordeaux
+ * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
@@ -31,6 +31,8 @@
 #endif /* HWLOC_HAVE_LIBTERMCAP */
 
 #include "lstopo.h"
+
+#define TERM_COLOR_START 16
 
 /* Uses unicode bars if available */
 #ifdef HAVE_PUTWC
@@ -133,7 +135,7 @@ set_color(const struct lstopo_color *fcolor, const struct lstopo_color *bcolor)
 #endif /* HWLOC_HAVE_LIBTERMCAP */
 
 #ifdef HWLOC_HAVE_LIBTERMCAP
-static int ascii_color_index = 16;
+static int ascii_color_index = TERM_COLOR_START, ascii_color_index_step = 1;
 #endif
 static struct lstopo_color *default_color = NULL;
 
@@ -146,7 +148,8 @@ ascii_declare_color(struct lstopo_output *loutput __hwloc_attribute_unused, stru
   int rr, gg, bb;
   char *toput;
 
-  lcolor->private.ascii.color = ascii_color_index++;
+  lcolor->private.ascii.color = ascii_color_index;
+  ascii_color_index += ascii_color_index_step;
 
   /* Yes, values seem to range from 0 to 1000 inclusive */
   rr = (r * 1001) / 256;
@@ -346,7 +349,7 @@ ascii_box(struct lstopo_output *loutput, const struct lstopo_color *lcolor, unsi
 }
 
 static void
-ascii_line(struct lstopo_output *loutput, const struct lstopo_color *lcolor __hwloc_attribute_unused, unsigned depth __hwloc_attribute_unused, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj __hwloc_attribute_unused, unsigned line_id __hwloc_attribute_unused)
+ascii_line(struct lstopo_output *loutput, unsigned depth __hwloc_attribute_unused, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj __hwloc_attribute_unused, unsigned line_id __hwloc_attribute_unused)
 {
   struct lstopo_ascii_output *disp = loutput->backend_data;
   unsigned i, j, z;
@@ -427,6 +430,7 @@ ascii_textsize(struct lstopo_output *loutput __hwloc_attribute_unused, const cha
 
 static struct draw_methods ascii_draw_methods = {
   ascii_declare_color,
+  NULL,
   ascii_box,
   ascii_line,
   ascii_text,
@@ -458,7 +462,7 @@ output_ascii(struct lstopo_output *loutput, const char *filename)
   loutput->linespacing = 10;
 
   /* cannot write between lines of the terminal */
-  loutput->no_half_lines = 1;
+  loutput->backend_flags |= LSTOPO_BACKEND_FLAG_NO_HALF_LINES;
 
 #ifdef HWLOC_HAVE_LIBTERMCAP
   /* If we are outputing to a tty, use colors */
@@ -472,12 +476,16 @@ output_ascii(struct lstopo_output *loutput, const char *filename)
 
       /* Get terminfo(5) strings */
       initp = initialize_pair;
-      if (max_pairs <= 16 || !initp || !set_color_pair) {
+      if (max_pairs <= TERM_COLOR_START || !initp || !set_color_pair) {
 	/* Can't use max_pairs to define our own colors */
 	initp = NULL;
-	if (max_colors > 16)
+	if (max_colors > TERM_COLOR_START) {
+	  /* Better start overwriting last colors */
+	  ascii_color_index = max_colors-1;
+	  ascii_color_index_step = -1;
 	  if (can_change)
             initc = initialize_color;
+        }
       }
       /* Prevent a trivial compiler warning because the param of
          tgetflag is (char*), not (const char*). */
@@ -562,6 +570,6 @@ output_ascii(struct lstopo_output *loutput, const char *filename)
   if (output != stdout)
     fclose(output);
 
-  destroy_colors();
+  destroy_colors(loutput);
   return 0;
 }
