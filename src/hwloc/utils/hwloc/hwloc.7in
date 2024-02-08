@@ -1,5 +1,5 @@
 .\" -*- nroff -*-
-.\" Copyright © 2010-2018 Inria.  All rights reserved.
+.\" Copyright © 2010-2023 Inria.  All rights reserved.
 .\" Copyright © 2010 Université of Bordeaux
 .\" Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
 .\" See COPYING in top-level directory.
@@ -29,8 +29,8 @@ man page and other hwloc documentation.
 A set of processors included in an hwloc object, expressed as a bitmask
 indexed by the physical numbers of the CPUs (as announced by the OS).
 The hwloc definition
-of "CPU set" does not carry any the same connotations as Linux's "CPU
-set" (e.g., process affinity, etc.).
+of "CPU set" does not carry any of the same connotations as Linux's "CPU
+set" (e.g., process affinity, cgroup, etc.).
 .
 .TP
 .B hwloc node set:
@@ -89,6 +89,16 @@ are described in detail, below.
 .br
 
 .br
+Some filters may be added after the type to further specify which
+objects are wanted.
+\fI<type>[subtype=<subtype>]\fR selects objects matching the given
+type and also its subtype string attribute.
+For instance \fINUMA[HBM]\fR selects NUMA nodes of subtype "HBM".
+The prefix \fIsubtype=\fR may be avoided if there is no ambiguity.
+\fINUMA[tier=X]\fR selects NUMA nodes of tier <X> ("MemoryTier" info attribute).
+.br
+
+.br
 Indexes may also be specified as ranges.
 \fIx-y\fR enumerates from index \fIx\fR to \fIy\fR.
 \fIx:y\fR enumerates \fIy\fR objects starting from index \fIx\fR
@@ -121,6 +131,12 @@ PCI and OS devices may also be designed using their identifier.
 For example, "\fBpci=02:03.1\fR" is the PCI device with bus ID "02:03.1".
 .
 "\fBos=eth0\fR" is the network interface whose software name is "eth0".
+.
+PCI devices may also be filtered based on their vendor and/or device IDs,
+for instance "\fBpci[15b3:]:2\fR" for the third Mellanox PCI device (vendor ID 0x15b3).
+.
+OS devices may also be filtered based on their subtype,
+for instance "\fBos[gpu]:all\fR" for all GPU OS devices.
 .
 .TP
 .B Hex:
@@ -195,8 +211,9 @@ A set of processors and memory.
 A NUMA node; a set of processors around memory which the processors
 can directly access.
 .
-If \fBhbm\fR is used instead of \fBnumanode\fR in locations,
-command-line tools only consider high-bandwidth memory nodes such as Intel Xeon Phi MCDRAM.
+If \fBnuma[hbm]\fR is used instead of \fBnumanode\fR in locations,
+command-line tools only consider NUMA nodes marked as high-bandwidth memory
+(subtype "HBM").
 .
 .TP
 .B package

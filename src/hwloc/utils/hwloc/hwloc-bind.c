@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2010, 2012 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -27,15 +27,25 @@
 
 void usage(const char *name, FILE *where)
 {
-  fprintf(where, "Usage: %s [options] <location> -- command ...\n", name);
+  fprintf(where, "Usage: %s [topology options] [options] <location> -- command ...\n", name);
   fprintf(where, " <location> may be a space-separated list of cpusets or objects\n");
   fprintf(where, "            as supported by the hwloc-calc utility, e.g:\n");
   hwloc_calc_locations_usage(where);
+  fprintf(where, "Input topology options (must be at the beginning):\n");
+  fprintf(where, "  --no-smt       Only keep a single PU per core\n");
+  fprintf(where, "  --restrict [nodeset=]<bitmap>\n");
+  fprintf(where, "                 Restrict the topology to some processors or NUMA nodes.\n");
+  fprintf(where, "  --restrict-flags <n>  Set the flags to be used during restrict\n");
+  fprintf(where, "  --disallowed   Include objects disallowed by administrative limitations\n");
+  fprintf(where, "  --hbm          Only consider high bandwidth memory nodes\n");
+  fprintf(where, "  --no-hbm       Ignore high-bandwidth memory nodes\n");
   fprintf(where, "Options:\n");
   fprintf(where, "  --cpubind      Use following arguments for cpu binding (default)\n");
   fprintf(where, "  --membind      Use following arguments for memory binding\n");
   fprintf(where, "  --mempolicy <default|firsttouch|bind|interleave|nexttouch>\n"
 		 "                 Change policy that --membind applies (default is bind)\n");
+  fprintf(where, "  --best-memattr <attr>\n");
+  fprintf(where, "                 Select the best target node in the given memory binding\n");
   fprintf(where, "  -l --logical   Take logical object indexes (default)\n");
   fprintf(where, "  -p --physical  Take physical object indexes\n");
   fprintf(where, "  --single       Bind on a single CPU to prevent migration\n");
@@ -49,23 +59,17 @@ void usage(const char *name, FILE *where)
   fprintf(where, "  --tid <tid>    Operate on thread <tid>\n");
 #endif
   fprintf(where, "  --taskset      Use taskset-specific format when displaying cpuset strings\n");
-  fprintf(where, "Input topology options:\n");
-  fprintf(where, "  --no-smt       Only keep a single PU per core\n");
-  fprintf(where, "  --restrict <set>   Restrict the topology to processors listed in <set>\n");
-  fprintf(where, "  --disallowed   Include objects disallowed by administrative limitations\n");
-  fprintf(where, "  --hbm          Only consider high bandwidth memory nodes\n");
-  fprintf(where, "  --no-hbm       Ignore high-bandwidth memory nodes\n");
   fprintf(where, "Miscellaneous options:\n");
   fprintf(where, "  -f --force     Launch the command even if binding failed\n");
   fprintf(where, "  -q --quiet     Hide non-fatal error messages\n");
   fprintf(where, "  -v --verbose   Show verbose messages\n");
   fprintf(where, "  --version      Report version and exit\n");
+  fprintf(where, "  -h --help      Show this usage\n");
 }
 
 int main(int argc, char *argv[])
 {
   hwloc_topology_t topology;
-  int loaded = 0;
   int depth = -1;
   hwloc_bitmap_t cpubind_set, membind_set;
   int got_cpubind = 0, got_membind = 0;
@@ -74,10 +78,11 @@ int main(int argc, char *argv[])
   int use_nodeset = 0;
   int get_last_cpu_location = 0;
   unsigned long flags = 0;
+  unsigned long restrict_flags = 0;
   int force = 0;
   int single = 0;
   int verbose = 0;
-  int no_smt = 0;
+  int no_smt = -1;
   int only_hbm = -1;
   int logical = 1;
   int taskset = 0;
@@ -90,11 +95,19 @@ int main(int argc, char *argv[])
   int pid_number = -1;
   int tid_number = -1;
   hwloc_pid_t pid = 0; /* only valid when pid_number > 0, but gcc-4.8 still reports uninitialized warnings */
+  hwloc_memattr_id_t best_memattr_id = (hwloc_memattr_id_t) -1;
+  const char *best_memattr_str = NULL;
   char *callname;
+  char *restrictstring = NULL;
   struct hwloc_calc_location_context_s lcontext;
   struct hwloc_calc_set_context_s scontext;
 
-  callname = argv[0];
+  callname = strrchr(argv[0], '/');
+  if (!callname)
+    callname = argv[0];
+  else
+    callname++;
+
   /* skip argv[0], handle options */
   argv++;
   argc--;
@@ -104,21 +117,93 @@ int main(int argc, char *argv[])
   cpubind_set = hwloc_bitmap_alloc();
   membind_set = hwloc_bitmap_alloc();
 
-  /* don't load now, in case some options change the config before the topology is actually used */
-#define LOADED() (loaded)
-#define ENSURE_LOADED() do { \
-  if (!loaded) { \
-    hwloc_topology_init(&topology); \
-    hwloc_topology_set_all_types_filter(topology, HWLOC_TYPE_FILTER_KEEP_ALL); \
-    hwloc_topology_set_flags(topology, flags); \
-    ret = hwloc_topology_load(topology); \
-    if (ret < 0) return EXIT_FAILURE; \
-    depth = hwloc_topology_get_depth(topology); \
-    loaded = 1; \
-  } \
-} while (0)
+  while (argc >= 1) {
+    opt = 0;
+
+    if (!strcmp (argv[0], "--disallowed") || !strcmp (argv[0], "--whole-system")) {
+      flags |= HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED;
+      goto next_config;
+    }
+    if (!strcmp (argv[0], "--restrict")) {
+      if (argc < 2) {
+        usage (callname, stderr);
+        exit(EXIT_FAILURE);
+      }
+      if(strncmp(argv[1], "nodeset=", 7))
+        restrictstring = strdup(argv[1]);
+      else {
+        restrictstring = strdup(argv[1]+8);
+        restrict_flags |= HWLOC_RESTRICT_FLAG_BYNODESET;
+      }
+      opt = 1;
+      goto next_config;
+    }
+    if (!strcmp (argv[0], "--restrict-flags")) {
+      if (argc < 2) {
+        usage (callname, stderr);
+        exit(EXIT_FAILURE);
+      }
+      restrict_flags = hwloc_utils_parse_restrict_flags(argv[1]);
+      opt = 1;
+      goto next_config;
+    }
+    if (!strcmp(argv[0], "--no-smt")) {
+      no_smt = 0;
+      goto next_config;
+    }
+    if (!strncmp(argv[0], "--no-smt=", 9)) {
+      no_smt = atoi(argv[0] + 9);
+      goto next_config;
+    }
+    if (!strcmp(argv[0], "--hbm")) {
+      only_hbm = 1;
+      goto next_config;
+    }
+    if (!strcmp(argv[0], "--no-hbm")) {
+      only_hbm = 0;
+      goto next_config;
+    }
+    if (!strcmp (argv[0], "--best-memattr")) {
+      if (argc < 2) {
+        usage (callname, stderr);
+        exit(EXIT_FAILURE);
+      }
+      best_memattr_str = argv[1];
+      opt = 1;
+      goto next_config;
+    }
+
+    break;
+
+  next_config:
+    argc -= opt+1;
+    argv += opt+1;
+  }
+
+  hwloc_topology_init(&topology);
+  hwloc_topology_set_all_types_filter(topology, HWLOC_TYPE_FILTER_KEEP_ALL);
+  hwloc_topology_set_flags(topology, flags);
+  ret = hwloc_topology_load(topology);
+  if (ret < 0) {
+    perror("Couldn't load the topology");
+    return EXIT_FAILURE;
+  }
+  if (restrictstring) {
+    hwloc_bitmap_t restrictset = hwloc_bitmap_alloc();
+    hwloc_bitmap_sscanf(restrictset, restrictstring);
+    if (hwloc_topology_restrict (topology, restrictset, restrict_flags)) {
+      perror("Restricting the topology");
+      /* FALLTHRU */
+    }
+    hwloc_bitmap_free(restrictset);
+    free(restrictstring);
+  }
+  depth = hwloc_topology_get_depth(topology);
 
   while (argc >= 1) {
+    char *location;
+    int nodeset_location;
+
     if (!strcmp(argv[0], "--")) {
       argc--;
       argv++;
@@ -137,15 +222,11 @@ int main(int argc, char *argv[])
 	goto next;
       }
       if (!strcmp(argv[0], "-h") || !strcmp(argv[0], "--help")) {
-        usage("hwloc-bind", stdout);
+        usage(callname, stdout);
 	return EXIT_SUCCESS;
       }
       if (!strcmp(argv[0], "--single")) {
 	single = 1;
-	goto next;
-      }
-      if (!strcmp(argv[0], "--no-smt")) {
-	no_smt = 1;
 	goto next;
       }
       if (!strcmp(argv[0], "-f") || !strcmp(argv[0], "--force")) {
@@ -159,7 +240,7 @@ int main(int argc, char *argv[])
       }
       if (!strcmp(argv[0], "--pid")) {
         if (argc < 2) {
-          usage ("hwloc-bind", stderr);
+          usage (callname, stderr);
           exit(EXIT_FAILURE);
         }
         pid_number = atoi(argv[1]);
@@ -169,7 +250,7 @@ int main(int argc, char *argv[])
 #ifdef HWLOC_LINUX_SYS
       if (!strcmp(argv[0], "--tid")) {
         if (argc < 2) {
-          usage ("hwloc-bind", stderr);
+          usage (callname, stderr);
           exit(EXIT_FAILURE);
         }
         tid_number = atoi(argv[1]);
@@ -226,69 +307,37 @@ int main(int argc, char *argv[])
 	  membind_policy = HWLOC_MEMBIND_NEXTTOUCH;
 	else {
 	  fprintf(stderr, "Unrecognized memory binding policy %s\n", argv[1]);
-          usage ("hwloc-bind", stderr);
+          usage (callname, stderr);
           exit(EXIT_FAILURE);
 	}
 	got_mempolicy = 1;
 	opt = 1;
 	goto next;
       }
-      if (!strcmp(argv[0], "--hbm")) {
-	only_hbm = 1;
-	goto next;
-      }
-      if (!strcmp(argv[0], "--no-hbm")) {
-	only_hbm = 0;
-	goto next;
-      }
-      if (!strcmp (argv[0], "--disallowed") || !strcmp (argv[0], "--whole-system")) {
-	if (loaded) {
-	  fprintf(stderr, "Input option %s disallowed after options using the topology\n", argv[0]);
-	  exit(EXIT_FAILURE);
-	}
-	flags |= HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED;
-	goto next;
-      }
-      if (!strcmp (argv[0], "--restrict")) {
-	hwloc_bitmap_t restrictset;
-	int err;
-	if (argc < 2) {
-	  usage (callname, stdout);
-	  exit(EXIT_FAILURE);
-	}
-	restrictset = hwloc_bitmap_alloc();
-	hwloc_bitmap_sscanf(restrictset, argv[1]);
-	ENSURE_LOADED();
-	err = hwloc_topology_restrict (topology, restrictset, 0);
-	if (err) {
-	  perror("Restricting the topology");
-	  /* FALLTHRU */
-	}
-	hwloc_bitmap_free(restrictset);
-	argc--;
-	argv++;
-	goto next;
-      }
 
       fprintf (stderr, "Unrecognized option: %s\n", argv[0]);
-      usage("hwloc-bind", stderr);
+      usage(callname, stderr);
       return EXIT_FAILURE;
     }
 
-    ENSURE_LOADED();
+    location = argv[0];
+    nodeset_location = 0;
+    if (!strncmp(location, "nodeset=", 8)) {
+      location += 8;
+      nodeset_location = 1;
+    }
 
     lcontext.topology = topology;
     lcontext.topodepth = depth;
     lcontext.only_hbm = only_hbm;
     lcontext.logical = logical;
     lcontext.verbose = verbose;
-    scontext.nodeset_input = use_nodeset;
+    scontext.nodeset_input = use_nodeset || nodeset_location;
     scontext.nodeset_output = working_on_cpubind ? 0 : 1;
     scontext.output_set = working_on_cpubind ? cpubind_set : membind_set;
-    ret = hwloc_calc_process_location_as_set(&lcontext, &scontext, argv[0]);
+    ret = hwloc_calc_process_location_as_set(&lcontext, &scontext, location);
     if (ret < 0) {
-      if (verbose > 0)
-	fprintf(stderr, "assuming the command starts at %s\n", argv[0]);
+      fprintf(stderr, "argument `%s' unrecognized, assuming this is the executable.\n", argv[0]);
       break;
     }
     if (working_on_cpubind)
@@ -300,8 +349,6 @@ int main(int argc, char *argv[])
     argc -= opt+1;
     argv += opt+1;
   }
-
-  ENSURE_LOADED();
 
   if (pid_number > 0 && tid_number > 0) {
     fprintf(stderr, "cannot operate both on tid and pid\n");
@@ -326,6 +373,11 @@ int main(int argc, char *argv[])
     /* doesn't work because get_binding/get_last_cpu_location overwrites cpubind_set */
     fprintf(stderr, "Cannot display and set binding at the same time.\n");
     return EXIT_FAILURE;
+  }
+
+  if (!got_cpubind && !got_membind && !get_binding && !get_last_cpu_location) {
+    if (verbose >= 0)
+      fprintf(stderr, "got neither CPU nor memory binding locations.\n");
   }
 
   if (get_binding || get_last_cpu_location) {
@@ -420,6 +472,36 @@ int main(int argc, char *argv[])
       if (!force)
 	goto failed_binding;
     }
+
+    if (best_memattr_str) {
+      struct hwloc_location loc;
+      char *s;
+      best_memattr_id = hwloc_utils_parse_memattr_name(topology, best_memattr_str);
+      if (best_memattr_id == (hwloc_memattr_id_t) -1) {
+        fprintf(stderr, "unrecognized memattr %s\n", best_memattr_str);
+        return EXIT_FAILURE;
+      }
+
+      loc.type = HWLOC_LOCATION_TYPE_CPUSET;
+      loc.location.cpuset = cpubind_set;
+      if (verbose > 0) {
+        hwloc_bitmap_asprintf(&s, membind_set);
+        fprintf(stderr, "memory binding set was %s before filtering by best memattr\n", s);
+        free(s);
+      }
+      hwloc_utils_get_best_node_in_nodeset_by_memattr(topology, best_memattr_id, membind_set, &loc);
+      if (verbose > 0) {
+        hwloc_bitmap_asprintf(&s, membind_set);
+        /* double-space before %s for alignment with previous verbose message */
+        fprintf(stderr, "memory binding is now  %s after filtering by best memattr\n", s);
+        free(s);
+      }
+      if (hwloc_bitmap_iszero(membind_set)) {
+        fprintf(stderr, "failed to find a best memory node for memory attribute `%s' among the given membind set.\n", best_memattr_str);
+        return EXIT_FAILURE;
+      }
+    }
+
     if (verbose > 0) {
       char *s;
       hwloc_bitmap_asprintf(&s, membind_set);
@@ -440,10 +522,10 @@ int main(int argc, char *argv[])
       char *s;
       hwloc_bitmap_asprintf(&s, membind_set);
       if (pid_number > 0)
-        fprintf(stderr, "hwloc_set_proc_membind %s (policy %d flags %x) PID %d failed (errno %d %s)\n",
+        fprintf(stderr, "hwloc_set_proc_membind %s (policy %d flags 0x%x) PID %d failed (errno %d %s)\n",
 		s, membind_policy, membind_flags, pid_number, bind_errno, errmsg);
       else
-        fprintf(stderr, "hwloc_set_membind %s (policy %d flags %x) failed (errno %d %s)\n",
+        fprintf(stderr, "hwloc_set_membind %s (policy %d flags 0x%x) failed (errno %d %s)\n",
 		s, membind_policy, membind_flags, bind_errno, errmsg);
       free(s);
     }
@@ -454,7 +536,7 @@ int main(int argc, char *argv[])
       fprintf(stderr, "--mempolicy ignored unless memory binding is also requested with --membind.\n");
   }
 
-  if (!got_cpubind && no_smt) {
+  if (!got_cpubind && no_smt != -1) {
     hwloc_bitmap_copy(cpubind_set, hwloc_topology_get_topology_cpuset(topology));
     got_cpubind = 1;
   }
@@ -477,21 +559,11 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "Conflicting CPU and memory binding requested, adding HWLOC_CPUBIND_NOMEMBIND flag.\n");
       cpubind_flags |= HWLOC_CPUBIND_NOMEMBIND;
     }
-    if (no_smt) {
+    if (no_smt != -1) {
       if (hwloc_get_type_depth(topology, HWLOC_OBJ_CORE) == HWLOC_TYPE_DEPTH_UNKNOWN) {
 	fprintf(stderr, "Topology has no Core object, ignoring --no-smt\n");
       } else {
-	hwloc_obj_t core = NULL;
-	while ((core = hwloc_get_next_obj_covering_cpuset_by_type(topology, cpubind_set, HWLOC_OBJ_CORE, core)) != NULL) {
-	  int firstpu = hwloc_bitmap_first(core->cpuset);
-	  int hadpu = hwloc_bitmap_isset(cpubind_set, firstpu);
-	  assert(firstpu >= 0);
-	  /* remove the entire core */
-	  hwloc_bitmap_andnot(cpubind_set, cpubind_set, core->cpuset);
-	  /* put back its first PU if it was there */
-	  if (hadpu)
-	    hwloc_bitmap_set(cpubind_set, firstpu);
-	}
+	hwloc_bitmap_singlify_per_core(topology, cpubind_set, no_smt);
       }
     }
     if (single)
@@ -510,13 +582,13 @@ int main(int argc, char *argv[])
       char *s;
       hwloc_bitmap_asprintf(&s, cpubind_set);
       if (pid_number > 0)
-        fprintf(stderr, "hwloc_set_proc_cpubind %s (flags %x) PID %d failed (errno %d %s)\n",
+        fprintf(stderr, "hwloc_set_proc_cpubind %s (flags 0x%x) PID %d failed (errno %d %s)\n",
 		s, cpubind_flags, pid_number, bind_errno, errmsg);
       else if (tid_number > 0)
-        fprintf(stderr, "hwloc_set_tid_cpubind %s (flags %x) PID %d failed (errno %d %s)\n",
+        fprintf(stderr, "hwloc_set_tid_cpubind %s (flags 0x%x) PID %d failed (errno %d %s)\n",
 		s, cpubind_flags, tid_number, bind_errno, errmsg);
       else
-        fprintf(stderr, "hwloc_set_cpubind %s (flags %x) failed (errno %d %s)\n",
+        fprintf(stderr, "hwloc_set_cpubind %s (flags 0x%x) failed (errno %d %s)\n",
 		s, cpubind_flags, bind_errno, errmsg);
       free(s);
     }

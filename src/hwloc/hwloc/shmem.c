@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Inria.  All rights reserved.
+ * Copyright © 2017-2020 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -23,6 +23,7 @@ struct hwloc_shmem_header {
   uint32_t header_length; /* where the actual topology starts in the file/mapping */
   uint64_t mmap_address; /* virtual address to pass to mmap */
   uint64_t mmap_length; /* length to pass to mmap (includes the header) */
+  /* we will pad the end to a multiple of pointer size so that the topology is well aligned */
 };
 
 #define HWLOC_SHMEM_MALLOC_ALIGN 8UL
@@ -85,6 +86,7 @@ hwloc_shmem_topology_write(hwloc_topology_t topology,
   hwloc_topology_t new;
   struct hwloc_tma tma;
   struct hwloc_shmem_header header;
+  uint32_t header_length = (sizeof(header) + sizeof(void*) - 1) & ~(sizeof(void*) - 1); /* pad to a multiple of pointer size */
   void *mmap_res;
   int err;
 
@@ -97,9 +99,10 @@ hwloc_shmem_topology_write(hwloc_topology_t topology,
    * without being able to free() them.
    */
   hwloc_internal_distances_refresh(topology);
+  hwloc_internal_memattrs_refresh(topology);
 
   header.header_version = HWLOC_SHMEM_HEADER_VERSION;
-  header.header_length = sizeof(header);
+  header.header_length = header_length;
   header.mmap_address = (uintptr_t) mmap_address;
   header.mmap_length = length;
 
@@ -126,7 +129,7 @@ hwloc_shmem_topology_write(hwloc_topology_t topology,
 
   tma.malloc = tma_shmem_malloc;
   tma.dontfree = 1;
-  tma.data = (char *)mmap_res + sizeof(header);
+  tma.data = (char *)mmap_res + header_length;
   err = hwloc__topology_dup(&new, topology, &tma);
   if (err < 0)
     return err;
@@ -134,8 +137,9 @@ hwloc_shmem_topology_write(hwloc_topology_t topology,
 
   assert((char *)mmap_res <= (char *)mmap_address + length);
 
-  /* now refresh the new distances so that adopters can use them without refreshing the R/O shmem mapping */
+  /* now refresh the new distances/memattrs so that adopters can use them without refreshing the R/O shmem mapping */
   hwloc_internal_distances_refresh(new);
+  hwloc_internal_memattrs_refresh(topology);
 
   /* topology is saved, release resources now */
   munmap(mmap_address, length);
@@ -152,6 +156,7 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
 {
   hwloc_topology_t new, old;
   struct hwloc_shmem_header header;
+  uint32_t header_length = (sizeof(header) + sizeof(void*) - 1) & ~(sizeof(void*) - 1); /* pad to a multiple of pointer size */
   void *mmap_res;
   int err;
 
@@ -169,7 +174,7 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
     return -1;
 
   if (header.header_version != HWLOC_SHMEM_HEADER_VERSION
-      || header.header_length != sizeof(header)
+      || header.header_length != header_length
       || header.mmap_address != (uintptr_t) mmap_address
       || header.mmap_length != length) {
     errno = EINVAL;
@@ -184,7 +189,7 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
     goto out_with_mmap;
   }
 
-  old = (hwloc_topology_t)((char*)mmap_address + sizeof(header));
+  old = (hwloc_topology_t)((char*)mmap_address + header_length);
   if (hwloc_topology_abi_check(old) < 0) {
     errno = EINVAL;
     goto out_with_mmap;
@@ -214,11 +219,13 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
   new->support.discovery = malloc(sizeof(*new->support.discovery));
   new->support.cpubind = malloc(sizeof(*new->support.cpubind));
   new->support.membind = malloc(sizeof(*new->support.membind));
-  if (!new->support.discovery || !new->support.cpubind || !new->support.membind)
+  new->support.misc = malloc(sizeof(*new->support.misc));
+  if (!new->support.discovery || !new->support.cpubind || !new->support.membind || !new->support.misc)
     goto out_with_support;
   memcpy(new->support.discovery, old->support.discovery, sizeof(*new->support.discovery));
   memcpy(new->support.cpubind, old->support.cpubind, sizeof(*new->support.cpubind));
   memcpy(new->support.membind, old->support.membind, sizeof(*new->support.membind));
+  memcpy(new->support.misc, old->support.misc, sizeof(*new->support.misc));
   hwloc_set_binding_hooks(new);
   /* clear userdata callbacks pointing to the writer process' functions */
   new->userdata_export_cb = NULL;
@@ -236,6 +243,7 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
   free(new->support.discovery);
   free(new->support.cpubind);
   free(new->support.membind);
+  free(new->support.misc);
   free(new);
  out_with_components:
   hwloc_components_fini();
@@ -252,6 +260,7 @@ hwloc__topology_disadopt(hwloc_topology_t topology)
   free(topology->support.discovery);
   free(topology->support.cpubind);
   free(topology->support.membind);
+  free(topology->support.misc);
   free(topology);
 }
 

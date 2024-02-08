@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Inria.  All rights reserved.
+ * Copyright © 2019-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -20,10 +20,14 @@ static void
 native_svg_box(struct lstopo_output *loutput, const struct lstopo_color *lcolor, unsigned depth __hwloc_attribute_unused, unsigned x, unsigned width, unsigned y, unsigned height, hwloc_obj_t obj, unsigned box_id)
 {
   FILE *file = loutput->file;
+  unsigned cpukind_style = lstopo_obj_cpukind_style(loutput, obj);
+  unsigned thickness = loutput->thickness;
   int r = lcolor->r, g = lcolor->g, b = lcolor->b;
   char id[128] = "";
   char class[128] = "";
   char complement[12] = "";
+  char dash[32] = "";
+
   if (box_id)
     snprintf(complement, sizeof complement, "_%u", box_id);
 
@@ -36,16 +40,20 @@ native_svg_box(struct lstopo_output *loutput, const struct lstopo_color *lcolor,
     snprintf(id, sizeof id, " id='anon_rect%s'", complement);
   }
 
-  fprintf(file,"\t<rect%s%s x='%u' y='%u' width='%u' height='%u' fill='rgb(%d,%d,%d)' stroke='rgb(0,0,0)' stroke-width='1'/>\n",
-	  id, class, x, y, width, height, r, g, b);
+  if (cpukind_style) {
+    snprintf(dash, sizeof(dash), " stroke-dasharray=\"%u\"", 1U << cpukind_style);
+    thickness *= cpukind_style;
+  }
+
+  fprintf(file,"\t<rect%s%s x='%u' y='%u' width='%u' height='%u' fill='rgb(%d,%d,%d)' stroke='rgb(0,0,0)' stroke-width='%u'%s/>\n",
+	  id, class, x, y, width, height, r, g, b, thickness, dash);
 }
 
 
 static void
-native_svg_line(struct lstopo_output *loutput, const struct lstopo_color *lcolor, unsigned depth __hwloc_attribute_unused, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj, unsigned line_id)
+native_svg_line(struct lstopo_output *loutput, unsigned depth __hwloc_attribute_unused, unsigned x1, unsigned y1, unsigned x2, unsigned y2, hwloc_obj_t obj, unsigned line_id)
 {
   FILE *file = loutput->file;
-  int r = lcolor->r, g = lcolor->g, b = lcolor->b;
   char id[128] = "";
   char class[128] = "";
   char complement[12] = "";
@@ -61,8 +69,8 @@ native_svg_line(struct lstopo_output *loutput, const struct lstopo_color *lcolor
     snprintf(id, sizeof id, " id='anon_line%s'", complement);
   }
 
-  fprintf(file,"\t<line%s%s x1='%u' y1='%u' x2='%u' y2='%u' stroke='rgb(%d,%d,%d)' stroke-width='1'/>\n",
-	  id, class, x1, y1, x2, y2, r, g, b);
+  fprintf(file,"\t<line%s%s x1='%u' y1='%u' x2='%u' y2='%u' stroke='rgb(0,0,0)' stroke-width='%u'/>\n",
+	  id, class, x1, y1, x2, y2, loutput->thickness);
 }
 
 static void
@@ -77,10 +85,13 @@ static void
 native_svg_text(struct lstopo_output *loutput, const struct lstopo_color *lcolor, int size, unsigned depth __hwloc_attribute_unused, unsigned x, unsigned y, const char *text, hwloc_obj_t obj, unsigned text_id)
 {
   FILE *file = loutput->file;
+  unsigned cpukind_style = lstopo_obj_cpukind_style(loutput, obj);
   int r = lcolor->r, g = lcolor->g, b = lcolor->b;
   char id[128] = "";
   char class[128] = "";
   char complement[12] = "";
+  const char *fontweight = "";
+
   if (text_id)
     snprintf(complement, sizeof complement, "_%u", text_id);
 
@@ -93,11 +104,17 @@ native_svg_text(struct lstopo_output *loutput, const struct lstopo_color *lcolor
     snprintf(id, sizeof id, " id='anon_text%s'", complement);
   }
 
-  fprintf(file,"\t<text%s%s font-family='Monospace' x='%u' y='%u' fill='rgb(%d,%d,%d)' font-size='%dpx'>%s</text>\n",
-	  id, class, x, y+size, r, g, b, size, text);
+  if (cpukind_style % 2)
+    fontweight = " font-weight='bold'";
+
+  fprintf(file,"\t<text%s%s font-family='Monospace'%s x='%u' y='%u' fill='rgb(%d,%d,%d)' font-size='%dpx'>%s</text>\n",
+	  id, class,
+          fontweight,
+          x, y+size, r, g, b, size, text);
 }
 
 static struct draw_methods native_svg_draw_methods = {
+  NULL,
   NULL,
   native_svg_box,
   native_svg_line,
@@ -115,6 +132,7 @@ int output_nativesvg(struct lstopo_output * loutput, const char *filename)
 
   loutput->file = output;
   loutput->methods = &native_svg_draw_methods;
+  loutput->backend_flags |= LSTOPO_BACKEND_FLAG_APPROXIMATIVE_TEXTWIDTH;
 
   /* recurse once for preparing sizes and positions */
   loutput->drawing = LSTOPO_DRAWING_PREPARE;
@@ -126,6 +144,7 @@ int output_nativesvg(struct lstopo_output * loutput, const char *filename)
 	  loutput->width, loutput->height, loutput->width, loutput->height);
 
   /* ready */
+  declare_colors(loutput);
   lstopo_prepare_custom_styles(loutput);
 
   output_draw(loutput);
@@ -134,5 +153,6 @@ int output_nativesvg(struct lstopo_output * loutput, const char *filename)
   if (output != stdout)
     fclose(output);
 
+  destroy_colors(loutput);
   return 0;
 }

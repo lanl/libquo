@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -13,6 +13,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
+#ifdef HWLOC_WIN_SYS
+#include <hwloc/windows.h>
+#endif
 
 #include "lstopo.h"
 #include "misc.h"
@@ -36,10 +40,10 @@ output_console_obj (struct lstopo_output *loutput, hwloc_obj_t l, int collapse)
 
   if (collapse > 1 && l->type == HWLOC_OBJ_PCI_DEVICE) {
     strcpy(pidxstr, "P#[collapsed]"); /* shouldn't be used, os_index should be -1 except if importing old XMLs */
-    snprintf(lidxstr, sizeof(lidxstr), "L#%u-%u", l->logical_index, l->logical_index+collapse-1);
+    snprintf(lidxstr, sizeof(lidxstr), "%s%u-%u", loutput->logical_index_prefix, l->logical_index, l->logical_index+collapse-1);
   } else {
-    snprintf(pidxstr, sizeof(pidxstr), "P#%u", l->os_index);
-    snprintf(lidxstr, sizeof(lidxstr), "L#%u", l->logical_index);
+    snprintf(pidxstr, sizeof(pidxstr), "%s%u", loutput->os_index_prefix, l->os_index);
+    snprintf(lidxstr, sizeof(lidxstr), "%s%u", loutput->logical_index_prefix, l->logical_index);
   }
   if (l->type == HWLOC_OBJ_PCI_DEVICE)
     lstopo_busid_snprintf(loutput, busidstr, sizeof(busidstr), l, collapse, loutput->need_pci_domain);
@@ -55,10 +59,10 @@ output_console_obj (struct lstopo_output *loutput, hwloc_obj_t l, int collapse)
     if (l->depth != 0 && (verbose_mode >= 2 || (hwloc_obj_type_is_normal(l->type) || hwloc_obj_type_is_memory(l->type)))) {
       if (index_type != LSTOPO_INDEX_TYPE_PHYSICAL)
 	/* print logical index in logical and default case */
-	fprintf(output, " %s", lidxstr);
+	fprintf(output, "%s", lidxstr);
       else if (index_type == LSTOPO_INDEX_TYPE_PHYSICAL && l->os_index != HWLOC_UNKNOWN_INDEX)
 	/* print physical index in physical case */
-	fprintf(output, " %s", pidxstr);
+	fprintf(output, "%s", pidxstr);
     }
     if (l->name && (l->type == HWLOC_OBJ_MISC || l->type == HWLOC_OBJ_GROUP))
       fprintf(output, " %s", l->name);
@@ -66,7 +70,10 @@ output_console_obj (struct lstopo_output *loutput, hwloc_obj_t l, int collapse)
 	&& l->os_index != HWLOC_UNKNOWN_INDEX
 	&& (verbose_mode >= 2 || l->type == HWLOC_OBJ_PU || l->type == HWLOC_OBJ_NUMANODE))
       /* print physical index too if default index */
-      snprintf(phys, sizeof(phys), "%s", pidxstr);
+      snprintf(phys, sizeof(phys),
+               "%s",
+               pidxstr[0] == ' ' ? pidxstr+1 : pidxstr /* skip the starting space if any */
+        );
     if (l->type == HWLOC_OBJ_PCI_DEVICE && verbose_mode <= 1)
       fprintf(output, " %s (%s)",
 	      busidstr, hwloc_pci_class_string(l->attr->pcidev.class_id));
@@ -183,25 +190,28 @@ output_only (struct lstopo_output *loutput, hwloc_obj_t l)
 {
   FILE *output = loutput->file;
   hwloc_obj_t child;
-  if (loutput->show_only == l->type) {
-    output_console_obj (loutput, l, 0);
-    fprintf (output, "\n");
+  if (loutput->show_only.type == l->type
+      || loutput->show_only.depth == l->depth) {
+    if (!hwloc_calc_check_object_filtered(l, &loutput->show_only)) {
+      output_console_obj (loutput, l, 0);
+      fprintf (output, "\n");
+    }
   }
   /* there can be anything below normal children */
   for_each_child(child, l)
     output_only (loutput, child);
   /* there can be only memory or Misc below memory children */
-  if (hwloc_obj_type_is_memory(loutput->show_only) || loutput->show_only == HWLOC_OBJ_MISC) {
+  if (loutput->show_only.type == HWLOC_OBJ_TYPE_NONE || hwloc_obj_type_is_memory(loutput->show_only.type) || loutput->show_only.type == HWLOC_OBJ_MISC) {
     for(child = l->memory_first_child; child; child = child->next_sibling)
       output_only (loutput, child);
   }
   /* there can be only I/O or Misc below I/O children */
-  if (hwloc_obj_type_is_io(loutput->show_only) || loutput->show_only == HWLOC_OBJ_MISC) {
+  if (loutput->show_only.type == HWLOC_OBJ_TYPE_NONE || hwloc_obj_type_is_io(loutput->show_only.type) || loutput->show_only.type == HWLOC_OBJ_MISC) {
     for_each_io_child(child, l)
       output_only (loutput, child);
   }
   /* there can be only Misc below Misc children */
-  if (loutput->show_only == HWLOC_OBJ_MISC) {
+  if (loutput->show_only.type == HWLOC_OBJ_TYPE_NONE || loutput->show_only.type == HWLOC_OBJ_MISC) {
     /* Misc can only contain other Misc, no need to recurse otherwise */
     for_each_misc_child(child, l)
       output_only (loutput, child);
@@ -225,14 +235,19 @@ static void output_distances(struct lstopo_output *loutput)
   if (!err) {
     for(j=0; j<nr; j++) {
       const char *kindmeans = (dist[j]->kind & HWLOC_DISTANCES_KIND_MEANS_LATENCY) ? "latency" : (dist[j]->kind & HWLOC_DISTANCES_KIND_MEANS_BANDWIDTH) ? "bandwidth" : "distance";
+      const char *name = hwloc_distances_get_name(topology, dist[j]);
+      if (!name)
+        name = "(null)";
+      if (loutput->transform_distances != -1)
+        hwloc_distances_transform(topology, dist[j], loutput->transform_distances, NULL, 0);
       if (dist[j]->kind & HWLOC_DISTANCES_KIND_HETEROGENEOUS_TYPES) {
 	fprintf(output, "Relative %s matrix (name %s kind %lu) between %u heterogeneous objects by %s indexes:\n",
-		kindmeans, hwloc_distances_get_name(topology, dist[j]), dist[j]->kind,
+		kindmeans, name, dist[j]->kind,
 		dist[j]->nbobjs,
 		index_type != LSTOPO_INDEX_TYPE_PHYSICAL ? "logical" : "physical");
       } else {
 	fprintf(output, "Relative %s matrix (name %s kind %lu) between %u %ss (depth %d) by %s indexes:\n",
-		kindmeans, hwloc_distances_get_name(topology, dist[j]), dist[j]->kind,
+		kindmeans, name, dist[j]->kind,
 		dist[j]->nbobjs,
 		hwloc_obj_type_string(dist[j]->objs[0]->type),
 		dist[j]->objs[0]->depth,
@@ -243,6 +258,216 @@ static void output_distances(struct lstopo_output *loutput)
     }
   }
   free(dist);
+}
+
+static void output_memattr_obj(struct lstopo_output *loutput,
+                               hwloc_obj_t obj)
+{
+  enum lstopo_index_type_e index_type = loutput->index_type;
+  unsigned idx = (index_type == LSTOPO_INDEX_TYPE_PHYSICAL ? obj->os_index : obj->logical_index);
+  char objtype[16];
+
+  hwloc_obj_type_snprintf(objtype, sizeof(objtype), obj, 0);
+  if (idx == (unsigned) -1)
+    printf("%s %c#-1", objtype,
+           index_type == LSTOPO_INDEX_TYPE_PHYSICAL ? 'P' : 'L');
+  else
+    printf("%s %c#%u", objtype,
+           index_type == LSTOPO_INDEX_TYPE_PHYSICAL ? 'P' : 'L',
+           idx);
+
+  if (obj->name)
+    printf(" \"%s\"", obj->name);
+}
+
+static void output_memattr_initiator(struct lstopo_output *loutput,
+                                     struct hwloc_location *initiator)
+{
+  hwloc_topology_t topology = loutput->topology;
+
+  if (initiator->type == HWLOC_LOCATION_TYPE_CPUSET) {
+    hwloc_obj_t obj;
+    char *c;
+
+    assert(initiator->location.cpuset);
+    hwloc_bitmap_asprintf(&c, initiator->location.cpuset);
+    printf(" from cpuset %s", c);
+    free(c);
+
+    obj = hwloc_get_obj_covering_cpuset(topology, initiator->location.cpuset);
+    if (obj && !hwloc_bitmap_isequal(obj->cpuset, initiator->location.cpuset))
+      obj = NULL;
+    if (obj) {
+      while (obj->parent && hwloc_bitmap_isequal(obj->cpuset, obj->parent->cpuset))
+        obj = obj->parent;
+      printf(" (");
+      output_memattr_obj(loutput, obj);
+      printf(")");
+    }
+
+  } else if (initiator->type == HWLOC_LOCATION_TYPE_OBJECT) {
+    printf(" from ");
+    output_memattr_obj(loutput, initiator->location.object);
+
+  } else {
+    printf(" from initiator with unexpected type %d",
+	   (int) initiator->type);
+  }
+
+}
+
+static int output_memattr(struct lstopo_output *loutput, unsigned id)
+{
+  hwloc_topology_t topology = loutput->topology;
+  int verbose_mode = loutput->verbose_mode;
+  int show_all = (loutput->show_memattrs_only || (verbose_mode >= 3));
+  const char *name;
+  unsigned long flags;
+  unsigned nr_targets;
+  hwloc_obj_t *targets;
+  unsigned i;
+  int err;
+
+  if (!show_all
+      && (id == HWLOC_MEMATTR_ID_CAPACITY || id == HWLOC_MEMATTR_ID_LOCALITY))
+    return 0;
+
+  err = hwloc_memattr_get_name(topology, id, &name);
+  if (err < 0)
+    return -1;
+  err = hwloc_memattr_get_flags(topology, id, &flags);
+  assert(!err);
+
+  nr_targets = 0;
+  err = hwloc_memattr_get_targets(topology, id, NULL, 0, &nr_targets, NULL, NULL);
+  assert(!err);
+
+  if (!show_all && !nr_targets)
+    return 0;
+
+  printf("Memory attribute #%u name `%s' flags %lu\n", id, name, flags);
+
+  targets = malloc(nr_targets * sizeof(*targets));
+  if (!targets)
+    return 0;
+
+  err = hwloc_memattr_get_targets(topology, id, NULL, 0, &nr_targets, targets, NULL);
+  assert(!err);
+
+  for(i=0; i<nr_targets; i++) {
+
+    if (!(flags & HWLOC_MEMATTR_FLAG_NEED_INITIATOR)) {
+      hwloc_uint64_t value;
+      err = hwloc_memattr_get_value(topology, id, targets[i], NULL, 0, &value);
+      if (!err) {
+        printf("  ");
+        output_memattr_obj(loutput, targets[i]);
+        printf(" = %llu\n", (unsigned long long) value);
+      }
+
+    } else {
+      unsigned nr_initiators = 0;
+      err = hwloc_memattr_get_initiators(topology, id, targets[i], 0, &nr_initiators, NULL, NULL);
+      if (!err) {
+        struct hwloc_location *initiators = malloc(nr_initiators * sizeof(*initiators));
+        hwloc_uint64_t *values = malloc(nr_initiators * sizeof(*values));
+        if (initiators && values) {
+          err = hwloc_memattr_get_initiators(topology, id, targets[i], 0, &nr_initiators, initiators, values);
+          if (!err) {
+            unsigned j;
+            for(j=0; j<nr_initiators; j++) {
+              printf("  ");
+              output_memattr_obj(loutput, targets[i]);
+              printf(" = %llu",
+                     (unsigned long long) values[j]);
+              output_memattr_initiator(loutput, &initiators[j]);
+              printf("\n");
+            }
+          }
+        }
+        free(initiators);
+        free(values);
+      }
+    }
+  }
+  free(targets);
+
+  return 0;
+}
+
+static void output_memattrs(struct lstopo_output *loutput)
+{
+  unsigned id;
+  /* output in a convenient instead of the native ID order */
+  output_memattr(loutput, HWLOC_MEMATTR_ID_CAPACITY);
+  output_memattr(loutput, HWLOC_MEMATTR_ID_LOCALITY);
+  output_memattr(loutput, HWLOC_MEMATTR_ID_BANDWIDTH);
+  output_memattr(loutput, HWLOC_MEMATTR_ID_READ_BANDWIDTH);
+  output_memattr(loutput, HWLOC_MEMATTR_ID_WRITE_BANDWIDTH);
+  output_memattr(loutput, HWLOC_MEMATTR_ID_LATENCY);
+  output_memattr(loutput, HWLOC_MEMATTR_ID_READ_LATENCY);
+  output_memattr(loutput, HWLOC_MEMATTR_ID_WRITE_LATENCY);
+  /* output others */
+  for(id=HWLOC_MEMATTR_ID_WRITE_LATENCY+1; ; id++)
+    if (output_memattr(loutput, id) < 0)
+      break;
+}
+
+
+static void output_windows_processor_groups(struct lstopo_output *loutput __hwloc_attribute_unused,
+                                            int force __hwloc_attribute_unused)
+{
+#ifdef HWLOC_WIN_SYS
+  hwloc_topology_t topology = loutput->topology;
+  int err = hwloc_windows_get_nr_processor_groups(topology, 0);
+  if (err > 0) {
+    unsigned nr = (unsigned) err;
+    if (nr > 1 || force) {
+      hwloc_bitmap_t set = hwloc_bitmap_alloc();
+      if (set) {
+        unsigned i;
+        for(i=0; i<nr; i++) {
+          err = hwloc_windows_get_processor_group_cpuset(topology, i, set, 0);
+          if (!err) {
+            char *s;
+            hwloc_bitmap_asprintf(&s, set);
+            printf("Processor Group #%u = %s\n", i, s);
+            free(s);
+          }
+        }
+        hwloc_bitmap_free(set);
+      }
+    }
+  }
+#endif
+}
+
+static void output_cpukinds(struct lstopo_output *loutput)
+{
+  hwloc_topology_t topology = loutput->topology;
+  unsigned i, j, nr;
+  hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
+
+  nr = hwloc_cpukinds_get_nr(topology, 0);
+
+  for(i=0; i<nr; i++) {
+    int efficiency;
+    struct hwloc_info_s *infos;
+    unsigned nr_infos;
+    int err;
+
+    err = hwloc_cpukinds_get_info(topology, i, cpuset, &efficiency, &nr_infos, &infos, 0);
+    if (!err) {
+      char *cpusets;
+      hwloc_bitmap_asprintf(&cpusets, cpuset);
+      printf("CPU kind #%u efficiency %d cpuset %s\n", i, efficiency, cpusets);
+      free(cpusets);
+      for(j=0; j<nr_infos; j++)
+        printf("  %s = %s\n", infos[j].name, infos[j].value);
+    }
+  }
+
+  hwloc_bitmap_free(cpuset);
 }
 
 int
@@ -263,6 +488,18 @@ output_console(struct lstopo_output *loutput, const char *filename)
     output_distances(loutput);
     return 0;
   }
+  if (loutput->show_memattrs_only) {
+    output_memattrs(loutput);
+    return 0;
+  }
+  if (loutput->show_cpukinds_only) {
+    output_cpukinds(loutput);
+    return 0;
+  }
+  if (loutput->show_windows_processor_groups_only) {
+    output_windows_processor_groups(loutput, 1);
+    return 0;
+  }
 
   /*
    * if verbose_mode == 0, only print the summary.
@@ -270,24 +507,31 @@ output_console(struct lstopo_output *loutput, const char *filename)
    * if verbose_mode > 1, print both.
    */
 
-  if (loutput->show_only != HWLOC_OBJ_TYPE_NONE) {
-    if (verbose_mode > 1)
-      fprintf(output, "Only showing %s objects\n", hwloc_obj_type_string(loutput->show_only));
+  if (loutput->show_only.depth != HWLOC_TYPE_DEPTH_UNKNOWN) {
+    if (verbose_mode > 1) {
+      if (loutput->show_only.type != HWLOC_OBJ_TYPE_NONE)
+        fprintf(output, "Only showing some %s objects\n", hwloc_obj_type_string(loutput->show_only.type));
+      else
+        fprintf(output, "Only showing some objects at depth %d\n", loutput->show_only.depth);
+    }
     output_only (loutput, hwloc_get_root_obj(topology));
   } else if (verbose_mode >= 1) {
     output_topology (loutput, hwloc_get_root_obj(topology), NULL, 0);
     fprintf(output, "\n");
   }
 
-  if ((verbose_mode > 1 || !verbose_mode) && loutput->show_only == HWLOC_OBJ_TYPE_NONE) {
+  if ((verbose_mode > 1 || !verbose_mode) && loutput->show_only.depth == HWLOC_TYPE_DEPTH_UNKNOWN) {
     hwloc_lstopo_show_summary(output, topology);
   }
 
-  if (verbose_mode > 1 && loutput->show_only == HWLOC_OBJ_TYPE_NONE) {
+  if (verbose_mode > 1 && loutput->show_only.depth == HWLOC_TYPE_DEPTH_UNKNOWN) {
     output_distances(loutput);
+    output_memattrs(loutput);
+    output_cpukinds(loutput);
+    output_windows_processor_groups(loutput, verbose_mode > 2);
   }
 
-  if (verbose_mode > 1 && loutput->show_only == HWLOC_OBJ_TYPE_NONE) {
+  if (verbose_mode > 1 && loutput->show_only.depth == HWLOC_TYPE_DEPTH_UNKNOWN) {
     hwloc_const_bitmap_t complete = hwloc_topology_get_complete_cpuset(topology);
     hwloc_const_bitmap_t topo = hwloc_topology_get_topology_cpuset(topology);
     hwloc_const_bitmap_t allowed = hwloc_topology_get_allowed_cpuset(topology);

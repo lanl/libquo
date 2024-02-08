@@ -1,20 +1,24 @@
+# (default)
 depth 0:           1 Machine (type #0)
  depth 1:          2 Group0 (type #12)
   depth 2:         6 Core (type #2)
    depth 3:        24 PU (type #3)
 Special depth -3:  2 NUMANode (type #13)
 
+# --topology
 depth 0:           1 Machine (type #0)
  depth 1:          2 Group0 (type #12)
   depth 2:         6 Core (type #2)
    depth 3:        24 PU (type #3)
 Special depth -3:  2 NUMANode (type #13)
 
+# --support
 discovery:pu = 1
 discovery:disallowed_pu = 0
 discovery:numa = 1
 discovery:numa_memory = 1
 discovery:disallowed_numa = 0
+discovery:cpukind_efficiency = 0
 cpubind:set_thisproc_cpubind = 0
 cpubind:get_thisproc_cpubind = 0
 cpubind:set_proc_cpubind = 0
@@ -41,8 +45,11 @@ membind:interleave_membind = 0
 membind:nexttouch_membind = 0
 membind:migrate_membind = 0
 membind:get_area_memlocation = 0
+misc:imported_support = 0
 
+# --objects
 
+# Core range
 Core L#2
  type = Core
  full type = Core
@@ -101,6 +108,7 @@ Core L#4
  allowed nodeset = 0x00000002
  symmetric subtree = 1
 
+# all ancestors of PU range
 0.0: PU L#10
 0.0:  type = PU
 0.0:  full type = PU
@@ -262,6 +270,7 @@ Core L#4
 1.3:  info Backend = Synthetic
 1.3:  info SyntheticDescription = node:2 core:3 pu:4
 
+# Core ancestors of PU range
 Core L#1 = parent of PU L#7
  type = Core
  full type = Core
@@ -320,6 +329,7 @@ Core L#2 = parent of PU L#9
  allowed nodeset = 0x00000001
  symmetric subtree = 1
 
+# L2 ancestor of PU
 L2Cache L#3 = parent of PU L#12
  type = L2Cache
  full type = L2Cache
@@ -343,16 +353,63 @@ L2Cache L#3 = parent of PU L#12
  attr cache line size = 64
  symmetric subtree = 1
 
+# L1 ancestor of PU range
 L1dCache:3
 L1dCache:4
 L1dCache:4
 L1dCache:5
 
+# Ancestor caches above L1d
+0.0: L2Cache:2
+0.1: L3Cache:0
+0.2: L4Cache:0
+1.0: L2Cache:4
+1.1: L3Cache:1
+1.2: L4Cache:0
+
+# Descendant CPU objects below L4
+0.0: Core:0
+0.1: PU:0
+0.2: PU:1
+0.3: Core:1
+0.4: PU:2
+0.5: PU:3
+0.6: Core:2
+0.7: PU:4
+0.8: PU:5
+0.9: Core:3
+0.10: PU:6
+0.11: PU:7
+1.0: Core:12
+1.1: PU:24
+1.2: PU:25
+1.3: Core:13
+1.4: PU:26
+1.5: PU:27
+1.6: Core:14
+1.7: PU:28
+1.8: PU:29
+1.9: Core:15
+1.10: PU:30
+1.11: PU:31
+
+# Descendant Memory objects below L3
+0.0: NUMANode:2
+0.1: NUMANode:3
+1.0: NUMANode:17
+1.1: NUMANode:18
+
+# Where a NUMA is attached
+L3Cache:1
+Package:2
+
+# Children of L2 and Core of Node, silent
 L1dCache:2
 L1dCache:3
 L2Cache:6
 L2Cache:7
 
+# L1d descendants of Core range, silent
 L1dCache:4
 L1dCache:5
 L1dCache:6
@@ -361,3 +418,168 @@ L1dCache:8
 L1dCache:9
 L1dCache:10
 L1dCache:11
+
+# 2 local memory for one PU
+NUMANode L#1 = local memory #0 of PU L#8
+ type = NUMANode
+ full type = NUMANode
+ logical index = 1
+ os index = 1
+ gp index = 29
+ depth = -3
+ sibling rank = 0
+ children = 0
+ memory children = 0
+ i/o children = 0
+ misc children = 0
+ local memory = 1073741824
+ total memory = 1073741824
+ cpuset = 0x0000ff00
+ complete cpuset = 0x0000ff00
+ allowed cpuset = 0x0000ff00
+ nodeset = 0x00000002
+ complete nodeset = 0x00000002
+ allowed nodeset = 0x00000002
+ symmetric subtree = 0
+ memory attribute Capacity = 1073741824
+ memory attribute Locality = 8
+NUMANode L#2 = local memory #1 of PU L#8
+ type = NUMANode
+ full type = NUMANode
+ logical index = 2
+ os index = 2
+ gp index = 31
+ depth = -3
+ sibling rank = 0
+ children = 0
+ memory children = 0
+ i/o children = 0
+ misc children = 0
+ local memory = 1073741824
+ total memory = 1073741824
+ cpuset = 0x0000ffff
+ complete cpuset = 0x0000ffff
+ allowed cpuset = 0x0000ffff
+ nodeset = 0x00000004
+ complete nodeset = 0x00000004
+ allowed nodeset = 0x00000004
+ symmetric subtree = 0
+ memory attribute Capacity = 1073741824
+ memory attribute Locality = 16
+
+# 2 local-or-larger memories for one PU, silent
+NUMANode:1
+NUMANode:2
+
+# no local-or-larger memory for root, silent
+
+# no local-or-smaller memory for one PU, silent
+
+# 3 local-or-smaller memories for on Package, silent
+NUMANode:3
+NUMANode:4
+NUMANode:5
+
+# no strict-local memory for one PU, silent
+
+# 1 strict-local memory for one NUMANode, silent
+NUMANode:1
+
+# 12 local-all memories for one PU, silent
+NUMANode:0
+NUMANode:1
+NUMANode:2
+NUMANode:3
+NUMANode:4
+NUMANode:5
+NUMANode:6
+NUMANode:7
+NUMANode:8
+NUMANode:9
+NUMANode:10
+NUMANode:11
+
+# only the smallest locality among 2 local-or-larger memories for one PU, silent
+NUMANode:10
+
+# only the highest capacity among 2 local-or-larger memories for one PU, silent
+NUMANode:11
+
+
+# MCDRAM subtype NUMA filter
+NUMANode:3
+NUMANode:5
+
+# Memory Tier 1 filter
+NUMANode:6
+
+# NVML subtype OSdev type filter
+GPU:2
+GPU:5
+GPU:8
+GPU:11
+
+ # GPU OSdev type filter
+GPU:11
+
+
+# cpukinds for the entire machine
+Machine L#0
+ type = Machine
+ full type = Machine
+ logical index = 0
+ os index = 0
+ gp index = 1
+ depth = 0
+ sibling rank = 0
+ children = 2
+ memory children = 0
+ i/o children = 0
+ misc children = 0
+ total memory = 6442450944
+ cpuset = 0x00ffffff
+ complete cpuset = 0x00ffffff
+ allowed cpuset = 0x00ffffff
+ nodeset = 0x0000003f
+ complete nodeset = 0x0000003f
+ allowed nodeset = 0x0000003f
+ symmetric subtree = 0
+ info Backend = Linux
+ cpukind = 0 (partially)
+ cpukind info FrequencyMaxMHz = 2000
+ cpukind info FrequencyBaseMHz = 1200
+ cpukind info LinuxCapacity = 1025
+ cpukind = 1 (partially)
+ cpukind info FrequencyMaxMHz = 3000
+ cpukind info FrequencyBaseMHz = 2500
+ cpukind info LinuxCapacity = 234
+ cpukind = 2 (partially)
+ cpukind info FrequencyMaxMHz = 3000
+ cpukind info FrequencyBaseMHz = 1200
+ cpukind info LinuxCapacity = 234
+
+# cpukind for a single PU
+PU L#15
+ type = PU
+ full type = PU
+ logical index = 15
+ os index = 15
+ gp index = 34
+ depth = 5
+ sibling rank = 1
+ children = 0
+ memory children = 0
+ i/o children = 0
+ misc children = 0
+ cpuset = 0x00008000
+ complete cpuset = 0x00008000
+ allowed cpuset = 0x00008000
+ nodeset = 0x00000020
+ complete nodeset = 0x00000020
+ allowed nodeset = 0x00000020
+ symmetric subtree = 1
+ cpukind = 0
+ cpukind info FrequencyMaxMHz = 2000
+ cpukind info FrequencyBaseMHz = 1200
+ cpukind info LinuxCapacity = 1025
+

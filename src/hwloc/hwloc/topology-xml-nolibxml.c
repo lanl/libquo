@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2011 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -34,7 +34,7 @@ struct hwloc__nolibxml_backend_data_s {
 typedef struct hwloc__nolibxml_import_state_data_s {
   char *tagbuffer; /* buffer containing the next tag */
   char *attrbuffer; /* buffer containing the next attribute of the current node */
-  char *tagname; /* tag name of the current node */
+  const char *tagname; /* tag name of the current node */
   int closed; /* set if the current node is auto-closing */
 } __hwloc_attribute_may_alias * hwloc__nolibxml_import_state_data_t;
 
@@ -137,7 +137,7 @@ hwloc__nolibxml_import_find_child(hwloc__xml_import_state_t state,
     return 0;
 
   /* normal tag */
-  tag = nchildstate->tagname = buffer;
+  nchildstate->tagname = tag = buffer;
 
   /* find the end, mark it and return it */
   end = strchr(buffer, '>');
@@ -213,7 +213,7 @@ hwloc__nolibxml_import_close_child(hwloc__xml_import_state_t state)
 
 static int
 hwloc__nolibxml_import_get_content(hwloc__xml_import_state_t state,
-				   char **beginp, size_t expected_length)
+				   const char **beginp, size_t expected_length)
 {
   hwloc__nolibxml_import_state_data_t nstate = (void*) state->data;
   char *buffer = nstate->tagbuffer;
@@ -224,7 +224,7 @@ hwloc__nolibxml_import_get_content(hwloc__xml_import_state_t state,
   if (nstate->closed) {
     if (expected_length)
       return -1;
-    *beginp = (char *) "";
+    *beginp = "";
     return 0;
   }
 
@@ -260,7 +260,7 @@ hwloc_nolibxml_look_init(struct hwloc_xml_backend_data_s *bdata,
   unsigned major, minor;
   char *end;
   char *buffer = nbdata->buffer;
-  char *tagname;
+  const char *tagname;
 
   HWLOC_BUILD_ASSERT(sizeof(*nstate) <= sizeof(state->data));
 
@@ -411,12 +411,12 @@ hwloc_nolibxml_backend_init(struct hwloc_xml_backend_data_s *bdata,
   bdata->data = nbdata;
 
   if (xmlbuffer) {
-    nbdata->buffer = malloc(xmlbuflen+1);
+    nbdata->buffer = malloc(xmlbuflen);
     if (!nbdata->buffer)
       goto out_with_nbdata;
-    nbdata->buflen = xmlbuflen+1;
+    nbdata->buflen = xmlbuflen;
     memcpy(nbdata->buffer, xmlbuffer, xmlbuflen);
-    nbdata->buffer[xmlbuflen] = '\0';
+    nbdata->buffer[xmlbuflen-1] = '\0'; /* make sure it's there as requested in the API */
 
   } else {
     int err = hwloc_nolibxml_read_file(xmlpath, &nbdata->buffer, &nbdata->buflen);
@@ -453,8 +453,9 @@ hwloc_nolibxml_import_diff(struct hwloc__xml_import_state_s *state,
     buffer = malloc(xmlbuflen);
     if (!buffer)
       goto out;
-    memcpy(buffer, xmlbuffer, xmlbuflen);
     buflen = xmlbuflen;
+    memcpy(buffer, xmlbuffer, xmlbuflen);
+    buffer[xmlbuflen-1] = '\0'; /* make sure it's there as requested in the API */
 
   } else {
     ret = hwloc_nolibxml_read_file(xmlpath, &buffer, &buflen);
