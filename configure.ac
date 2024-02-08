@@ -12,7 +12,7 @@ AC_INIT([libquo],
         [1.4.0-devel],
         [samuel@lanl.gov],
         [libquo],
-        [http://losalamos.github.io/libquo/])
+        [https://lanl.github.io/libquo])
 
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_SRCDIR([src])
