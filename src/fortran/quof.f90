@@ -1,5 +1,5 @@
 !
-! Copyright (c) 2013-2019 Triad National Security, LLC
+! Copyright (c) 2013-2024 Triad National Security, LLC
 !                         All rights reserved.
 !
 ! This file is part of the libquo project. See the LICENSE file at the
@@ -64,6 +64,13 @@ module quo
       parameter (QUO_BIND_PUSH_PROVIDED = 0)
       parameter (QUO_BIND_PUSH_OBJ = 1)
 
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      ! context create flags
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      integer(c_int) QUO_CREATE_NO_MT
+
+      parameter (QUO_CREATE_NO_MT = 1)
+
 interface
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       integer(c_int) &
@@ -96,6 +103,19 @@ interface
           type(c_ptr), intent(out) :: q
           integer(c_int), value :: comm
       end function quo_create_c
+end interface
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+interface
+      integer(c_int) &
+      function quo_create_with_flags_c(q, comm, flags) &
+          bind(c, name='QUO_create_with_flags_f2c')
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
+          implicit none
+          type(c_ptr), intent(out) :: q
+          integer(c_int), value :: comm
+          integer(c_int), value :: flags
+      end function quo_create_with_flags_c
 end interface
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -362,6 +382,17 @@ contains
           integer(c_int), intent(out) :: ierr
           ierr = quo_create_c(q, comm)
       end subroutine quo_create
+
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine quo_create_with_flags(q, comm, flags, ierr)
+          use, intrinsic :: iso_c_binding, only: c_ptr, c_int
+          implicit none
+          type(c_ptr), intent(out) :: q
+          integer, value :: comm
+          integer, value :: flags
+          integer(c_int), intent(out) :: ierr
+          ierr = quo_create_with_flags_c(q, comm, flags)
+      end subroutine quo_create_with_flags
 
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       subroutine quo_free(q, ierr)

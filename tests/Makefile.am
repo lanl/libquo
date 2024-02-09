@@ -12,7 +12,8 @@ trivial \
 dist-work \
 barrier-subset \
 quo-time \
-view-mpi-proc-bind
+view-mpi-proc-bind \
+noht
 
 if QUO_WITH_MPIFC
 noinst_PROGRAMS += \
@@ -51,6 +52,11 @@ quo_time_LDADD   = $(top_builddir)/src/libquo.la
 view_mpi_proc_bind_SOURCES = view-mpi-proc-bind.c
 view_mpi_proc_bind_CFLAGS  = -I$(top_srcdir)/src
 view_mpi_proc_bind_LDADD   = $(top_builddir)/src/libquo.la
+
+### test no multit-threading (hyper-threading) mode.
+noht_SOURCES = noht.c
+noht_CFLAGS  = -I$(top_srcdir)/src
+noht_LDADD   = $(top_builddir)/src/libquo.la
 
 ################################################################################
 # Fortran Tests

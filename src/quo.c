@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Triad National Security, LLC
+ * Copyright (c) 2013-2024 Triad National Security, LLC
  *                         All rights reserved.
  *
  * This file is part of the libquo project. See the LICENSE file at the
@@ -108,6 +108,14 @@ int
 QUO_create(QUO_t **q,
            MPI_Comm comm)
 {
+    return QUO_create_with_flags(q, comm, (QUO_create_flags_t)0);
+}
+
+int
+QUO_create_with_flags(QUO_context *q,
+                      MPI_Comm comm,
+                      QUO_create_flags_t flags)
+{
     int rc = QUO_ERR;
     QUO_t *tq = NULL;
 
@@ -119,7 +127,7 @@ QUO_create(QUO_t **q,
         QUO_ERR_MSGRC("quo_mpi_init", rc);
         goto out;
     }
-    if (QUO_SUCCESS != (rc = quo_hwloc_init(tq->hwloc, tq->mpi))) {
+    if (QUO_SUCCESS != (rc = quo_hwloc_init(tq->hwloc, tq->mpi, flags))) {
         QUO_ERR_MSGRC("quo_hwloc_init", rc);
         goto out;
     }
