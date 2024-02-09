@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Triad National Security, LLC
+ * Copyright (c) 2013-2024 Triad National Security, LLC
  *                         All rights reserved.
  *
  * This file is part of the libquo project. See the LICENSE file at the
@@ -34,7 +34,8 @@ quo_hwloc_construct(quo_hwloc_t **nhwloc);
 
 int
 quo_hwloc_init(quo_hwloc_t *hwloc,
-               quo_mpi_t *mpi);
+               quo_mpi_t *mpi,
+               QUO_create_flags_t flags);
 
 int
 quo_hwloc_destruct(quo_hwloc_t *nhwloc);

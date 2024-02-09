@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Triad National Security, LLC
+ * Copyright (c) 2013-2024 Triad National Security, LLC
  *                         All rights reserved.
  *
  * This file is part of the libquo project. See the LICENSE file at the
@@ -90,6 +90,12 @@ typedef enum {
     QUO_BIND_PUSH_OBJ
 } QUO_bind_push_policy_t;
 
+/** Context-specific flags that influence how QUO behaves. */
+typedef enum {
+    /** Software disable multi-threading (hyper-threading). */
+    QUO_CREATE_NO_MT = 1
+} QUO_create_flags_t;
+
 /* ////////////////////////////////////////////////////////////////////////// */
 /* ////////////////////////////////////////////////////////////////////////// */
 /* QUO API */
@@ -135,6 +141,15 @@ QUO_version(int *version,
 int
 QUO_create(QUO_context *q,
            MPI_Comm comm);
+
+/**
+ * Same as QUO_create(), but allows users to add flags that influence how QUO
+ * behaves.
+ */
+int
+QUO_create_with_flags(QUO_context *q,
+                      MPI_Comm comm,
+                      QUO_create_flags_t flags);
 
 /**
  * Context handle destruction routine.

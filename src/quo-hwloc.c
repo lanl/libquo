@@ -54,6 +54,8 @@ typedef struct bind_stack_t {
 struct quo_hwloc_t {
     /** The system's topology. */
     hwloc_topology_t topo;
+    /** Flags that potentially influence how hwloc behaves. */
+    QUO_create_flags_t flags;
     /** The widest cpuset. Primarily used for "is bound?" tests. */
     hwloc_cpuset_t widest_cpuset;
     /** The bind stack. */
@@ -114,6 +116,38 @@ ext2intobj(QUO_obj_type_t external,
             *internal = HWLOC_OBJ_MACHINE;
             return QUO_ERR_INVLD_ARG;
     }
+    return QUO_SUCCESS;
+}
+
+static int
+topo_disable_ht(
+    quo_hwloc_t *hwloc
+) {
+    hwloc_obj_t sysobj = hwloc_get_root_obj(hwloc->topo);
+    hwloc_cpuset_t orig_cpuset = hwloc_bitmap_dup(sysobj->cpuset);
+
+    hwloc_cpuset_t noht_cpuset = hwloc_bitmap_alloc();
+    hwloc_bitmap_zero(noht_cpuset);
+
+    // How many cores are in the unmodified topology?
+    const unsigned ncores = hwloc_get_nbobjs_inside_cpuset_by_type(
+        hwloc->topo, orig_cpuset, HWLOC_OBJ_CORE
+    );
+
+    for (unsigned i = 0; i < ncores; ++i) {
+        hwloc_obj_t obj = hwloc_get_obj_inside_cpuset_by_type(
+            hwloc->topo, orig_cpuset, HWLOC_OBJ_CORE, i
+        );
+        hwloc_cpuset_t core_cpuset = hwloc_bitmap_dup(obj->cpuset);
+        hwloc_bitmap_singlify(core_cpuset);
+        hwloc_bitmap_or(noht_cpuset, noht_cpuset, core_cpuset);
+        hwloc_bitmap_free(core_cpuset);
+    }
+    // Now modify the underlying topology's cpuset to remove the hyper-threads.
+    hwloc_topology_restrict(hwloc->topo, noht_cpuset, 0);
+
+    hwloc_bitmap_free(noht_cpuset);
+    hwloc_bitmap_free(orig_cpuset);
     return QUO_SUCCESS;
 }
 
@@ -403,6 +437,13 @@ topo_load(quo_hwloc_t *hwloc)
         QUO_ERR_MSGRC("hwloc_topology_load", qrc);
         goto out;
     }
+
+    if (hwloc->flags & QUO_CREATE_NO_MT) {
+        qrc = topo_disable_ht(hwloc);
+        if (QUO_SUCCESS != qrc) {
+            QUO_ERR_MSGRC("topo_disable_ht", qrc);
+        }
+    }
 out:
     return qrc;
 }
@@ -410,7 +451,8 @@ out:
 /* ////////////////////////////////////////////////////////////////////////// */
 int
 quo_hwloc_init(quo_hwloc_t *hwloc,
-               quo_mpi_t *mpi)
+               quo_mpi_t *mpi,
+               QUO_create_flags_t flags)
 {
     int qrc = QUO_SUCCESS;
     int rc = 0;
@@ -419,6 +461,10 @@ quo_hwloc_init(quo_hwloc_t *hwloc,
     char *sm_seg_path = NULL;
 
     if (!hwloc) return QUO_ERR_INVLD_ARG;
+
+    // Set flags as early as possible.
+    hwloc->flags = flags;
+
     /* Get node communicator so we can chat with our friends. */
     if (QUO_SUCCESS != (qrc = quo_mpi_get_node_comm(mpi, &node_comm))) {
         QUO_ERR_MSGRC("quo_mpi_get_node_comm", qrc);

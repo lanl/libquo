@@ -1,5 +1,5 @@
 !
-! Copyright (c) 2013-2019 Triad National Security, LLC
+! Copyright (c) 2013-2024 Triad National Security, LLC
 !                         All rights reserved.
 !
 ! This file is part of the libquo project. See the LICENSE file at the
@@ -24,6 +24,7 @@ program quofort
     integer(c_int) ver, subver
     integer(c_int) nres, qid
     integer(c_int) cwrank
+    !integer(c_int) create_flags
     integer(c_int), allocatable, dimension(:) :: sock_qids
     type(c_ptr) quoc
     integer machine_comm
@@ -106,6 +107,14 @@ program quofort
 
     call mpi_comm_free(machine_comm, info)
 
+    call quo_free(quoc, info)
+
+    ! Test bit ops
+    !create_flags = ior(2, QUO_CREATE_NO_MT)
+    call quo_create_with_flags(quoc, MPI_COMM_WORLD, QUO_CREATE_NO_MT, info)
+    if (info .ne. QUO_SUCCESS) then
+        error stop
+    end if
     call quo_free(quoc, info)
 
     call mpi_finalize(info)
