@@ -27,6 +27,19 @@ extern "C" {
 /** Convenience definition (in case you need this). */
 #define LIBQUO 1
 
+/**
+ * New in v1.4.0. Prior versions didn't have this defined, since we neglected to
+ * version our API in this way.
+ */
+#define QUO_HAS_API_VERSIONING 1
+
+/**
+ * This number is updated to (X<<16)+(Y<<8)+Z when a release X.Y.Z modifies the
+ * API. This is new in v1.4.0, since we neglected to version our API in this
+ * way.
+ */
+#define QUO_API_VERSION 0x00010400
+
 /** Opaque QUO context. */
 struct QUO_t;
 /** Convenience typedef. */
