@@ -1,0 +1,30 @@
+on:
+  workflow_call:
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      max-parallel: 2
+      fail-fast: true
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Dependencies
+      run: |
+        sudo apt update
+        sudo apt install autoconf libtool libmpich-dev
+
+    - name: Build Code
+      run: |
+        ./autogen && \
+        ./configure CFLAGS="-Wall -Wextra -pedantic" CC=mpicc FC=mpifort && \
+        make -j
+
+    - name: Run Tests
+      run: make check
+
+    - name: Test Packaging
+      run: make -j distcheck CC=mpicc FC=mpifort

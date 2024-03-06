@@ -1,0 +1,14 @@
+name: QA
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  Style:
+    uses: ./.github/workflows/check-whitespace.yml
+  Substance:
+    uses: ./.github/workflows/build.yml
+    needs: Style
