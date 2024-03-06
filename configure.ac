@@ -9,7 +9,7 @@
 AC_PREREQ([2.71])
 
 AC_INIT([libquo],
-        [1.4.0-devel],
+        [1.4.1-devel],
         [samuel@lanl.gov],
         [libquo],
         [https://lanl.github.io/libquo])
