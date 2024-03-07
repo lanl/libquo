@@ -177,6 +177,8 @@ enable_cuda=no
 enable_nvml=no
 enable_pci=no
 enable_libudev=no
+enable_rocm=no
+enable_rsmi=no
 
 HWLOC_SET_SYMBOL_PREFIX(quo_internal_)
 
