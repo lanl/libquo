@@ -107,6 +107,12 @@ do {                                                                           \
     }                                                                          \
 } while (0)
 
+#define QUO_DEBUG_PRINT(...)                                                   \
+do {                                                                           \
+    printf(__VA_ARGS__);                                                       \
+    fflush(stdout);                                                            \
+} while (0)
+
 /* ////////////////////////////////////////////////////////////////////////// */
 /* Forward declarations. */
 struct quo_hwloc_t;

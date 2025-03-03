@@ -127,6 +127,7 @@ QUO_create_with_flags(QUO_context *q,
         QUO_ERR_MSGRC("quo_mpi_init", rc);
         goto out;
     }
+    setbuf(stdout, NULL);
     if (QUO_SUCCESS != (rc = quo_hwloc_init(tq->hwloc, tq->mpi, flags))) {
         QUO_ERR_MSGRC("quo_hwloc_init", rc);
         goto out;
@@ -141,6 +142,9 @@ QUO_create_with_flags(QUO_context *q,
 out:
     if (QUO_SUCCESS != rc) *q = NULL;
     else *q = tq;
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p, flags=%d)\n", getpid(), rc, __func__, (void *)*q, (int)flags
+    );
     return rc;
 }
 
@@ -158,6 +162,10 @@ QUO_free(QUO_t *q)
     if (q->mpi) {
         if (QUO_SUCCESS != quo_mpi_destruct(q->mpi)) nerrs++;
     }
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        nerrs == 0 ? QUO_SUCCESS : QUO_ERR, __func__, (void *)q
+    );
     free(q);
     return nerrs == 0 ? QUO_SUCCESS : QUO_ERR;
 }
@@ -173,11 +181,16 @@ QUO_nobjs_in_type_by_type(QUO_t *q,
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_get_nobjs_in_type_by_type(q->hwloc,
+    int rc = quo_hwloc_get_nobjs_in_type_by_type(q->hwloc,
                                                in_type,
                                                (unsigned)in_type_index,
                                                type,
                                                out_result);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -190,9 +203,14 @@ QUO_cpuset_in_type(QUO_t *q,
     if (!q || !out_result) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_is_in_cpuset_by_type_id(q->hwloc, type, q->pid,
+    int rc = quo_hwloc_is_in_cpuset_by_type_id(q->hwloc, type, q->pid,
                                              (unsigned)in_type_index,
                                              out_result);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -248,6 +266,10 @@ out:
     if (QUO_SUCCESS != rc) {
         if (smpranks) free(smpranks);
     }
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
     return rc;
 }
 
@@ -260,7 +282,12 @@ QUO_nobjs_by_type(QUO_t *q,
     if (!q || !out_nobjs) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_get_nobjs_by_type(q->hwloc, target_type, out_nobjs);
+    int rc = quo_hwloc_get_nobjs_by_type(q->hwloc, target_type, out_nobjs);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -271,9 +298,14 @@ QUO_nnumanodes(QUO_t *q,
     if (!q || !out_nnumanodes) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_get_nobjs_by_type(q->hwloc,
+    int rc = quo_hwloc_get_nobjs_by_type(q->hwloc,
                                        QUO_OBJ_NUMANODE,
                                        out_nnumanodes);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -284,7 +316,12 @@ QUO_nsockets(QUO_t *q,
     if (!q || !out_nsockets) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_SOCKET, out_nsockets);
+    int rc = quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_SOCKET, out_nsockets);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -295,7 +332,12 @@ QUO_ncores(QUO_t *q,
     if (!q || !out_ncores) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_CORE, out_ncores);
+    int rc = quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_CORE, out_ncores);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -306,7 +348,12 @@ QUO_npus(QUO_t *q,
     if (!q || !out_npus) return QUO_ERR_INVLD_ARG;
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_PU, out_npus);
+    int rc = quo_hwloc_get_nobjs_by_type(q->hwloc, QUO_OBJ_PU, out_npus);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -324,6 +371,10 @@ QUO_bound(QUO_t *q,
         return rc;
     }
     *bound = (int)bound_b;
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
     return QUO_SUCCESS;
 }
 
@@ -334,7 +385,12 @@ QUO_stringify_cbind(QUO_t *q,
 {
     if (!q || !cbind_str) return QUO_ERR_INVLD_ARG;
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_stringify_cbind(q->hwloc, q->pid, cbind_str);
+    int rc = quo_hwloc_stringify_cbind(q->hwloc, q->pid, cbind_str);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -344,7 +400,12 @@ QUO_nnodes(QUO_t *q,
 {
     if (!q || !out_nodes) return QUO_ERR_INVLD_ARG;
     QUO_NO_INIT_ACTION(q);
-    return quo_mpi_nnodes(q->mpi, out_nodes);
+    int rc = quo_mpi_nnodes(q->mpi, out_nodes);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -354,7 +415,12 @@ QUO_nqids(QUO_t *q,
 {
     if (!q || !out_nqids) return QUO_ERR_INVLD_ARG;
     QUO_NO_INIT_ACTION(q);
-    return quo_mpi_nnoderanks(q->mpi, out_nqids);
+    int rc = quo_mpi_nnoderanks(q->mpi, out_nqids);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -364,7 +430,12 @@ QUO_id(QUO_t *q,
 {
     if (!q || !out_qid) return QUO_ERR_INVLD_ARG;
     QUO_NO_INIT_ACTION(q);
-    return quo_mpi_noderank(q->mpi, out_qid);
+    int rc = quo_mpi_noderank(q->mpi, out_qid);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -376,7 +447,12 @@ QUO_bind_push(QUO_t *q,
 {
     if (!q) return QUO_ERR_INVLD_ARG;
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_bind_push(q->hwloc, policy, type, (unsigned)obj_index);
+    int rc = quo_hwloc_bind_push(q->hwloc, policy, type, (unsigned)obj_index);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -385,7 +461,12 @@ QUO_bind_pop(QUO_t *q)
 {
     if (!q) return QUO_ERR_INVLD_ARG;
     QUO_NO_INIT_ACTION(q);
-    return quo_hwloc_bind_pop(q->hwloc);
+    int rc = quo_hwloc_bind_pop(q->hwloc);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -394,7 +475,12 @@ QUO_barrier(QUO_t *q)
 {
     if (!q) return QUO_ERR_INVLD_ARG;
     QUO_NO_INIT_ACTION(q);
-    return quo_mpi_sm_barrier(q->mpi);
+    int rc = quo_mpi_sm_barrier(q->mpi);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -407,5 +493,10 @@ QUO_get_mpi_comm_by_type(QUO_t *q,
     /* make sure we are initialized before we continue */
     QUO_NO_INIT_ACTION(q);
 
-    return quo_mpi_get_comm_by_type(q->mpi, target_type, out_comm);
+    int rc = quo_mpi_get_comm_by_type(q->mpi, target_type, out_comm);
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p)\n", getpid(),
+        rc, __func__, (void *)q
+    );
+    return rc;
 }

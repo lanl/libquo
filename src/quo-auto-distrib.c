@@ -32,6 +32,9 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 /**
  * \note Caller is responsible for freeing returned resources.
@@ -354,6 +357,10 @@ out:
     }
     if (nranks_in_res) free(nranks_in_res);
     if (k_set_intersection) free(k_set_intersection);
+
+    QUO_DEBUG_PRINT(
+        "[%d] %d=%s(ctx=%p, selected=%d)\n", getpid(), rc, __func__, (void *)q, *out_selected
+    );
 
     return rc;
 }
