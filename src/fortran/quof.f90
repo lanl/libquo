@@ -1,5 +1,5 @@
 !
-! Copyright (c) 2013-2024 Triad National Security, LLC
+! Copyright (c) 2013-2026 Triad National Security, LLC
 !                         All rights reserved.
 !
 ! This file is part of the libquo project. See the LICENSE file at the
@@ -67,8 +67,10 @@ module quo
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       ! context create flags
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      integer(c_int) QUO_CREATE_NO_FLAGS
       integer(c_int) QUO_CREATE_NO_MT
 
+      parameter (QUO_CREATE_NO_FLAGS = 0)
       parameter (QUO_CREATE_NO_MT = 1)
 
 interface

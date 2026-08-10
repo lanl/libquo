@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 Triad National Security, LLC
+ * Copyright (c) 2013-2026 Triad National Security, LLC
  *                         All rights reserved.
  *
  * This file is part of the libquo project. See the LICENSE file at the
@@ -251,6 +251,12 @@ QUO_auto_distrib(QUO_t *q,
     }
     QUO_NO_INIT_ACTION(q);
     *out_selected = 0; /* set default */
+    /* First barrier to avoid race conditions between this call and others
+     * (e.g., QUO_bind_push() or QUO_bind_pop()) that change binding. */
+    if (QUO_SUCCESS != (rc = quo_mpi_sm_barrier(q->mpi))) {
+        QUO_ERR_MSGRC("quo_mpi_sm_barrier", rc);
+        return rc;
+    }
     /* get total number of processes that share a node with me (includes me). */
     nsmp_ranks = q->nqid;
     /* what is my node rank? */
@@ -267,8 +273,8 @@ QUO_auto_distrib(QUO_t *q,
     if (QUO_SUCCESS != (rc = get_qids_in_target_type(q, distrib_over_this, nres,
                                                      &nranks_in_res,
                                                      &rank_ids_in_res))) {
-            QUO_ERR_MSGRC("get_qids_in_target_type", rc);
-            goto out;
+        QUO_ERR_MSGRC("get_qids_in_target_type", rc);
+        goto out;
     }
     /* calculate the k set intersection of ranks on resources. the returned
      * array will be the set of ranks that currently share a particular

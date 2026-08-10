@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Triad National Security, LLC
+ * Copyright (c) 2013-2026 Triad National Security, LLC
  *                         All rights reserved.
  *
  * This file is part of the libquo project. See the LICENSE file at the
@@ -38,7 +38,7 @@ extern "C" {
  * API. This is new in v1.4.0, since we neglected to version our API in this
  * way.
  */
-#define QUO_API_VERSION 0x00010400
+#define QUO_API_VERSION 0x00010401
 
 /** Opaque QUO context. */
 struct QUO_t;
@@ -105,8 +105,10 @@ typedef enum {
 
 /** Context-specific flags that influence how QUO behaves. */
 typedef enum {
+    /** No flags. If provided, behaves like QUO_create(). */
+    QUO_CREATE_NO_FLAGS = 0,
     /** Software disable multi-threading (hyper-threading). */
-    QUO_CREATE_NO_MT = 1
+    QUO_CREATE_NO_MT
 } QUO_create_flags_t;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -561,7 +563,7 @@ int
 QUO_barrier(QUO_context q);
 
 /**
- * Routine that helps evenly distribute processes across hardware
+ * Collective routine that helps evenly distribute processes across hardware
  * resources.  The total number of processes assigned to a particular resource
  * will not exceed max_qids_per_res_type.
  *
