@@ -115,6 +115,8 @@ program quofort
     if (info .ne. QUO_SUCCESS) then
         error stop
     end if
+    call quo_npus(quoc, nres, info)
+    print *, 'npus (no mt)', nres
     call quo_free(quoc, info)
 
     call mpi_finalize(info)
