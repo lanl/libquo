@@ -237,7 +237,7 @@ ALIASES                =
 # A mapping has the form "name=value". For example adding "class=itcl::class"
 # will allow you to use the command class in the itcl::class meaning.
 
-TCL_SUBST              =
+# TCL_SUBST              =
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For
@@ -978,7 +978,7 @@ ALPHABETICAL_INDEX     = YES
 # Minimum value: 1, maximum value: 20, default value: 5.
 # This tag requires that the tag ALPHABETICAL_INDEX is set to YES.
 
-COLS_IN_ALPHA_INDEX    = 5
+# COLS_IN_ALPHA_INDEX    = 5
 
 # In case all classes in a project start with a common prefix, all classes will
 # be put under the same header in the alphabetical index. The IGNORE_PREFIX tag
@@ -1101,7 +1101,7 @@ HTML_COLORSTYLE_GAMMA  = 80
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_TIMESTAMP         = NO
+# HTML_TIMESTAMP         = NO
 
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML
 # documentation will contain sections that can be hidden and shown after the
@@ -1369,7 +1369,7 @@ FORMULA_FONTSIZE       = 10
 # The default value is: YES.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-FORMULA_TRANSPARENT    = YES
+# FORMULA_TRANSPARENT    = YES
 
 # Enable the USE_MATHJAX option to render LaTeX formulas using MathJax (see
 # http://www.mathjax.org) which uses client side Javascript for the rendering
@@ -1567,7 +1567,7 @@ LATEX_HIDE_INDICES     = NO
 # The default value is: NO.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-LATEX_SOURCE_CODE      = NO
+# LATEX_SOURCE_CODE      = NO
 
 # The LATEX_BIB_STYLE tag can be used to specify the style to use for the
 # bibliography, e.g. plainnat, or ieeetr. See
@@ -1868,7 +1868,7 @@ EXTERNAL_GROUPS        = YES
 # interpreter (i.e. the result of 'which perl').
 # The default file (with absolute path) is: /usr/bin/perl.
 
-PERL_PATH              = /usr/bin/perl
+# PERL_PATH              = /usr/bin/perl
 
 #---------------------------------------------------------------------------
 # Configuration options related to the dot tool
@@ -1881,7 +1881,7 @@ PERL_PATH              = /usr/bin/perl
 # powerful graphs.
 # The default value is: YES.
 
-CLASS_DIAGRAMS         = YES
+# CLASS_DIAGRAMS         = YES
 
 # You can define message sequence charts within doxygen comments using the \msc
 # command. Doxygen will then run the mscgen tool (see:
@@ -1890,7 +1890,7 @@ CLASS_DIAGRAMS         = YES
 # the mscgen tool resides. If left empty the tool is assumed to be found in the
 # default search path.
 
-MSCGEN_PATH            =
+# MSCGEN_PATH            =
 
 # If set to YES the inheritance and collaboration graphs will hide inheritance
 # and usage relations if the target is undocumented or is not a class.
@@ -1925,14 +1925,14 @@ DOT_NUM_THREADS        = 0
 # The default value is: Helvetica.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_FONTNAME           = Helvetica
+# DOT_FONTNAME           = Helvetica
 
 # The DOT_FONTSIZE tag can be used to set the size (in points) of the font of
 # dot graphs.
 # Minimum value: 4, maximum value: 24, default value: 10.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_FONTSIZE           = 10
+# DOT_FONTSIZE           = 10
 
 # By default doxygen will tell dot to use the default font as specified with
 # DOT_FONTNAME. If you specify a different font using DOT_FONTNAME you can set
@@ -2119,7 +2119,7 @@ MAX_DOT_GRAPH_DEPTH    = 0
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_TRANSPARENT        = NO
+# DOT_TRANSPARENT        = NO
 
 # Set the DOT_MULTI_TARGETS tag to YES to allow dot to generate multiple output
 # files in one run (i.e. multiple -o and -T options on the command line). This
