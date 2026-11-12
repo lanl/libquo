@@ -108,7 +108,7 @@ int
 QUO_create(QUO_t **q,
            MPI_Comm comm)
 {
-    return QUO_create_with_flags(q, comm, (QUO_create_flags_t)0);
+    return QUO_create_with_flags(q, comm, QUO_CREATE_NO_FLAGS);
 }
 
 int
